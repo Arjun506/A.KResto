@@ -1,0 +1,28 @@
+{
+  "name": "a3-resto-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "npm@10.8.2",
+  "workspaces": [
+    "a3-resto-saas/apps/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "start": "turbo run start --parallel"
+  },
+  "devDependencies": {
+    "turbo": "^2.9.14"
+  },
+  "dependencies": {
+    "axios": "^1.16.1",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.40.0",
+    "lucide-react": "^1.16.0",
+    "next-themes": "^0.4.6",
+    "react-hot-toast": "^2.6.0",
+    "recharts": "^3.8.1",
+    "tailwind-merge": "^3.6.0",
+    "zustand": "^5.0.13"
+  }
+}
