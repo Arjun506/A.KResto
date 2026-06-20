@@ -39,10 +39,12 @@ export class ReservationsService {
     dto: CreateReservationDto,
   ) {
     const restaurantId = this.restaurantId(user);
+    const duration = dto.durationMinutes ?? 60;
     await this.assertTableAvailable(
       user,
       dto.tableId,
       new Date(dto.reservationAt),
+      duration,
     );
 
     return this.prisma.reservations.create({
@@ -53,6 +55,7 @@ export class ReservationsService {
         customerPhone: dto.customerPhone,
         guestCount: dto.guestCount,
         reservationAt: new Date(dto.reservationAt),
+        durationMinutes: duration,
         notes: dto.notes,
         userId: user?.id,
       },
@@ -87,14 +90,16 @@ export class ReservationsService {
     const reservationAt = dto.reservationAt
       ? new Date(dto.reservationAt)
       : existing.reservationAt;
+    const duration = dto.durationMinutes ?? existing.durationMinutes;
 
-    await this.assertTableAvailable(user, tableId, reservationAt, id);
+    await this.assertTableAvailable(user, tableId, reservationAt, duration, id);
 
     return this.prisma.reservations.update({
       where: { id },
       data: {
         ...dto,
         reservationAt,
+        durationMinutes: duration,
       },
       include: { tables: true },
     });
@@ -124,7 +129,8 @@ export class ReservationsService {
 
   async tableAvailability(user: JwtUser | undefined, reservationAt: string) {
     const restaurantId = this.restaurantId(user);
-    const target = new Date(reservationAt);
+    const start = new Date(reservationAt);
+    const end = new Date(start.getTime() + 60 * 60 * 1000); // Assume 1 hour check
     const [tables, reservations] = await Promise.all([
       this.prisma.tables.findMany({
         where: { restaurantId, isActive: true },
@@ -133,14 +139,22 @@ export class ReservationsService {
       this.prisma.reservations.findMany({
         where: {
           restaurantId,
-          reservationAt: this.reservationWindow(target),
           status: { in: ['PENDING', 'CONFIRMED', 'SEATED'] },
         },
-        select: { tableId: true },
       }),
     ]);
 
-    const reservedTableIds = new Set(reservations.map((r) => r.tableId));
+    const reservedTableIds = new Set(
+      reservations
+        .filter((r) => {
+          const rStart = new Date(r.reservationAt);
+          const rDuration = r.durationMinutes ?? 60;
+          const rEnd = new Date(rStart.getTime() + rDuration * 60 * 1000);
+          return start < rEnd && end > rStart;
+        })
+        .map((r) => r.tableId),
+    );
+
     return tables.map((table) => ({
       ...table,
       isAvailable: !reservedTableIds.has(table.id),
@@ -151,6 +165,7 @@ export class ReservationsService {
     user: JwtUser | undefined,
     tableId: string,
     reservationAt: Date,
+    durationMinutes: number = 60,
     excludeReservationId?: string,
   ) {
     const restaurantId = this.restaurantId(user);
@@ -160,24 +175,27 @@ export class ReservationsService {
     if (!table)
       throw new BadRequestException('Table is invalid for this restaurant');
 
-    const existing = await this.prisma.reservations.findFirst({
+    const start = new Date(reservationAt);
+    const end = new Date(start.getTime() + durationMinutes * 60 * 1000);
+
+    const existing = await this.prisma.reservations.findMany({
       where: {
         tableId,
         restaurantId,
         id: excludeReservationId ? { not: excludeReservationId } : undefined,
-        reservationAt: this.reservationWindow(reservationAt),
         status: { in: ['PENDING', 'CONFIRMED', 'SEATED'] },
       },
     });
 
-    if (existing) {
-      throw new BadRequestException('Table is not available for this time');
-    }
-  }
+    const isOverlap = existing.some((r) => {
+      const rStart = new Date(r.reservationAt);
+      const rDuration = r.durationMinutes ?? 60;
+      const rEnd = new Date(rStart.getTime() + rDuration * 60 * 1000);
+      return start < rEnd && end > rStart;
+    });
 
-  private reservationWindow(reservationAt: Date) {
-    const from = new Date(reservationAt.getTime() - 90 * 60 * 1000);
-    const to = new Date(reservationAt.getTime() + 90 * 60 * 1000);
-    return { gte: from, lte: to };
+    if (isOverlap) {
+      throw new BadRequestException('Table is not available for this time range');
+    }
   }
 }

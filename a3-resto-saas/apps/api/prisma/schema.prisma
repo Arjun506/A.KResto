@@ -298,6 +298,7 @@ model reservations {
     customerPhone String?
     guestCount    Int
     reservationAt DateTime
+    durationMinutes Int            @default(60)
     status        ReservationStatus @default(PENDING)
     notes         String?
     userId        String?

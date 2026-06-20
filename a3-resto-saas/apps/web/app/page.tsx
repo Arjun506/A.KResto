@@ -105,7 +105,7 @@ export default function Home() {
             </div>
 
             <Link
-              href="/super-admin"
+              href="/super-admin/login"
               className="mt-8 w-full bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs py-3.5 px-4 rounded-2xl flex items-center justify-center gap-2 transition active:scale-[0.98] shadow-lg shadow-rose-500/10"
             >
               Launch Platform Hub
@@ -148,7 +148,7 @@ export default function Home() {
             </div>
 
             <Link
-              href="/dashboard"
+              href="/restaurant-login"
               className="mt-8 w-full bg-white hover:bg-zinc-100 text-black font-bold text-xs py-3.5 px-4 rounded-2xl flex items-center justify-center gap-2 transition active:scale-[0.98] shadow-lg shadow-white/5"
             >
               Open Operations ERP

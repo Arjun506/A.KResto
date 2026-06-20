@@ -144,11 +144,19 @@ export default function MenuPage() {
   // Food library tab state
   const [libraryTab, setLibraryTab] = useState<'veg' | 'nonveg'>('veg');
 
+  // Menu timing filter state
+  const [selectedTiming, setSelectedTiming] = useState<'all' | 'breakfast' | 'lunch' | 'dinner'>('all');
+  
+  // Timing mapping state for mock persistence
+  const [itemTimings, setItemTimings] = useState<Record<string, 'breakfast' | 'lunch' | 'dinner' | 'all-day'>>({});
+  // Popular item highlighters
+  const [popularItems, setPopularItems] = useState<Record<string, boolean>>({});
+
   // Layout customizer state
   const [selectedLayout, setSelectedLayout] = useState('design-1');
-  const [headerColor, setHeaderColor] = useState('#000000');
-  const [buttonColor, setButtonColor] = useState('#ef4444');
-  const [borderColor, setBorderColor] = useState('#e2e8f0');
+  const [headerColor, setHeaderColor] = useState('#1E1B4B');
+  const [buttonColor, setButtonColor] = useState('#4F46E5');
+  const [borderColor, setBorderColor] = useState('#E8EAF6');
   const [lightMode, setLightMode] = useState(true);
 
   const activeCategories = useMemo(
@@ -178,9 +186,9 @@ export default function MenuPage() {
 
     // Load customizer presets
     const savedLayout = localStorage.getItem('custom-layout') || 'design-1';
-    const savedHeader = localStorage.getItem('custom-header') || '#000000';
-    const savedButton = localStorage.getItem('custom-button') || '#ef4444';
-    const savedBorder = localStorage.getItem('custom-border') || '#e2e8f0';
+    const savedHeader = localStorage.getItem('custom-header') || '#1E1B4B';
+    const savedButton = localStorage.getItem('custom-button') || '#4F46E5';
+    const savedBorder = localStorage.getItem('custom-border') || '#E8EAF6';
     const savedTheme = localStorage.getItem('custom-theme') !== 'dark';
 
     setSelectedLayout(savedLayout);
@@ -188,6 +196,17 @@ export default function MenuPage() {
     setButtonColor(savedButton);
     setBorderColor(savedBorder);
     setLightMode(savedTheme);
+
+    // Initial timings & popular seed
+    setPopularItems({
+      '1': true,
+      '3': true
+    });
+    setItemTimings({
+      '1': 'lunch',
+      '2': 'breakfast',
+      '3': 'dinner'
+    });
   }, []);
 
   const updateField = (key: keyof MenuForm, value: string) => {
@@ -204,7 +223,7 @@ export default function MenuPage() {
   const handleCreateMenuItem = async () => {
     if (!form.name || !form.price) return;
 
-    await createMenuItem({
+    const createdItem = await createMenuItem({
       name: form.name,
       description: form.description || undefined,
       price: Number(form.price),
@@ -228,6 +247,11 @@ export default function MenuPage() {
         : undefined,
     });
 
+    // Mock timings and popular flags
+    if (createdItem && createdItem.id) {
+      setItemTimings(prev => ({ ...prev, [createdItem.id]: 'all-day' }));
+    }
+
     setForm(emptyForm);
     await loadMenu();
   };
@@ -242,24 +266,27 @@ export default function MenuPage() {
   };
 
   const handleQuickAdd = async (libItem: typeof vegLibrary[0]) => {
-    // Find category matching libItem.category name (case-insensitive)
     let matchedCat = categories.find(
       (c) => c.name.toLowerCase() === libItem.category.toLowerCase()
     );
     
-    // If no category matched, and categories exist, use the first available category
     if (!matchedCat && categories.length > 0) {
       matchedCat = categories[0];
     }
     
     try {
-      await createMenuItem({
+      const created = await createMenuItem({
         name: libItem.name,
         description: libItem.description,
         price: libItem.price,
         categoryId: matchedCat ? matchedCat.id : undefined,
         imageUrl: libItem.imageUrl,
       });
+
+      if (created && created.id) {
+        setItemTimings(prev => ({ ...prev, [created.id]: 'all-day' }));
+      }
+
       alert(`🎉 Added "${libItem.name}" to your restaurant menu!`);
       await loadMenu();
     } catch (error) {
@@ -268,54 +295,99 @@ export default function MenuPage() {
     }
   };
 
-  if (loading) return <div className="text-white p-6">Loading menu...</div>;
+  // Filter items by timing state
+  const filteredItems = useMemo(() => {
+    if (selectedTiming === 'all') return items;
+    return items.filter(item => {
+      const timing = itemTimings[item.id] || 'all-day';
+      return timing === 'all-day' || timing === selectedTiming;
+    });
+  }, [items, selectedTiming, itemTimings]);
+
+  const togglePopular = (id: string) => {
+    setPopularItems(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const setItemTimingMock = (id: string, timing: 'breakfast' | 'lunch' | 'dinner' | 'all-day') => {
+    setItemTimings(prev => ({ ...prev, [id]: timing }));
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#4F46E5]"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-8 text-white p-6 bg-slate-900 min-h-screen">
+    <div className="space-y-6 text-slate-900 bg-[#F8F9FF] p-1">
       {/* HEADER */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-4xl font-extrabold tracking-tight">Menu & Design Customizer</h1>
-          <p className="mt-2 text-zinc-400">
-            Configure restaurant items, categories, and customize the layout styling for your customer ordering screen.
+          <h1 className="text-3xl font-black tracking-tight text-slate-900">Menu & Design Settings</h1>
+          <p className="text-sm text-slate-500 font-bold mt-1">
+            Manage your food catalog, customize timing schedules, and style the customer ordering interface.
           </p>
         </div>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
+      {/* TIMINGS BAR */}
+      <div className="flex bg-white p-1.5 rounded-2xl border border-slate-100 shadow-sm w-fit gap-1">
+        {[
+          { code: 'all', label: 'All-Day Menu' },
+          { code: 'breakfast', label: '🍳 Breakfast Specials' },
+          { code: 'lunch', label: '🍱 Lunch Menu' },
+          { code: 'dinner', label: '🍲 Dinner Menu' }
+        ].map(timing => (
+          <button
+            key={timing.code}
+            onClick={() => setSelectedTiming(timing.code as any)}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              selectedTiming === timing.code
+                ? 'bg-[#4F46E5]/10 text-[#4F46E5]'
+                : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+            }`}
+          >
+            {timing.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
         {/* LEFT COMPONENT LAYER */}
-        <div className="space-y-8">
+        <div className="space-y-6">
           
-          {/* CATEGORIES & FOOD ITEMS */}
+          {/* CATEGORIES & FOOD ITEMS CREATOR */}
           <div className="grid gap-6 md:grid-cols-2">
             
             {/* CATEGORIES */}
-            <div className="rounded-3xl bg-slate-800/60 border border-slate-700 p-6 shadow-xl space-y-4">
-              <h2 className="text-xl font-bold">Categories</h2>
+            <div className="rounded-2xl bg-white border border-slate-100 p-5 shadow-sm space-y-4">
+              <h2 className="text-sm font-black text-slate-800 uppercase tracking-wider">Category Manager</h2>
               <div className="flex gap-2">
                 <input
                   value={categoryName}
                   onChange={(event) => setCategoryName(event.target.value)}
-                  placeholder="Category name"
-                  className="w-full bg-slate-900 border border-slate-700 px-4 py-2.5 rounded-2xl outline-none text-white text-sm focus:ring-1 focus:ring-rose-500"
+                  placeholder="Category Name (e.g. Starters)"
+                  className="w-full bg-slate-50 border border-slate-200 px-3 py-2 rounded-xl outline-none text-xs font-bold focus:ring-2 focus:ring-[#4F46E5] text-slate-800"
                 />
                 <button
                   onClick={handleCreateCategory}
-                  className="bg-rose-500 hover:bg-rose-600 px-4 py-2.5 rounded-2xl font-bold text-sm transition active:scale-95 flex items-center gap-1"
+                  className="bg-[#4F46E5] hover:bg-[#4338CA] text-white px-4 py-2 rounded-xl font-bold text-xs transition active:scale-95 flex items-center gap-1 shadow-md shadow-indigo-600/10 whitespace-nowrap"
                 >
-                  <Plus size={16} /> Add
+                  <Plus size={14} /> Add
                 </button>
               </div>
 
-              <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+              <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
                 {categories.map((category) => (
                   <div
                     key={category.id}
-                    className="flex items-center justify-between rounded-xl bg-slate-900/40 border border-slate-800 px-4 py-3 text-sm"
+                    className="flex items-center justify-between rounded-xl bg-slate-50 border border-slate-100 px-3.5 py-2.5 text-xs font-bold text-slate-700"
                   >
-                    <span className="font-medium text-zinc-300">{category.name}</span>
-                    <span className="text-xs text-zinc-500 bg-slate-800 px-2.5 py-0.5 rounded-full">
-                      #{category.sortOrder}
+                    <span>{category.name}</span>
+                    <span className="text-[10px] text-slate-400 bg-white border border-slate-200 px-2 py-0.5 rounded-full">
+                      Sort #{category.sortOrder}
                     </span>
                   </div>
                 ))}
@@ -323,28 +395,28 @@ export default function MenuPage() {
             </div>
 
             {/* CREATE FOOD */}
-            <div className="rounded-3xl bg-slate-800/60 border border-slate-700 p-6 shadow-xl space-y-4">
-              <h2 className="text-xl font-bold">Create Food Item</h2>
-              <div className="grid gap-3 text-xs">
+            <div className="rounded-2xl bg-white border border-slate-100 p-5 shadow-sm space-y-4">
+              <h2 className="text-sm font-black text-slate-800 uppercase tracking-wider">Create Food Item</h2>
+              <div className="grid gap-2 text-xs">
                 <input
                   value={form.name}
                   onChange={(event) => updateField('name', event.target.value)}
-                  placeholder="Food name"
-                  className="w-full bg-slate-900 border border-slate-700 px-4 py-3 rounded-2xl outline-none text-white text-sm"
+                  placeholder="Item Name"
+                  className="w-full bg-slate-50 border border-slate-200 px-3 py-2.5 rounded-xl outline-none text-slate-800 font-bold"
                 />
                 <input
                   value={form.price}
                   onChange={(event) => updateField('price', event.target.value)}
                   placeholder="Price (INR)"
                   type="number"
-                  className="w-full bg-slate-900 border border-slate-700 px-4 py-3 rounded-2xl outline-none text-white text-sm"
+                  className="w-full bg-slate-50 border border-slate-200 px-3 py-2.5 rounded-xl outline-none text-slate-800 font-bold"
                 />
                 <select
                   value={form.categoryId}
                   onChange={(event) => updateField('categoryId', event.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 px-4 py-3 rounded-2xl outline-none text-white text-sm"
+                  className="w-full bg-slate-50 border border-slate-200 px-3 py-2.5 rounded-xl outline-none text-slate-700 font-bold"
                 >
-                  <option value="">No category</option>
+                  <option value="">No Category</option>
                   {activeCategories.map((category) => (
                     <option key={category.id} value={category.id}>
                       {category.name}
@@ -354,14 +426,14 @@ export default function MenuPage() {
                 <input
                   value={form.description}
                   onChange={(event) => updateField('description', event.target.value)}
-                  placeholder="Short food description"
-                  className="w-full bg-slate-900 border border-slate-700 px-4 py-3 rounded-2xl outline-none text-white text-sm"
+                  placeholder="Brief description of ingredients..."
+                  className="w-full bg-slate-50 border border-slate-200 px-3 py-2.5 rounded-xl outline-none text-slate-855 font-bold"
                 />
               </div>
 
               <button
                 onClick={handleCreateMenuItem}
-                className="w-full bg-rose-500 hover:bg-rose-600 py-3 rounded-2xl font-bold text-sm active:scale-95 transition-transform"
+                className="w-full bg-[#4F46E5] hover:bg-[#4338CA] text-white py-2.5 rounded-xl text-xs font-bold active:scale-95 transition-all shadow-md shadow-indigo-600/10"
               >
                 Save Menu Item
               </button>
@@ -370,56 +442,56 @@ export default function MenuPage() {
           </div>
 
           {/* QUICK FOOD TEMPLATE GALLERY */}
-          <div className="rounded-3xl bg-slate-800/60 border border-slate-700 p-6 shadow-xl space-y-6">
+          <div className="rounded-2xl bg-white border border-slate-100 p-5 shadow-sm space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h2 className="text-xl font-bold">Food Templates Gallery</h2>
-                <p className="text-xs text-zinc-400 mt-1">Pre-configured veg and non-veg menu recipes. Adds food item with default price and picture.</p>
+                <h2 className="text-sm font-black text-slate-855 uppercase tracking-wider">Quick Import Library</h2>
+                <p className="text-[10px] text-slate-400 font-bold mt-0.5">Add ready-made culinary recipes directly to your active listings.</p>
               </div>
 
-              {/* TABS TACTIC */}
-              <div className="flex bg-slate-900 p-1 rounded-2xl border border-slate-800 w-fit">
+              {/* LIBRARY TABS */}
+              <div className="flex bg-slate-50 p-1 rounded-xl border border-slate-200 w-fit">
                 <button
                   onClick={() => setLibraryTab('veg')}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
-                    libraryTab === 'veg' ? 'bg-emerald-500/20 text-emerald-400' : 'text-zinc-400 hover:text-white'
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+                    libraryTab === 'veg' ? 'bg-[#10B981]/15 text-[#10B981]' : 'text-slate-500 hover:text-slate-800'
                   }`}
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                  Veg Recipes
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]"></span>
+                  Vegetarian
                 </button>
                 <button
                   onClick={() => setLibraryTab('nonveg')}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
-                    libraryTab === 'nonveg' ? 'bg-rose-500/20 text-rose-400' : 'text-zinc-400 hover:text-white'
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+                    libraryTab === 'nonveg' ? 'bg-[#EF4444]/15 text-[#EF4444]' : 'text-slate-500 hover:text-slate-800'
                   }`}
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
-                  Non-Veg Recipes
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#EF4444]"></span>
+                  Non-Veg
                 </button>
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
               {(libraryTab === 'veg' ? vegLibrary : nonVegLibrary).map((libItem) => (
-                <div key={libItem.name} className="bg-slate-900 border border-slate-850 rounded-2xl p-4 flex flex-col justify-between hover:border-slate-700 transition">
+                <div key={libItem.name} className="bg-slate-50 border border-slate-200 rounded-2xl p-3 flex flex-col justify-between hover:border-slate-300 transition duration-150">
                   <div>
                     <div 
-                      className="h-28 w-full rounded-xl bg-slate-800 bg-cover bg-center mb-3"
+                      className="h-24 w-full rounded-xl bg-slate-200 bg-cover bg-center mb-2"
                       style={{ backgroundImage: `url(${libItem.imageUrl})` }}
                     />
-                    <div className="flex justify-between items-start gap-2">
-                      <span className="font-extrabold text-sm text-zinc-200">{libItem.name}</span>
-                      <span className="font-black text-rose-400 text-xs whitespace-nowrap">₹{libItem.price}</span>
+                    <div className="flex justify-between items-start gap-1">
+                      <span className="font-extrabold text-xs text-slate-800 line-clamp-1">{libItem.name}</span>
+                      <span className="font-black text-[#4F46E5] text-xs whitespace-nowrap">₹{libItem.price}</span>
                     </div>
-                    <p className="text-[10px] text-zinc-400 mt-1.5 leading-relaxed">{libItem.description}</p>
+                    <p className="text-[9px] text-slate-500 mt-1 leading-normal line-clamp-2">{libItem.description}</p>
                   </div>
 
                   <button
                     onClick={() => void handleQuickAdd(libItem)}
-                    className="w-full mt-4 bg-slate-800 hover:bg-slate-750 text-white font-bold text-xs py-2 rounded-xl active:scale-95 transition-transform"
+                    className="w-full mt-3 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold text-[10px] py-1.5 rounded-xl active:scale-95 transition-all"
                   >
-                    + Add to Menu
+                    + Add to Catalog
                   </button>
                 </div>
               ))}
@@ -427,82 +499,125 @@ export default function MenuPage() {
           </div>
 
           {/* ACTIVE MENU GRID */}
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold">Active Menu Items</h2>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {items.map((item) => (
-                <div key={item.id} className="rounded-3xl bg-slate-800/40 border border-slate-800 p-5 shadow-lg flex flex-col justify-between">
-                  <div>
-                    <div
-                      className="mb-4 h-36 w-full rounded-2xl bg-cover bg-center"
-                      style={{ backgroundImage: `url(${getItemImageUrl(item)})` }}
-                    />
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <h3 className="font-extrabold text-lg">{item.name}</h3>
-                        <p className="text-xs text-zinc-500">{item.categories?.name}</p>
-                      </div>
-                      <span className="font-black text-rose-400">₹{item.price}</span>
-                    </div>
-                    <p className="mt-2 text-xs text-zinc-400 line-clamp-2">{item.description}</p>
-                  </div>
+          <div className="space-y-3">
+            <h2 className="text-sm font-black text-slate-805 uppercase tracking-wider">Active Catalog List ({filteredItems.length} items)</h2>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredItems.map((item) => {
+                const isPopular = popularItems[item.id] || false;
+                const timing = itemTimings[item.id] || 'all-day';
 
-                  <div className="mt-4 flex gap-2 pt-2">
-                    <button
-                      onClick={() =>
-                        void updateMenuAvailability(item.id, !item.isAvailable).then(loadMenu)
-                      }
-                      className={`flex-1 py-2.5 rounded-xl font-bold text-xs ${
-                        item.isAvailable
-                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                          : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
-                      }`}
-                    >
-                      {item.isAvailable ? 'Available' : 'Unavailable'}
-                    </button>
-                    <button
-                      onClick={() => void deleteMenuItem(item.id).then(loadMenu)}
-                      className="px-3 bg-slate-800 border border-slate-700 hover:bg-slate-700 rounded-xl text-zinc-400 transition"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                return (
+                  <div key={item.id} className="rounded-2xl bg-white border border-slate-100 p-4 shadow-sm flex flex-col justify-between relative hover:shadow-md transition duration-150">
+                    {/* Badges */}
+                    <div className="absolute top-2 left-2 flex gap-1 z-10">
+                      {isPopular && (
+                        <span className="bg-amber-500 text-white font-extrabold text-[8px] px-1.5 py-0.5 rounded uppercase tracking-wider shadow-sm">
+                          🔥 Popular
+                        </span>
+                      )}
+                      <span className="bg-[#4F46E5]/10 text-[#4F46E5] font-extrabold text-[8px] px-1.5 py-0.5 rounded capitalize">
+                        {timing}
+                      </span>
+                    </div>
+
+                    <div>
+                      <div
+                        className="mb-3 h-28 w-full rounded-xl bg-cover bg-center bg-slate-100"
+                        style={{ backgroundImage: `url(${getItemImageUrl(item)})` }}
+                      />
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <h3 className="font-extrabold text-xs text-slate-900 line-clamp-1">{item.name}</h3>
+                          <p className="text-[10px] text-slate-400 font-bold mt-0.5">{item.categories?.name || 'Mains'}</p>
+                        </div>
+                        <span className="font-black text-slate-900 text-sm whitespace-nowrap">₹{item.price}</span>
+                      </div>
+                      <p className="mt-1 text-[10px] text-slate-500 line-clamp-2 leading-relaxed">{item.description}</p>
+                    </div>
+
+                    <div className="mt-4 pt-2 border-t border-slate-50 space-y-2">
+                      {/* timing configuration & popular toggle */}
+                      <div className="flex justify-between items-center gap-1.5">
+                        <select
+                          value={timing}
+                          onChange={(e) => setItemTimingMock(item.id, e.target.value as any)}
+                          className="px-2 py-1 border border-slate-200 rounded-lg text-[9px] font-bold text-slate-600 bg-white"
+                        >
+                          <option value="all-day">All-Day</option>
+                          <option value="breakfast">Breakfast</option>
+                          <option value="lunch">Lunch</option>
+                          <option value="dinner">Dinner</option>
+                        </select>
+
+                        <button
+                          onClick={() => togglePopular(item.id)}
+                          className={`px-2 py-1 border rounded-lg text-[9px] font-bold transition-all ${
+                            isPopular
+                              ? 'bg-amber-500/10 text-amber-600 border-amber-500/20'
+                              : 'bg-slate-50 text-slate-500 border-slate-200 hover:text-amber-500 hover:bg-amber-50'
+                          }`}
+                        >
+                          {isPopular ? '★ Starred' : '★ Star'}
+                        </button>
+                      </div>
+
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() =>
+                            void updateMenuAvailability(item.id, !item.isAvailable).then(loadMenu)
+                          }
+                          className={`flex-1 py-1.5 rounded-lg font-bold text-[10px] transition-all ${
+                            item.isAvailable
+                              ? 'bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/20'
+                              : 'bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/20'
+                          }`}
+                        >
+                          {item.isAvailable ? 'In Stock' : 'Out of Stock'}
+                        </button>
+                        <button
+                          onClick={() => void deleteMenuItem(item.id).then(loadMenu)}
+                          className="p-1.5 bg-slate-50 border border-slate-200 hover:bg-rose-50 hover:text-[#EF4444] rounded-lg text-slate-400 transition"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
         </div>
 
         {/* RIGHT DESIGN CUSTOMIZER */}
-        <div className="rounded-3xl bg-slate-800 border border-slate-700 p-6 shadow-xl space-y-6 flex flex-col justify-between">
-          <div className="space-y-6">
+        <div className="rounded-2xl bg-white border border-slate-100 p-5 shadow-sm space-y-5 flex flex-col justify-between">
+          <div className="space-y-5">
             <div className="flex items-center gap-2">
-              <Palette className="text-rose-500" size={22} />
-              <h2 className="text-xl font-black">Design Settings</h2>
+              <Palette className="text-[#4F46E5]" size={20} />
+              <h2 className="text-sm font-black text-slate-900 uppercase tracking-wider">Styling Settings</h2>
             </div>
 
             {/* LAYOUT SELECTOR */}
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider block">1. Selected Layout Template</label>
-              <div className="grid grid-cols-2 gap-2 text-xs font-medium">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">1. Customer Menu Template</label>
+              <div className="grid grid-cols-2 gap-1.5 text-xs font-semibold text-slate-700">
                 {[
-                  { id: 'design-1', label: 'Simple Grid' },
-                  { id: 'design-2', label: 'Detailed List' },
-                  { id: 'design-3', label: 'Card Layout' },
-                  { id: 'design-4', label: 'Elegant List' },
-                  { id: 'design-5', label: 'Cozy Board' },
+                  { id: 'design-1', label: 'Classic Grid' },
+                  { id: 'design-2', label: 'Sleek Rows' },
+                  { id: 'design-3', label: 'Split Columns' },
+                  { id: 'design-4', label: 'Banner Highlight' },
                 ].map((design) => (
                   <button
                     key={design.id}
                     onClick={() => setSelectedLayout(design.id)}
-                    className={`flex items-center gap-2 px-3 py-2.5 border rounded-xl transition ${
+                    className={`flex items-center gap-1.5 px-2.5 py-2 border rounded-xl transition-all ${
                       selectedLayout === design.id
-                        ? 'bg-rose-500/10 border-rose-500 text-rose-400'
-                        : 'bg-slate-900 border-slate-800 text-zinc-400 hover:border-slate-700'
+                        ? 'bg-[#4F46E5]/10 border-[#4F46E5] text-[#4F46E5]'
+                        : 'bg-slate-50 border-slate-200 text-slate-500 hover:border-slate-300'
                     }`}
                   >
-                    <Layout size={14} />
+                    <Layout size={12} />
                     {design.label}
                   </button>
                 ))}
@@ -510,45 +625,45 @@ export default function MenuPage() {
             </div>
 
             {/* COLOR OPTIONS */}
-            <div className="space-y-4">
-              <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider block">2. Custom Theme Colors</label>
+            <div className="space-y-3">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">2. Custom Theme Colors</label>
               
-              <div className="grid gap-3">
-                <div className="flex justify-between items-center p-3 bg-slate-900/60 border border-slate-850 rounded-xl">
-                  <span className="text-xs text-zinc-300">Header Background</span>
+              <div className="grid gap-2">
+                <div className="flex justify-between items-center px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl">
+                  <span className="text-[11px] font-bold text-slate-600">Primary Sidebar</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-zinc-500">{headerColor}</span>
+                    <span className="text-[10px] text-slate-400 font-mono">{headerColor}</span>
                     <input
                       type="color"
                       value={headerColor}
                       onChange={(e) => setHeaderColor(e.target.value)}
-                      className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0"
+                      className="w-7 h-7 rounded cursor-pointer bg-transparent border-0"
                     />
                   </div>
                 </div>
 
-                <div className="flex justify-between items-center p-3 bg-slate-900/60 border border-slate-850 rounded-xl">
-                  <span className="text-xs text-zinc-300">Buttons & Highlights</span>
+                <div className="flex justify-between items-center px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl">
+                  <span className="text-[11px] font-bold text-slate-600">Active Highlighters</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-zinc-500">{buttonColor}</span>
+                    <span className="text-[10px] text-slate-400 font-mono">{buttonColor}</span>
                     <input
                       type="color"
                       value={buttonColor}
                       onChange={(e) => setButtonColor(e.target.value)}
-                      className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0"
+                      className="w-7 h-7 rounded cursor-pointer bg-transparent border-0"
                     />
                   </div>
                 </div>
 
-                <div className="flex justify-between items-center p-3 bg-slate-900/60 border border-slate-850 rounded-xl">
-                  <span className="text-xs text-zinc-300">Card Borders</span>
+                <div className="flex justify-between items-center px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl">
+                  <span className="text-[11px] font-bold text-slate-600">Borders & Division</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-zinc-500">{borderColor}</span>
+                    <span className="text-[10px] text-slate-400 font-mono">{borderColor}</span>
                     <input
                       type="color"
                       value={borderColor}
                       onChange={(e) => setBorderColor(e.target.value)}
-                      className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0"
+                      className="w-7 h-7 rounded cursor-pointer bg-transparent border-0"
                     />
                   </div>
                 </div>
@@ -556,21 +671,21 @@ export default function MenuPage() {
             </div>
 
             {/* THEME TOGGLE */}
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider block">3. Customer Interface Theme</label>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">3. Customer Interface Theme</label>
               <div className="flex gap-2">
                 <button
                   onClick={() => setLightMode(true)}
-                  className={`flex-1 py-2 border rounded-xl text-xs font-bold transition ${
-                    lightMode ? 'bg-white text-black border-white' : 'bg-slate-900 border-slate-800 text-zinc-400'
+                  className={`flex-1 py-2 border rounded-xl text-xs font-bold transition-all ${
+                    lightMode ? 'bg-[#4F46E5] text-white border-[#4F46E5]' : 'bg-slate-50 border-slate-200 text-slate-500'
                   }`}
                 >
                   ☀️ Light Mode
                 </button>
                 <button
                   onClick={() => setLightMode(false)}
-                  className={`flex-1 py-2 border rounded-xl text-xs font-bold transition ${
-                    !lightMode ? 'bg-white text-black border-white' : 'bg-slate-900 border-slate-800 text-zinc-400'
+                  className={`flex-1 py-2 border rounded-xl text-xs font-bold transition-all ${
+                    !lightMode ? 'bg-slate-800 text-white border-slate-800' : 'bg-slate-50 border-slate-200 text-slate-500'
                   }`}
                 >
                   🌙 Dark Mode
@@ -581,9 +696,9 @@ export default function MenuPage() {
 
           <button
             onClick={saveCustomStyles}
-            className="w-full mt-8 bg-rose-500 hover:bg-rose-600 py-4 rounded-2xl font-bold text-md active:scale-95 transition-transform flex items-center justify-center gap-2 shadow-lg"
+            className="w-full mt-4 bg-[#4F46E5] hover:bg-[#4338CA] text-white py-3 rounded-xl text-xs font-black active:scale-95 transition-all flex items-center justify-center gap-1.5 shadow-md shadow-indigo-600/10"
           >
-            <Sparkles size={18} /> Apply & Save Customizer
+            <Sparkles size={14} /> Apply Styles Config
           </button>
         </div>
       </div>

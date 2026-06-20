@@ -30,6 +30,11 @@ export class CreateReservationDto {
   reservationAt!: string;
 
   @IsOptional()
+  @IsInt()
+  @Min(1)
+  durationMinutes?: number;
+
+  @IsOptional()
   @IsString()
   notes?: string;
 }
@@ -57,6 +62,11 @@ export class UpdateReservationDto {
   @IsOptional()
   @IsDateString()
   reservationAt?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  durationMinutes?: number;
 
   @IsOptional()
   @IsString()

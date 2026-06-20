@@ -42,4 +42,8 @@ export class CreatePublicOrderDto {
   @IsOptional()
   @IsString()
   qrToken?: string;
+
+  @IsOptional()
+  @IsString()
+  bookingId?: string;
 }

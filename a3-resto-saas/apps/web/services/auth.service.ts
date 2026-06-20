@@ -25,4 +25,16 @@ export async function loginUser(
   );
 }
 
+export async function registerUser(
+  name: string,
+  email: string,
+  password: string,
+  restaurantId?: string,
+): Promise<any> {
+  const payload = { name, email, password, restaurantId };
+  return unwrap<any>(
+    api.post('/auth/register', payload),
+  );
+}
+
 

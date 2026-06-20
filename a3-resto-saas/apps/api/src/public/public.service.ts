@@ -11,6 +11,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { OrdersGateway } from '../gateways/orders.gateway';
 import { CreatePublicOrderDto } from './dto/create-public-order.dto';
 import { WaiterRequestDto } from './dto/waiter-request.dto';
+import { CreatePublicReservationDto } from './dto/create-public-reservation.dto';
 import { mapPrismaStatusToEnterpriseStatus } from '../orders/order-status';
 import type { OrderResponseDto } from '../orders/dto/order-response.dto';
 
@@ -140,6 +141,24 @@ export class PublicService {
 
     const response = this.toOrderResponse(created);
     this.ordersGateway.emitOrderCreated(response);
+
+    // If a customer placing the order checked in using a bookingId, update reservation to SEATED
+    if (dto.bookingId) {
+      try {
+        const booking = await this.prisma.reservations.findUnique({
+          where: { id: dto.bookingId },
+        });
+        if (booking && booking.tableId === table.id && ['PENDING', 'CONFIRMED'].includes(booking.status)) {
+          await this.prisma.reservations.update({
+            where: { id: booking.id },
+            data: { status: 'SEATED' },
+          });
+        }
+      } catch (err) {
+        console.error('Failed to update booking to SEATED:', err);
+      }
+    }
+
     return response;
   }
 
@@ -211,5 +230,128 @@ export class PublicService {
         menuItemId: it.menuItemId,
       })),
     };
+  }
+
+  async getRestaurantTables(restaurantSlug: string) {
+    const restaurant = await this.prisma.restaurants.findUnique({
+      where: { slug: restaurantSlug },
+    });
+    if (!restaurant || !restaurant.isActive) {
+      throw new NotFoundException('Restaurant not found or inactive');
+    }
+
+    return this.prisma.tables.findMany({
+      where: { restaurantId: restaurant.id, isActive: true },
+      orderBy: { name: 'asc' },
+    });
+  }
+
+  async getTableActiveBooking(tableId: string, timeString?: string) {
+    const targetTime = timeString ? new Date(timeString) : new Date();
+
+    const reservations = await this.prisma.reservations.findMany({
+      where: {
+        tableId,
+        status: { in: ['PENDING', 'CONFIRMED', 'SEATED'] },
+      },
+    });
+
+    // Auto-cancel late bookings (15 minutes grace period)
+    const activeReservations: typeof reservations = [];
+    for (const r of reservations) {
+      const start = new Date(r.reservationAt);
+      const diffMins = (targetTime.getTime() - start.getTime()) / (60 * 1000);
+
+      if (diffMins >= 15 && ['PENDING', 'CONFIRMED'].includes(r.status)) {
+        await this.prisma.reservations.update({
+          where: { id: r.id },
+          data: {
+            status: 'CANCELLED',
+            notes: `${r.notes || ''} [Auto-cancelled due to late arrival at ${targetTime.toISOString()}]`,
+          },
+        });
+      } else {
+        activeReservations.push(r);
+      }
+    }
+
+    const activeBooking = activeReservations.find((r) => {
+      const start = new Date(r.reservationAt);
+      const duration = r.durationMinutes ?? 60;
+      const end = new Date(start.getTime() + duration * 60 * 1000);
+      const blockStart = new Date(start.getTime() - 30 * 60 * 1000);
+
+      return targetTime >= blockStart && targetTime <= end;
+    });
+
+    if (activeBooking) {
+      return {
+        hasActiveBooking: true,
+        booking: {
+          id: activeBooking.id,
+          customerName: activeBooking.customerName,
+          customerPhone: activeBooking.customerPhone,
+          guestCount: activeBooking.guestCount,
+          reservationAt: activeBooking.reservationAt,
+          durationMinutes: activeBooking.durationMinutes ?? 60,
+          status: activeBooking.status,
+        },
+      };
+    }
+
+    return { hasActiveBooking: false };
+  }
+
+  async createPublicReservation(dto: CreatePublicReservationDto) {
+    const restaurant = await this.prisma.restaurants.findUnique({
+      where: { slug: dto.restaurantSlug },
+    });
+    if (!restaurant || !restaurant.isActive) {
+      throw new NotFoundException('Restaurant not found or inactive');
+    }
+
+    const table = await this.prisma.tables.findFirst({
+      where: { id: dto.tableId, restaurantId: restaurant.id, isActive: true },
+    });
+    if (!table) {
+      throw new NotFoundException('Table is invalid or inactive');
+    }
+
+    const start = new Date(dto.reservationAt);
+    const duration = dto.durationMinutes ?? 60;
+    const end = new Date(start.getTime() + duration * 60 * 1000);
+
+    const existing = await this.prisma.reservations.findMany({
+      where: {
+        tableId: dto.tableId,
+        restaurantId: restaurant.id,
+        status: { in: ['PENDING', 'CONFIRMED', 'SEATED'] },
+      },
+    });
+
+    const isOverlap = existing.some((r) => {
+      const rStart = new Date(r.reservationAt);
+      const rDuration = r.durationMinutes ?? 60;
+      const rEnd = new Date(rStart.getTime() + rDuration * 60 * 1000);
+      return start < rEnd && end > rStart;
+    });
+
+    if (isOverlap) {
+      throw new BadRequestException('Table is not available for this time range');
+    }
+
+    return this.prisma.reservations.create({
+      data: {
+        restaurantId: restaurant.id,
+        tableId: dto.tableId,
+        customerName: dto.customerName,
+        customerPhone: dto.customerPhone ?? null,
+        guestCount: dto.guestCount,
+        reservationAt: start,
+        durationMinutes: duration,
+        notes: dto.notes ?? null,
+        status: 'PENDING',
+      },
+    });
   }
 }
