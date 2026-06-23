@@ -134,9 +134,18 @@ const hourlySalesData = [
 ];
 
 export default function POSPage() {
+  const [mounted, setMounted] = useState(false);
   const [dbItems, setDbItems] = useState<MenuItem[]>([]);
   const [dbCategories, setDbCategories] = useState<MenuCategory[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <div className="space-y-6 max-w-7xl mx-auto px-4 sm:px-6 py-12 text-slate-500">Loading POS...</div>;
+  }
 
   // Active workspace tabs
   // 'billing' (Checkout Terminal) | 'tables' (Dine-in Floor Layout) | 'live-orders' (Takeaway / Delivery Tracking) | 'drawer' (Shift & Cash Drawer Log) | 'settings' (Printers & Rules Setup)
@@ -664,8 +673,7 @@ export default function POSPage() {
   return (
     <div className="space-y-6 text-slate-900 bg-slate-50/50 p-1 print:p-0 print:bg-white min-h-screen max-w-7xl mx-auto px-4 sm:px-6">
       
-      {/* Dynamic print settings injection */}
-      <style jsx global>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         @media print {
           body * {
             visibility: hidden;
@@ -687,7 +695,7 @@ export default function POSPage() {
             display: none !important;
           }
         }
-      `}</style>
+      `}} />
 
       {/* HEADER & SHORTCUTS */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between border-b border-slate-200 pb-4 no-print">

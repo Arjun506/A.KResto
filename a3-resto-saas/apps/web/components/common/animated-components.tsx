@@ -48,6 +48,7 @@ interface AnimatedButtonProps {
   disabled?: boolean;
   className?: string;
   loading?: boolean;
+  type?: 'button' | 'submit' | 'reset';
 }
 
 export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
@@ -58,6 +59,7 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
   disabled = false,
   className = '',
   loading = false,
+  type = 'button',
 }) => {
   const baseClasses = `
     font-semibold rounded-xl transition-all duration-300 ease-out
@@ -82,6 +84,7 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
 
   return (
     <button
+      type={type}
       onClick={onClick}
       disabled={disabled || loading}
       className={`${baseClasses} ${variants[variant]} ${sizes[size]} ${className}`}
@@ -351,7 +354,7 @@ export const SkeletonCard: React.FC = () => (
 // ============================================
 
 interface StatusBadgeProps {
-  status: 'pending' | 'accepted' | 'preparing' | 'ready' | 'in_delivery' | 'delivered' | 'cancelled';
+  status: 'pending' | 'accepted' | 'preparing' | 'ready' | 'picked_up' | 'in_delivery' | 'delivered' | 'cancelled';
 }
 
 export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
@@ -360,6 +363,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
     accepted: { label: 'Accepted', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300', icon: Check },
     preparing: { label: 'Preparing', color: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300', icon: null },
     ready: { label: 'Ready to Pick', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300', icon: Check },
+    picked_up: { label: 'Picked Up', color: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300', icon: Truck },
     in_delivery: { label: 'On the Way', color: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300', icon: Truck },
     delivered: { label: 'Delivered', color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300', icon: Check },
     cancelled: { label: 'Cancelled', color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300', icon: null },

@@ -108,6 +108,7 @@ const invoices = [
 export default function BillingCounterDashboard() {
   const router = useRouter();
   const { user, isLoading } = useAuth();
+  const [mounted, setMounted] = useState(false);
   const [stats, setStats] = useState({
     todayOrders: 56,
     todayRevenue: 18750,
@@ -118,12 +119,16 @@ export default function BillingCounterDashboard() {
   });
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
     if (!isLoading && (!user || (user.role !== 'CASHIER' && user.role !== 'OWNER'))) {
       router.push('/login');
     }
   }, [user, isLoading, router]);
 
-  if (isLoading) {
+  if (isLoading || !mounted) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">

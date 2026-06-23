@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   createOrder,
@@ -8,6 +8,7 @@ import {
   applyCoupon,
   type DeliveryAddress,
   type CartItem,
+  type OrderItem,
 } from '@/services/online-ordering.service';
 import {
   AnimatedButton,
@@ -37,13 +38,13 @@ interface CheckoutFormData {
   paymentMethod: 'online' | 'cash';
 }
 
-export default function CheckoutPage() {
+function CheckoutPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const restaurantSlug = searchParams.get('restaurant');
   const itemsParam = searchParams.get('items');
 
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cart, setCart] = useState<OrderItem[]>([]);
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
   const [discountAmount, setDiscountAmount] = useState(0);
@@ -419,5 +420,13 @@ export default function CheckoutPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">Loading checkout...</div>}>
+      <CheckoutPageContent />
+    </Suspense>
   );
 }

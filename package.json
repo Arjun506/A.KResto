@@ -12,6 +12,7 @@
     "start": "turbo run start --parallel"
   },
   "devDependencies": {
+    "lightningcss-win32-x64-msvc": "^1.32.0",
     "turbo": "^2.9.14"
   },
   "dependencies": {

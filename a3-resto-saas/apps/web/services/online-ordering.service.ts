@@ -98,11 +98,16 @@ export interface CartItem {
   selectedVariant?: string;
 }
 
+export interface OrderItem extends CartItem {
+  name: string;
+  price: number;
+}
+
 export interface Order {
   id: string;
   restaurantId: string;
   customerId: string;
-  items: CartItem[];
+  items: OrderItem[];
   subtotal: number;
   deliveryCharge: number;
   discount: number;

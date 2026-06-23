@@ -1,10 +1,16 @@
 'use client';
 
 import { useAuth } from '@/context/auth-context';
-import OwnerDashboard from '@/components/dashboard/OwnerDashboard';
-import CashierDashboard from '@/components/dashboard/CashierDashboard';
+import dynamic from 'next/dynamic';
 import WaiterDashboard from '@/components/dashboard/WaiterDashboard';
 import ChefDashboard from '@/components/dashboard/ChefDashboard';
+
+const OwnerDashboard = dynamic(() => import('@/components/dashboard/OwnerDashboard'), {
+  ssr: false,
+});
+const CashierDashboard = dynamic(() => import('@/components/dashboard/CashierDashboard'), {
+  ssr: false,
+});
 import { Loader2 } from 'lucide-react';
 
 export default function DashboardPage() {

@@ -1,21 +1,10 @@
-/* @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap'); */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
 
-/* Tailwind v4 CSS entrypoint with automatic source detection disabled */
-@import "tailwindcss" source(none);
+/* Tailwind v4 CSS entrypoint */
+@import "tailwindcss";
 
 
-/* Manually register web frontend directories for Tailwind scanning to prevent monorepo/node_modules scanning hangs */
-@source "./**/*.{js,ts,jsx,tsx}";
-@source "../components/**/*.{js,ts,jsx,tsx}";
-@source "../context/**/*.{js,ts,jsx,tsx}";
-@source "../hooks/**/*.{js,ts,jsx,tsx}";
-@source "../lib/**/*.{js,ts,jsx,tsx}";
-@source "../providers/**/*.{js,ts,jsx,tsx}";
-@source "../services/**/*.{js,ts,jsx,tsx}";
-@source "../store/**/*.{js,ts,jsx,tsx}";
-@source "../src/**/*.{js,ts,jsx,tsx}";
-
-@custom-variant dark (&:where(.dark, .dark *));
+@variant dark (&:where(.dark, .dark *));
 
 
 :root {
@@ -155,7 +144,7 @@ body {
 .logo-box {
   border: 2.5px solid rgba(59, 130, 246, 0.15);
   background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.1);
   transition: all 0.5s ease;
 }
 
@@ -287,3 +276,4 @@ body {
 .dark .shadow-sm {
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.5) !important;
 }
+

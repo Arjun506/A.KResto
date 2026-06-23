@@ -37,5 +37,6 @@ export const getSocket = (restaurantId?: string) => {
   return socket;
 };
 
-// Backward-compatible default export (current pages import socket default)
-export default getSocket();
+// Backward-compatible default export (only initialize on client to avoid build hangs)
+const defaultSocket = typeof window !== 'undefined' ? getSocket() : null;
+export default defaultSocket;

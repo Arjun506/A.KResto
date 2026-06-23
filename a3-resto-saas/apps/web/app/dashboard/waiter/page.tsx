@@ -1,9 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { getOrders, updateOrderStatus } from '@/services/order.service';
-import { getSocket } from '@/services/socket';
-import type { Order } from '@/src/types/order.types';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/auth-context';
 import {
   Smartphone,
   Check,
@@ -108,6 +107,9 @@ type TipLog = {
 };
 
 export default function WaiterPanel() {
+  const { user, isLoading } = useAuth();
+  const router = useRouter();
+
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [shiftStatus, setShiftStatus] = useState<'Active' | 'On Break' | 'Ended'>('Active');
   
@@ -120,6 +122,12 @@ export default function WaiterPanel() {
   };
 
   // Mock Active Assigned Tables
+  useEffect(() => {
+    if (!isLoading && (!user || user.role !== 'WAITER')) {
+      router.push('/login');
+    }
+  }, [user, isLoading, router]);
+
   const [tables, setTables] = useState<TableState[]>([
     { id: 't-1', name: 'Table 1', status: 'Occupied', customerName: 'Rohit Sharma', activeBill: 1240, capacity: 4, allergies: 'Peanut Allergy', preferences: 'Prefers window seating' },
     { id: 't-2', name: 'Table 2', status: 'Available', capacity: 2 },
@@ -204,7 +212,7 @@ export default function WaiterPanel() {
 
   const handleServeOrder = (orderId: string) => {
     setOrders(current =>
-      current.map(o => o.id === orderId ? { ...o, status: 'COMPLETED' } : o)
+      current.map(o => (o.id === orderId ? { ...o, status: 'COMPLETED' } : o))
     );
   };
 

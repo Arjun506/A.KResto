@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   BarChart,
   Bar,
@@ -59,6 +59,11 @@ const COLORS = [
 ];
 
 export default function AnalyticsPage() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [activeTab, setActiveTab] = useState<'insights' | 'pl' | 'website'>('insights');
   const [timeRange, setTimeRange] = useState<'7d' | '30d'>('7d');
   
@@ -81,6 +86,10 @@ export default function AnalyticsPage() {
     e.preventDefault();
     triggerToast('Website configurations and SEO meta tags successfully published!');
   };
+
+  if (!mounted) {
+    return <div className="space-y-6 max-w-7xl mx-auto px-4 sm:px-6 py-12 text-slate-500">Loading analytics...</div>;
+  }
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto px-4 sm:px-6">

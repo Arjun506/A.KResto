@@ -181,6 +181,11 @@ export default function SuperAdminPage() {
   const router = useRouter();
   const { logout } = useAuth();
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const [currentView, setCurrentView] = useState<
     | 'dashboard'
@@ -200,6 +205,10 @@ export default function SuperAdminPage() {
   const [tenants, setTenants] = useState<LocalTenant[]>([]);
   const [loading, setLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  if (!mounted) {
+    return <div className="p-8 text-center text-slate-500">Loading Admin Portal...</div>;
+  }
 
   // Filter for Restaurant table
   const [restFilter, setRestFilter] = useState<'All' | 'Active' | 'Suspended' | 'Trial' | 'Expired' | 'Pending'>('All');
