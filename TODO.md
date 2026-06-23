@@ -1,43 +1,12 @@
-# TODO — A3 RESTO FINAL MVP COMPLETION PHASE
+# Linux compatibility fix: lightningcss-win32 EBADPLATFORM
 
-## Phase 1 — QR ORDERING
+## Steps
 
-- [x] Replace demo QR ordering page with real backend-driven flow
-- [x] Implement persistent cart (localStorage) + realtime order tracking wiring
-- [x] Implement checkout -> real createOrder API call
-- [ ] Link restaurant + table using existing QR/table routing
-- [ ] Add waiter request + kitchen tracking handling (Socket.IO events)
-- [ ] Implement rewards system on successful orders/status changes
-- [ ] Backend updates if missing: rewards, table assignment, waiter request events
-
-## Phase 2 — DASHBOARD ANALYTICS
-
-- [ ] Replace hardcoded KPI cards/charts with API-driven data
-- [ ] Implement Daily analytics API (tenant-safe)
-- [ ] Wire frontend charts to backend endpoints
-
-## Phase 3 — STAFF MANAGEMENT
-
-- [ ] Replace demo staff page with real Staff CRUD UI
-- [ ] Implement/verify backend staff module: staff CRUD, roles, permissions, assignment
-- [ ] Wire UI to backend
-
-## Phase 4 — TENANT SECURITY AUDIT
-
-- [ ] Audit tenantId filtering in Menu/Inventory/Reservations/Staff/Billing/Uploads/Socket.IO
-- [ ] Fix tenant-safe Prisma queries
-- [ ] Verify SUPER_ADMIN bypass behavior and consistency
-
-## Phase 5 — PRODUCTION HARDENING
-
-- [ ] Fix localStorage auth checks robustness
-- [ ] Fix hydration issues + client/server boundaries
-- [ ] Add loading states + error handling
-- [ ] Add error boundaries where missing
-
-## Production checks
-
-- [ ] Run: npm run lint
-- [ ] Run: npm run build
-- [ ] Run: npm run start:dev
-- [ ] Fix remaining TS/ESLint issues until clean
+1. Remove `lightningcss-win32-x64-msvc` from root `package.json`.
+2. Delete root `package-lock.json`.
+3. Search repo for any other `package-lock.json` under workspaces and delete them (Windows-pinned locks).
+4. Run `npm install` from repo root to regenerate a Linux-compatible lockfile.
+5. Run `npm run build` (turbo) from repo root.
+6. Run `npm run build` inside `a3-resto-saas/apps/web` as a sanity check.
+7. Confirm no `lightningcss-win32-*` remains in lockfile.
+8. Report all files changed/deleted and include final git diff + successful build output.
