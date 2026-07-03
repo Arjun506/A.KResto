@@ -23,7 +23,7 @@ export class RestaurantsService {
 
   async listRestaurants(user: JwtUser | undefined) {
     if (this.isSuperAdmin(user)) {
-      return this.prisma.restaurants.findMany({
+      return this.prisma.tenant.findMany({
         include: { subscriptions: true },
         orderBy: { createdAt: 'desc' },
       });
@@ -31,7 +31,7 @@ export class RestaurantsService {
 
     const tenantRestaurantId = this.requireTenantRestaurantId(user);
 
-    return this.prisma.restaurants.findMany({
+    return this.prisma.tenant.findMany({
       where: { id: tenantRestaurantId },
       include: { subscriptions: true },
       orderBy: { createdAt: 'desc' },
@@ -55,7 +55,7 @@ export class RestaurantsService {
 
     const slug = input.slug ?? input.name.toLowerCase().replace(/\s+/g, '-');
 
-    const created = await this.prisma.restaurants.create({
+    const created = await this.prisma.tenant.create({
       data: {
         name: input.name,
         location: input.location,
@@ -77,7 +77,7 @@ export class RestaurantsService {
       },
     });
 
-    return this.prisma.restaurants.findUnique({
+    return this.prisma.tenant.findUnique({
       where: { id: created.id },
       include: { subscriptions: true },
     });
@@ -85,7 +85,7 @@ export class RestaurantsService {
 
   async getRestaurant(user: JwtUser | undefined, id: string) {
     if (this.isSuperAdmin(user)) {
-      const restaurant = await this.prisma.restaurants.findUnique({
+      const restaurant = await this.prisma.tenant.findUnique({
         where: { id },
         include: { subscriptions: true },
       });
@@ -98,7 +98,7 @@ export class RestaurantsService {
       throw new NotFoundException('Restaurant not found');
     }
 
-    const restaurant = await this.prisma.restaurants.findFirst({
+    const restaurant = await this.prisma.tenant.findFirst({
       where: { id: tenantRestaurantId },
       include: { subscriptions: true },
     });
@@ -123,7 +123,7 @@ export class RestaurantsService {
       throw new ForbiddenException('Not allowed');
     }
 
-    const existing = await this.prisma.restaurants.findUnique({
+    const existing = await this.prisma.tenant.findUnique({
       where: { id },
     });
     if (!existing) throw new NotFoundException('Restaurant not found');
@@ -134,7 +134,7 @@ export class RestaurantsService {
         ? input.name.toLowerCase().replace(/\s+/g, '-')
         : existing.slug);
 
-    await this.prisma.restaurants.update({
+    await this.prisma.tenant.update({
       where: { id },
       data: {
         name: input.name,
@@ -170,7 +170,7 @@ export class RestaurantsService {
       }
     }
 
-    return this.prisma.restaurants.findUnique({
+    return this.prisma.tenant.findUnique({
       where: { id },
       include: { subscriptions: true },
     });
@@ -182,7 +182,7 @@ export class RestaurantsService {
     }
 
     try {
-      await this.prisma.restaurants.delete({ where: { id } });
+      await this.prisma.tenant.delete({ where: { id } });
       return { id };
     } catch {
       throw new NotFoundException('Restaurant not found');

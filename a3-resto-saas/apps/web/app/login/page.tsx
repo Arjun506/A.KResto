@@ -84,7 +84,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [selectedRole, setSelectedRole] = useState<'owner' | 'billing' | 'waiter' | 'chef'>('owner');
+  const [selectedRole, setSelectedRole] = useState<'owner' | 'billing' | 'waiter' | 'chef' | 'shop'>('owner');
   
   // Custom toast notification states
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -168,9 +168,13 @@ export default function LoginPage() {
   };
 
   // Switch role quick-selector
-  const handleRoleSelect = (role: 'owner' | 'billing' | 'waiter' | 'chef') => {
+  const handleRoleSelect = (role: 'owner' | 'billing' | 'waiter' | 'chef' | 'shop') => {
     setSelectedRole(role);
-    setEmail(`${role}@akresto.com`);
+    if (role === 'shop') {
+      setEmail('shop@akresto.com');
+    } else {
+      setEmail(`${role}@akresto.com`);
+    }
     setPassword('654321');
     setErrorMsg(null);
   };
@@ -219,7 +223,7 @@ export default function LoginPage() {
         if (password === '654321') {
           const role = portal === 'super-admin' 
             ? 'SUPER_ADMIN' 
-            : (selectedRole === 'owner' ? 'OWNER' : (selectedRole === 'billing' ? 'CASHIER' : selectedRole.toUpperCase()));
+            : (selectedRole === 'owner' ? 'OWNER' : (selectedRole === 'billing' ? 'CASHIER' : (selectedRole === 'shop' ? 'OWNER' : selectedRole.toUpperCase())));
           
           const payload = {
             sub: portal === 'super-admin' ? 'admin-id' : `${selectedRole}-id`,
@@ -250,6 +254,8 @@ export default function LoginPage() {
       setTimeout(() => {
         if (payload && payload.role === 'SUPER_ADMIN') {
           router.push('/super-admin');
+        } else if (selectedRole === 'shop') {
+          router.push('/dashboard/shop');
         } else {
           router.push('/dashboard');
         }
@@ -732,6 +738,12 @@ export default function LoginPage() {
                         label: 'Owner', 
                         icon: Crown,
                         activeClass: 'border-[#FEBFA1]/60 bg-[#FEBFA1]/10 text-[#e07f4f] dark:text-[#FEBFA1] shadow-[0_0_15px_rgba(254,191,161,0.25)]'
+                      },
+                      { 
+                        id: 'shop' as const, 
+                        label: 'Shop Owner', 
+                        icon: Store,
+                        activeClass: 'border-violet-500/60 bg-violet-500/10 text-violet-500 shadow-[0_0_15px_rgba(139,92,246,0.25)]'
                       },
                       { 
                         id: 'billing' as const, 

@@ -54,7 +54,7 @@ export class UploadsService {
         throw new ForbiddenException('Not allowed');
       }
 
-      const updated = await this.prisma.restaurants.updateMany({
+      const updated = await this.prisma.tenant.updateMany({
         where: { id: restaurantId },
         data: { logo: dto.imageUrl },
       });

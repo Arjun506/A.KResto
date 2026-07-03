@@ -23,10 +23,10 @@ async function bootstrap() {
   );
 
   app.useGlobalFilters(
-    new HttpExceptionFilter(),
-    new ValidationExceptionFilter(),
-    new PrismaExceptionFilter(),
     new UnknownExceptionFilter(),
+    new PrismaExceptionFilter(),
+    new ValidationExceptionFilter(),
+    new HttpExceptionFilter(),
   );
 
   app.useGlobalInterceptors(new RequestLoggingInterceptor());

@@ -110,6 +110,7 @@ export default function Sidebar({
       case 'CASHIER':
         return [
           { type: 'link', name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+          { type: 'link', name: 'Shop / Mall POS', href: '/dashboard/shop', icon: Layers },
           { type: 'link', name: 'New Order (F1)', href: '/dashboard/pos', icon: Plus },
           { type: 'link', name: 'Orders (F2)', href: '/dashboard/orders', icon: ShoppingCart },
           { type: 'link', name: 'Dine In', href: '/dashboard/qr-tables', icon: Layers },
@@ -209,6 +210,7 @@ export default function Sidebar({
           label: '',
           items: [
             { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+            { name: 'Shop / Mall POS', href: '/dashboard/shop', icon: Layers },
           ]
         },
         {

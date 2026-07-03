@@ -15,7 +15,7 @@ model categories {
     isActive     Boolean      @default(true)
     createdAt    DateTime     @default(now())
     updatedAt    DateTime     @updatedAt
-    restaurants  restaurants  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+    restaurants  Tenant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
     menu_items   menu_items[]
 
     @@unique([restaurantId, name])
@@ -34,7 +34,7 @@ model menu_items {
     createdAt          DateTime             @default(now())
     updatedAt          DateTime             @updatedAt
     categories         categories?          @relation(fields: [categoryId], references: [id])
-    restaurants        restaurants          @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+    restaurants        Tenant          @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
     menu_item_addons   menu_item_addons[]
     menu_item_variants menu_item_variants[]
     order_items        order_items[]
@@ -53,7 +53,7 @@ model menu_item_variants {
     createdAt    DateTime    @default(now())
     updatedAt    DateTime    @updatedAt
     menu_items   menu_items  @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
-    restaurants  restaurants @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+    restaurants  Tenant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
 
     @@index([restaurantId])
     @@index([menuItemId])
@@ -69,7 +69,7 @@ model menu_item_addons {
     createdAt    DateTime    @default(now())
     updatedAt    DateTime    @updatedAt
     menu_items   menu_items  @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
-    restaurants  restaurants @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+    restaurants  Tenant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
 
     @@index([restaurantId])
     @@index([menuItemId])
@@ -103,7 +103,7 @@ model orders {
     createdAt     DateTime      @default(now())
     updatedAt     DateTime      @updatedAt
     order_items   order_items[]
-    restaurants   restaurants   @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+    restaurants   Tenant   @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
     tables        tables        @relation(fields: [tableId], references: [id])
 
     @@unique([restaurantId, orderNumber])
@@ -112,7 +112,7 @@ model orders {
     @@index([tableId])
 }
 
-model restaurants {
+model Tenant {
     id        String   @id @default(cuid())
     name      String
     slug      String   @unique
@@ -126,6 +126,8 @@ model restaurants {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
     logo      String?
+    industry  String   @default("RESTAURANT")
+    settings  Json?
 
     categories         categories[]
     inventory_items    inventory_items[]
@@ -140,6 +142,9 @@ model restaurants {
     tables             tables[]
     users              users[]
     auditLogs          audit_logs[]
+    tenant_features    tenant_features[]
+
+    @@map("restaurants")
 }
 
 model subscriptions {
@@ -152,7 +157,7 @@ model subscriptions {
     currentPeriodEnd   DateTime
     createdAt          DateTime           @default(now())
     updatedAt          DateTime           @updatedAt
-    restaurants        restaurants        @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+    restaurants        Tenant        @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
 
     @@index([restaurantId])
     @@index([status])
@@ -176,12 +181,25 @@ model audit_logs {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    restaurants restaurants @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+    restaurants Tenant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
 
     @@index([restaurantId])
     @@index([entity])
     @@index([entityId])
     @@index([createdAt])
+}
+
+model tenant_features {
+    id          String   @id @default(cuid())
+    tenantId    String   @map("restaurantId")
+    featureKey  String
+    isEnabled   Boolean  @default(true)
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+    
+    tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+    @@unique([tenantId, featureKey])
+    @@map("tenant_features")
 }
 
 model tables {
@@ -196,7 +214,7 @@ model tables {
     qrCode       String?        @unique
     orders       orders[]
     reservations reservations[]
-    restaurants  restaurants    @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+    restaurants  Tenant    @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
 
     @@unique([restaurantId, code])
     @@index([restaurantId])
@@ -214,7 +232,7 @@ model users {
     profileImageUrl String?
     createdAt       DateTime       @default(now())
     updatedAt       DateTime       @updatedAt
-    restaurants     restaurants?   @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+    restaurants     Tenant?   @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
     reservations    reservations[]
 
     @@index([restaurantId])
@@ -232,7 +250,7 @@ model inventory_items {
     supplierId    String?
     createdAt     DateTime    @default(now())
     updatedAt     DateTime    @updatedAt
-    restaurants   restaurants @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+    restaurants   Tenant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
     suppliers     suppliers?  @relation(fields: [supplierId], references: [id])
 
     @@unique([restaurantId, name])
@@ -252,7 +270,7 @@ model suppliers {
     updatedAt       DateTime          @updatedAt
     inventory_items inventory_items[]
     purchase_orders purchase_orders[]
-    restaurants     restaurants       @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+    restaurants     Tenant       @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
 
     @@unique([restaurantId, name])
     @@index([restaurantId])
@@ -269,7 +287,7 @@ model purchase_orders {
     createdAt            DateTime               @default(now())
     updatedAt            DateTime               @updatedAt
     purchase_order_items purchase_order_items[]
-    restaurants          restaurants            @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+    restaurants          Tenant            @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
     suppliers            suppliers?             @relation(fields: [supplierId], references: [id])
 
     @@index([restaurantId])
@@ -304,7 +322,7 @@ model reservations {
     userId        String?
     createdAt     DateTime          @default(now())
     updatedAt     DateTime          @updatedAt
-    restaurants   restaurants       @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+    restaurants   Tenant            @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
     tables        tables            @relation(fields: [tableId], references: [id])
     users         users?            @relation(fields: [userId], references: [id])
 

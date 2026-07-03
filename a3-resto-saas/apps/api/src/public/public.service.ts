@@ -27,7 +27,7 @@ export class PublicService {
   ) {}
 
   async getRestaurant(restaurantSlug: string) {
-    const restaurant = await this.prisma.restaurants.findUnique({
+    const restaurant = await this.prisma.tenant.findUnique({
       where: { slug: restaurantSlug },
     });
     if (!restaurant || !restaurant.isActive) {
@@ -37,7 +37,7 @@ export class PublicService {
   }
 
   async getMenu(restaurantSlug: string) {
-    const restaurant = await this.prisma.restaurants.findUnique({
+    const restaurant = await this.prisma.tenant.findUnique({
       where: { slug: restaurantSlug },
     });
     if (!restaurant || !restaurant.isActive) {
@@ -54,7 +54,7 @@ export class PublicService {
   }
 
   async getCategories(restaurantSlug: string) {
-    const restaurant = await this.prisma.restaurants.findUnique({
+    const restaurant = await this.prisma.tenant.findUnique({
       where: { slug: restaurantSlug },
     });
     if (!restaurant || !restaurant.isActive) {
@@ -71,7 +71,7 @@ export class PublicService {
   }
 
   async createOrder(dto: CreatePublicOrderDto): Promise<OrderResponseDto> {
-    const restaurant = await this.prisma.restaurants.findUnique({
+    const restaurant = await this.prisma.tenant.findUnique({
       where: { slug: dto.restaurantSlug },
     });
     if (!restaurant || !restaurant.isActive) {
@@ -176,7 +176,7 @@ export class PublicService {
   }
 
   async handleWaiterRequest(dto: WaiterRequestDto) {
-    const restaurant = await this.prisma.restaurants.findUnique({
+    const restaurant = await this.prisma.tenant.findUnique({
       where: { slug: dto.restaurantSlug },
     });
     if (!restaurant || !restaurant.isActive) {
@@ -233,7 +233,7 @@ export class PublicService {
   }
 
   async getRestaurantTables(restaurantSlug: string) {
-    const restaurant = await this.prisma.restaurants.findUnique({
+    const restaurant = await this.prisma.tenant.findUnique({
       where: { slug: restaurantSlug },
     });
     if (!restaurant || !restaurant.isActive) {
@@ -303,7 +303,7 @@ export class PublicService {
   }
 
   async createPublicReservation(dto: CreatePublicReservationDto) {
-    const restaurant = await this.prisma.restaurants.findUnique({
+    const restaurant = await this.prisma.tenant.findUnique({
       where: { slug: dto.restaurantSlug },
     });
     if (!restaurant || !restaurant.isActive) {
