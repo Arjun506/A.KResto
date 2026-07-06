@@ -6,12 +6,28 @@ import { ThemeProvider } from '@/components/providers/theme-provider';
 
 import { AuthProvider } from '@/context/auth-context';
 import { NotificationProvider } from '@/context/notification-context';
+import { LandingStateProvider } from '@/context/landing-state';
 
 export const metadata: Metadata = {
-  title: 'A.K Resto',
+  title: 'AK Business OS | One Platform for Every Business',
   description:
-    'Smart Restaurant Solutions ERP Platform',
-  manifest: '/manifest.webmanifest',
+    'Run restaurant, retail, hotel, salon, healthcare, warehouse, manufacturing, and service operations from one intelligent business operating system.',
+  keywords: [
+    'business operating system',
+    'restaurant software',
+    'retail POS',
+    'hotel management software',
+    'inventory management',
+    'AI business dashboard',
+    'SaaS business platform'
+  ],
+  manifest: '/manifest.json',
+  openGraph: {
+    title: 'AK Business OS',
+    description:
+      'One platform for every business: dashboard, POS, inventory, customer app, marketplace, analytics, and AI automation.',
+    type: 'website'
+  },
 };
 
 export default function RootLayout({
@@ -48,7 +64,9 @@ export default function RootLayout({
 
           <AuthProvider>
             <NotificationProvider>
-              {children}
+              <LandingStateProvider>
+                {children}
+              </LandingStateProvider>
             </NotificationProvider>
           </AuthProvider>
 
