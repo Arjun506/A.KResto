@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AK Resto — Premium Dining & Food Delivery</title>
+
+    <!-- Tailwind + Fonts + Icons -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet" />
+
+    <style>
+        /* ── Base Styles ── */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+            color: #f5f5f5;
+            overflow-x: hidden;
+        }
+
+        .font-serif {
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* ── Scrollbar ── */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #c9a87c, #a67c52);
+            border-radius: 12px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #d4b896, #b89262);
+        }
+
+        /* ── Animations ── */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(201, 168, 124, 0.3), inset 0 0 20px rgba(201, 168, 124, 0.1); }
+            50% { box-shadow: 0 0 40px rgba(201, 168, 124, 0.6), inset 0 0 40px rgba(201, 168, 124, 0.2); }
+        }
+        .animate-glow {
+            animation: glow 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -1000% 0; }
+            100% { background-position: 1000% 0; }
+        }
+        .shimmer-text {
+            background: linear-gradient(90deg, #f5efe8 0%, #c9a87c 50%, #f5efe8 100%);
+            background-size: 1000% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes slide-up {
+            0% { opacity: 0; transform: translateY(40px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-up {
+            animation: slide-up 0.8s ease-out forwards;
+        }
+
+        @keyframes fade-in {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        .animate-fade-in {
+            animation: fade-in 0.6s ease forwards;
+        }
+
+        @keyframes pulse-scale {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+        }
+        .animate-pulse-scale {
+            animation: pulse-scale 2.5s ease-in-out infinite;
+        }
+
+        @keyframes slide-right {
+            0% { transform: translateX(-100%); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+        .animate-slide-right {
+            animation: slide-right 0.7s ease-out forwards;
+        }
+
+        /* ── Glass Morphism ── */
+        .glass {
+            background: rgba(30, 27, 24, 0.7);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .glass-light {
+            background: rgba(255, 252, 248, 0.08);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(201, 168, 124, 0.2);
+        }
+
+        .glass-gold {
+            background: rgba(201, 168, 124, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(201, 168, 124, 0.3);
+        }
+
+        /* ── Video Background ── */
+        .video-bg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.6;
+            z-index: 0;
+        }
+
+        .video-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(15, 15, 15, 0.85) 0%, rgba(30, 27, 24, 0.7) 50%, rgba(15, 15, 15, 0.85) 100%);
+            z-index: 1;
+        }
+
+        /* ── Cards ── */
+        .menu-card {
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(201, 168, 124, 0) 0%, rgba(201, 168, 124, 0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.4s;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .menu-card:hover {
+            transform: translateY(-12px) scale(1.02);
+            box-shadow: 0 30px 60px rgba(201, 168, 124, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .menu-card:hover::before {
+            opacity: 1;
+        }
+
+        .menu-card:hover img {
+            transform: scale(1.15) rotate(2deg);
+            filter: brightness(1.1);
+        }
+
+        /* ── Tabs ── */
+        .tab-btn {
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+
+        .tab-btn::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 50%;
+            width: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #c9a87c, #e8d4b8);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform: translateX(-50%);
+            border-radius: 4px;
+        }
+
+        .tab-btn.active::after {
+            width: 100%;
+        }
+
+        .tab-btn.active {
+            color: #c9a87c;
+            font-weight: 700;
+            box-shadow: inset 0 1px 0 rgba(201, 168, 124, 0.3);
+        }
+
+        .tab-panel {
+            display: none;
+            animation: fade-in 0.5s ease forwards;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        /* ── Quantity buttons ── */
+        .qty-btn {
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(201, 168, 124, 0.15);
+            color: #c9a87c;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+            border: 1px solid rgba(201, 168, 124, 0.3);
+        }
+
+        .qty-btn:hover {
+            background: rgba(201, 168, 124, 0.3);
+            box-shadow: 0 0 15px rgba(201, 168, 124, 0.3);
+            transform: scale(1.1);
+        }
+
+        .qty-btn:active {
+            transform: scale(0.88);
+        }
+
+        /* ── Cart badge ── */
+        .cart-badge {
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .cart-badge.pop {
+            animation: pulse-scale 0.5s ease-out;
+        }
+
+        /* ── Buttons ── */
+        .btn-primary {
+            background: linear-gradient(135deg, #c9a87c, #e8d4b8);
+            color: #1e1b18;
+            font-weight: 700;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 10px 30px rgba(201, 168, 124, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.3));
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(201, 168, 124, 0.5);
+        }
+
+        .btn-primary:hover::before {
+            opacity: 1;
+        }
+
+        .btn-secondary {
+            border: 2px solid rgba(201, 168, 124, 0.5);
+            color: #c9a87c;
+            background: rgba(201, 168, 124, 0.05);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .btn-secondary:hover {
+            border-color: #c9a87c;
+            background: rgba(201, 168, 124, 0.15);
+            box-shadow: 0 0 30px rgba(201, 168, 124, 0.3);
+        }
+
+        /* ── Misc ── */
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #c9a87c, #e8d4b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .rating {
+            color: #ffd700;
+            font-weight: 600;
+        }
+
+        .price {
+            color: #c9a87c;
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 640px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+        }
+
+        /* ── Floating elements ── */
+        .floating-element {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(201, 168, 124, 0.3), rgba(201, 168, 124, 0.05));
+            filter: blur(40px);
+        }
+
+        /* ── Status indicator ── */
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(76, 175, 80, 0.15);
+            color: #4caf50;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-indicator::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: #4caf50;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* ── Badge ── */
+        .badge {
+            display: inline-block;
+            background: rgba(201, 168, 124, 0.2);
+            color: #c9a87c;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            border: 1px solid rgba(201, 168, 124, 0.4);
+        }
+
+        /* ── Hover effects ── */
+        .hover-lift {
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .hover-lift:hover {
+            transform: translateY(-4px);
+        }
+
+        /* ── Image overlay ── */
+        .image-overlay {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .image-overlay::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(201, 168, 124, 0) 0%, rgba(201, 168, 124, 0.2) 100%);
+            z-index: 2;
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ============================================================
+    NAVIGATION
+    ============================================================ -->
+    <nav class="fixed top-0 left-0 w-full z-50 glass px-4 md:px-8 h-[72px] flex items-center justify-between" id="navbar">
+        <!-- Logo -->
+        <a href="#" class="flex items-center gap-2.5 group">
+            <div class="text-2xl font-serif font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent tracking-tighter">AK</div>
+            <div class="flex flex-col">
+                <span class="text-xs font-bold text-yellow-500 tracking-[0.15em] leading-none">RESTO</span>
+                <span class="text-[9px] font-light text-gray-400 tracking-wider">PREMIUM</span>
+            </div>
+        </a>
+
+        <!-- Desktop Nav -->
+        <div class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-300">
+            <a href="#menu" class="group relative hover:text-yellow-400 transition-colors">
+                Order Food
+                <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-yellow-400 to-yellow-600 group-hover:w-full transition-all duration-300"></span>
+            </a>
+            <a href="#booking" class="group relative hover:text-yellow-400 transition-colors">
+                Book Table
+                <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-yellow-400 to-yellow-600 group-hover:w-full transition-all duration-300"></span>
+            </a>
+            <a href="#events" class="group relative hover:text-yellow-400 transition-colors">
+                Events
+                <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-yellow-400 to-yellow-600 group-hover:w-full transition-all duration-300"></span>
+            </a>
+        </div>
+
+        <!-- Right: Cart + CTA -->
+        <div class="flex items-center gap-4">
+            <!-- Cart button -->
+            <button id="cartToggle" class="relative p-3 rounded-full hover:bg-yellow-500/10 transition-all group">
+                <i data-lucide="shopping-bag" class="w-5 h-5 text-yellow-400 group-hover:scale-110 transition-transform"></i>
+                <span id="cartCount" class="cart-badge absolute -top-1 -right-1 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-lg">0</span>
+            </button>
+
+            <!-- CTA -->
+            <a href="#booking" class="hidden sm:inline-block btn-primary px-6 py-2.5 rounded-full text-sm font-bold hover:scale-105 transition-transform">
+                Reserve Now
+            </a>
+
+            <!-- Mobile menu toggle -->
+            <button id="mobileMenuBtn" class="md:hidden p-1.5 rounded-lg hover:bg-yellow-500/10 transition-colors">
+                <i data-lucide="menu" class="w-6 h-6 text-yellow-400"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ============================================================
+    MOBILE DRAWER
+    ============================================================ -->
+    <div id="mobileDrawer" class="fixed inset-0 z-40 glass transform -translate-x-full transition-transform duration-400 flex flex-col p-6 pt-24 md:hidden">
+        <button id="closeDrawerBtn" class="absolute top-6 right-6 p-2 rounded-full hover:bg-yellow-500/10 transition-colors">
+            <i data-lucide="x" class="w-6 h-6 text-yellow-400"></i>
+        </button>
+        <nav class="flex flex-col gap-6 text-xl font-bold text-gray-200">
+            <a href="#menu" class="hover:text-yellow-400 transition-colors border-b border-gray-700 pb-4">Order Food</a>
+            <a href="#booking" class="hover:text-yellow-400 transition-colors border-b border-gray-700 pb-4">Book Table</a>
+            <a href="#events" class="hover:text-yellow-400 transition-colors border-b border-gray-700 pb-4">Events</a>
+            <a href="#decor" class="hover:text-yellow-400 transition-colors border-b border-gray-700 pb-4">Decorations</a>
+        </nav>
+        <div class="mt-auto pt-6 border-t border-gray-700">
+            <a href="#booking" class="block w-full text-center btn-primary py-3 rounded-full font-bold">Book a Table</a>
+        </div>
+    </div>
+
+    <!-- ============================================================
+    HERO SECTION - WITH VIDEO
+    ============================================================ -->
+    <section class="relative min-h-[100vh] flex items-center pt-20 overflow-hidden" id="hero">
+        <!-- Video Background -->
+        <div class="absolute inset-0 z-0">
+            <!-- Fallback image if video doesn't load -->
+            <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=2070&auto=format&fit=crop" alt="Restaurant" class="w-full h-full object-cover" />
+            
+            <!-- Video overlay for better contrast -->
+            <div class="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/80"></div>
+            
+            <!-- Animated gradient overlay -->
+            <div class="absolute inset-0 bg-gradient-to-br from-yellow-500/5 via-transparent to-purple-500/5 animate-pulse"></div>
+        </div>
+
+        <!-- Floating elements -->
+        <div class="floating-element w-96 h-96 -top-40 -left-40 z-0"></div>
+        <div class="floating-element w-72 h-72 -bottom-20 -right-20 z-0"></div>
+
+        <div class="relative z-10 max-w-7xl mx-auto px-4 md:px-8 w-full py-12">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+
+                <!-- Left: Text -->
+                <div class="space-y-8 animate-slide-up">
+                    <!-- Status badge -->
+                    <div class="status-indicator w-fit">
+                        Open Now · 11 AM – 11 PM
+                    </div>
+
+                    <!-- Hero Title -->
+                    <div>
+                        <h1 class="hero-title text-5xl md:text-7xl font-serif font-bold leading-[1.1] text-white tracking-tight mb-2">
+                            Culinary
+                        </h1>
+                        <h2 class="text-5xl md:text-7xl font-serif font-bold leading-[1.1]">
+                            <span class="shimmer-text">Excellence</span>
+                            <br />
+                            <span class="text-white">Awaits You</span>
+                        </h2>
+                    </div>
+
+                    <!-- Subheading -->
+                    <p class="text-base md:text-lg text-gray-300 max-w-lg leading-relaxed font-light">
+                        Experience world-class cuisine in an ambiance of elegance. Order online, dine in, or host your special events with us.
+                    </p>
+
+                    <!-- Stats -->
+                    <div class="flex flex-wrap gap-8 text-sm">
+                        <div class="flex items-center gap-2">
+                            <div class="text-2xl font-bold text-yellow-400">4.9★</div>
+                            <div>
+                                <div class="text-white font-semibold">Highly Rated</div>
+                                <div class="text-gray-400 text-xs">2.5k+ reviews</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="text-2xl">⚡</div>
+                            <div>
+                                <div class="text-white font-semibold">Fast Delivery</div>
+                                <div class="text-gray-400 text-xs">25-35 minutes</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CTAs -->
+                    <div class="flex flex-wrap gap-4 pt-4">
+                        <a href="#menu" class="inline-flex items-center gap-2 btn-primary px-8 py-4 rounded-full font-bold text-lg hover:shadow-2xl transition-all">
+                            <i data-lucide="utensils" class="w-5 h-5"></i>
+                            Order Food
+                        </a>
+                        <a href="#booking" class="inline-flex items-center gap-2 btn-secondary px-8 py-4 rounded-full font-bold text-lg hover:shadow-2xl transition-all">
+                            <i data-lucide="calendar" class="w-5 h-5"></i>
+                            Book Table
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Right: QR + Feature Pills -->
+                <div class="flex flex-col items-center lg:items-end gap-8 animate-slide-up" style="animation-delay: 0.2s;">
+                    <!-- QR Code Card -->
+                    <div class="glass-gold p-8 rounded-3xl max-w-sm w-full shadow-2xl hover-lift">
+                        <div class="text-center space-y-4">
+                            <!-- QR placeholder with animation -->
+                            <div class="relative inline-block">
+                                <div class="relative w-48 h-48 mx-auto bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl flex items-center justify-center overflow-hidden border border-yellow-500/30 animate-glow">
+                                    <svg viewBox="0 0 100 100" class="w-40 h-40 opacity-80">
+                                        <rect x="10" y="10" width="20" height="20" fill="#c9a87c" rx="3" />
+                                        <rect x="70" y="10" width="20" height="20" fill="#c9a87c" rx="3" />
+                                        <rect x="10" y="70" width="20" height="20" fill="#c9a87c" rx="3" />
+                                        <rect x="40" y="40" width="20" height="20" fill="#c9a87c" rx="3" />
+                                        <rect x="25" y="25" width="8" height="8" fill="#c9a87c" rx="1" />
+                                        <rect x="67" y="25" width="8" height="8" fill="#c9a87c" rx="1" />
+                                        <rect x="25" y="67" width="8" height="8" fill="#c9a87c" rx="1" />
+                                    </svg>
+                                    <!-- Scanning effect -->
+                                    <div class="absolute inset-0 bg-gradient-to-b from-yellow-500/0 via-yellow-500/30 to-yellow-500/0 animate-pulse-scale" style="animation-duration: 2s;"></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <p class="text-white font-bold text-lg">Scan to Order</p>
+                                <p class="text-gray-400 text-sm">At your table · Instant menu access</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Feature Pills -->
+                    <div class="flex flex-wrap gap-3 justify-center lg:justify-end">
+                        <span class="glass-light px-5 py-3 rounded-full text-xs font-bold text-yellow-400 flex items-center gap-2 border border-yellow-500/20 backdrop-blur-xl">
+                            <i data-lucide="smartphone" class="w-4 h-4"></i> QR Order
+                        </span>
+                        <span class="glass-light px-5 py-3 rounded-full text-xs font-bold text-yellow-400 flex items-center gap-2 border border-yellow-500/20 backdrop-blur-xl">
+                            <i data-lucide="users" class="w-4 h-4"></i> Events
+                        </span>
+                        <span class="glass-light px-5 py-3 rounded-full text-xs font-bold text-yellow-400 flex items-center gap-2 border border-yellow-500/20 backdrop-blur-xl">
+                            <i data-lucide="sparkles" class="w-4 h-4"></i> Premium
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scroll indicator -->
+        <div class="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 opacity-60 animate-bounce">
+            <span class="text-xs tracking-[0.2em] uppercase text-yellow-400 font-bold">Scroll</span>
+            <i data-lucide="chevron-down" class="w-5 h-5 text-yellow-400"></i>
+        </div>
+    </section>
+
+    <!-- ============================================================
+    SERVICES STRIP
+    ============================================================ -->
+    <section class="py-12 bg-gradient-to-r from-black/50 via-yellow-500/5 to-black/50 border-y border-yellow-500/10 backdrop-blur-sm">
+        <div class="max-w-7xl mx-auto px-4 md:px-8 grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+            <div class="flex flex-col items-center gap-2 hover-lift">
+                <div class="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                    <i data-lucide="utensils" class="w-6 h-6 text-yellow-400"></i>
+                </div>
+                <span class="text-sm font-bold text-white text-center">Dine-In</span>
+                <span class="text-xs text-gray-400">Elegant setting</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 hover-lift">
+                <div class="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                    <i data-lucide="shopping-bag" class="w-6 h-6 text-yellow-400"></i>
+                </div>
+                <span class="text-sm font-bold text-white text-center">Takeaway</span>
+                <span class="text-xs text-gray-400">Quick service</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 hover-lift">
+                <div class="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                    <i data-lucide="bike" class="w-6 h-6 text-yellow-400"></i>
+                </div>
+                <span class="text-sm font-bold text-white text-center">Delivery</span>
+                <span class="text-xs text-gray-400">Fresh & fast</span>
+            </div>
+            <div class="flex flex-col items-center gap-2 hover-lift">
+                <div class="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                    <i data-lucide="party-popper" class="w-6 h-6 text-yellow-400"></i>
+                </div>
+                <span class="text-sm font-bold text-white text-center">Events</span>
+                <span class="text-xs text-gray-400">Custom catering</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+    MAIN CONTENT: TABS
+    ============================================================ -->
+    <section class="py-20 md:py-32 bg-gradient-to-b from-black to-gray-900/50 relative" id="menu">
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-500/0 via-yellow-500/30 to-yellow-500/0"></div>
+
+        <div class="max-w-7xl mx-auto px-4 md:px-8">
+
+            <!-- Section header -->
+            <div class="text-center max-w-2xl mx-auto mb-16 space-y-4">
+                <div class="badge mx-auto">
+                    <i data-lucide="sparkles" class="w-3.5 h-3.5 inline mr-1"></i> CURATED EXPERIENCE
+                </div>
+                <h2 class="section-title text-4xl md:text-6xl font-serif">What brings you in today?</h2>
+                <p class="text-gray-400 text-lg">Discover our exquisite offerings</p>
+            </div>
+
+            <!-- Tab buttons -->
+            <div class="flex flex-wrap justify-center gap-2 glass px-2 py-2 rounded-2xl max-w-2xl mx-auto mb-16">
+                <button class="tab-btn active flex-1 px-6 py-3.5 rounded-xl text-sm font-bold text-gray-300 transition-all" data-tab="tab-order">
+                    <i data-lucide="utensils" class="w-4 h-4 inline mr-2"></i> Order Food
+                </button>
+                <button class="tab-btn flex-1 px-6 py-3.5 rounded-xl text-sm font-bold text-gray-300 transition-all" data-tab="tab-booking">
+                    <i data-lucide="calendar" class="w-4 h-4 inline mr-2"></i> Book Table
+                </button>
+                <button class="tab-btn flex-1 px-6 py-3.5 rounded-xl text-sm font-bold text-gray-300 transition-all" data-tab="tab-events">
+                    <i data-lucide="party-popper" class="w-4 h-4 inline mr-2"></i> Events
+                </button>
+            </div>
+
+            <!-- ===== TAB 1: ORDER FOOD ===== -->
+            <div id="tab-order" class="tab-panel active">
+
+                <!-- Category filters -->
+                <div class="flex flex-wrap gap-3 mb-12 justify-center px-2">
+                    <button class="category-btn px-5 py-2.5 rounded-full text-xs font-bold bg-yellow-500 text-black hover:shadow-lg hover:shadow-yellow-500/40 transition-all" data-cat="all">All Items</button>
+                    <button class="category-btn px-5 py-2.5 rounded-full text-xs font-bold glass text-yellow-400 hover:bg-yellow-500/20 transition-all" data-cat="pizza">🍕 Pizza</button>
+                    <button class="category-btn px-5 py-2.5 rounded-full text-xs font-bold glass text-yellow-400 hover:bg-yellow-500/20 transition-all" data-cat="burger">🍔 Burgers</button>
+                    <button class="category-btn px-5 py-2.5 rounded-full text-xs font-bold glass text-yellow-400 hover:bg-yellow-500/20 transition-all" data-cat="pasta">🍝 Pasta</button>
+                    <button class="category-btn px-5 py-2.5 rounded-full text-xs font-bold glass text-yellow-400 hover:bg-yellow-500/20 transition-all" data-cat="salad">🥗 Salads</button>
+                    <button class="category-btn px-5 py-2.5 rounded-full text-xs font-bold glass text-yellow-400 hover:bg-yellow-500/20 transition-all" data-cat="drinks">🥤 Drinks</button>
+                </div>
+
+                <!-- Menu grid -->
+                <div id="menuGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+
+                    <!-- PIZZA ITEMS -->
+                    <div class="menu-card glass rounded-2xl overflow-hidden hover-lift" data-category="pizza">
+                        <div class="relative h-48 overflow-hidden image-overlay">
+                            <img src="https://images.unsplash.com/photo-1604068549290-dea0e4a305ca?q=80&w=800&auto=format&fit=crop" alt="Margherita" class="w-full h-full object-cover transition-transform duration-500" loading="lazy" />
+                            <span class="absolute top-3 left-3 badge">⭐ Bestseller</span>
+                        </div>
+                        <div class="p-5 space-y-3">
+                            <div>
+                                <h4 class="font-bold text-white text-lg">Margherita Pizza</h4>
+                                <p class="text-xs text-gray-400 mt-1">Fresh mozzarella, basil, tomato sauce</p>
+                            </div>
+                            <div class="flex items-center justify-between pt-2 border-t border-yellow-500/10">
+                                <span class="price">₹249</span>
+                                <div class="flex items-center gap-2">
+                                    <button class="qty-btn dec-btn" data-id="1">−</button>
+                                    <span class="qty-display text-white font-bold w-6 text-center" data-id="1">0</span>
+                                    <button class="qty-btn inc-btn" data-id="1">+</button>
+                                </div>
+                            </div>
+                            <button class="add-to-cart w-full btn-primary py-2.5 rounded-lg text-xs font-bold transition-all" data-id="1" data-name="Margherita Pizza" data-price="249">Add to Order</button>
+                        </div>
+                    </div>
+
+                    <!-- PIZZA ITEMS - Pepperoni -->
+                    <div class="menu-card glass rounded-2xl overflow-hidden hover-lift" data-category="pizza">
+                        <div class="relative h-48 overflow-hidden image-overlay">
+                            <img src="https://images.unsplash.com/photo-1628840042765-356cda07504e?q=80&w=800&auto=format&fit=crop" alt="Pepperoni" class="w-full h-full object-cover transition-transform duration-500" loading="lazy" />
+                        </div>
+                        <div class="p-5 space-y-3">
+                            <div>
+                                <h4 class="font-bold text-white text-lg">Pepperoni Inferno</h4>
+                                <p class="text-xs text-gray-400 mt-1">Spicy pepperoni, mozzarella blend</p>
+                            </div>
+                            <div class="flex items-center justify-between pt-2 border-t border-yellow-500/10">
+                                <span class="price">₹299</span>
+                                <div class="flex items-center gap-2">
+                                    <button class="qty-btn dec-btn" data-id="2">−</button>
+                                    <span class="qty-display text-white font-bold w-6 text-center" data-id="2">0</span>
+                                    <button class="qty-btn inc-btn" data-id="2">+</button>
+                                </div>
+                            </div>
+                            <button class="add-to-cart w-full btn-primary py-2.5 rounded-lg text-xs font-bold transition-all" data-id="2" data-name="Pepperoni Inferno" data-price="299">Add to Order</button>
+                        </div>
+                    </div>
+
+                    <!-- BURGER ITEMS -->
+                    <div class="menu-card glass rounded-2xl overflow-hidden hover-lift" data-category="burger">
+                        <div class="relative h-48 overflow-hidden image-overlay">
+                            <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=800&auto=format&fit=crop" alt="Classic Burger" class="w-full h-full object-cover transition-transform duration-500" loading="lazy" />
+                            <span class="absolute top-3 left-3 badge">🔥 Hot Pick</span>
+                        </div>
+                        <div class="p-5 space-y-3">
+                            <div>
+                                <h4 class="font-bold text-white text-lg">Classic Prime Burger</h4>
+                                <p class="text-xs text-gray-400 mt-1">Prime beef, crispy fries, special sauce</p>
+                            </div>
+                            <div class="flex items-center justify-between pt-2 border-t border-yellow-500/10">
+                                <span class="price">₹199</span>
+                                <div class="flex items-center gap-2">
+                                    <button class="qty-btn dec-btn" data-id="3">−</button>
+                                    <span class="qty-display text-white font-bold w-6 text-center" data-id="3">0</span>
+                                    <button class="qty-btn inc-btn" data-id="3">+</button>
+                                </div>
+                            </div>
+                            <button class="add-to-cart w-full btn-primary py-2.5 rounded-lg text-xs font-bold transition-all" data-id="3" data-name="Classic Prime Burger" data-price="199">Add to Order</button>
+                        </div>
+                    </div>
+
+                    <!-- BURGER ITEMS - Chicken -->
+                    <div class="menu-card glass rounded-2xl overflow-hidden hover-lift" data-category="burger">
+                        <div class="relative h-48 overflow-hidden image-overlay">
+                            <img src="https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=800&auto=format&fit=crop" alt="Chicken Burger" class="w-full h-full object-cover transition-transform duration-500" loading="lazy" />
+                        </div>
+                        <div class="p-5 space-y-3">
+                            <div>
+                                <h4 class="font-bold text-white text-lg">Crispy Chicken Premium</h4>
+                                <p class="text-xs text-gray-400 mt-1">Herb-fried chicken, coleslaw, mayo</p>
+                            </div>
+                            <div class="flex items-center justify-between pt-2 border-t border-yellow-500/10">
+                                <span class="price">₹229</span>
+                                <div class="flex items-center gap-2">
+                                    <button class="qty-btn dec-btn" data-id="4">−</button>
+                                    <span class="qty-display text-white font-bold w-6 text-center" data-id="4">0</span>
+                                    <button class="qty-btn inc-btn" data-id="4">+</button>
+                                </div>
+                            </div>
+                            <button class="add-to-cart w-full btn-primary py-2.5 rounded-lg text-xs font-bold transition-all" data-id="4" data-name="Crispy Chicken Premium" data-price="229">Add to Order</button>
+                        </div>
+                    </div>
+
+                    <!-- PASTA ITEMS -->
+                    <div class="menu-card glass rounded-2xl overflow-hidden hover-lift" data-category="pasta">
+                        <div class="relative h-48 overflow-hidden image-overlay">
+                            <img src="https://images.unsplash.com/photo-1645112411342-4665a10b6e4c?q=80&w=800&auto=format&fit=crop" alt="Truffle Pasta" class="w-full h-full object-cover transition-transform duration-500" loading="lazy" />
+                            <span class="absolute top-3 left-3 badge">✨ Premium</span>
+                        </div>
+                        <div class="p-5 space-y-3">
+                            <div>
+                                <h4 class="font-bold text-white text-lg">Truffle Carbonara</h4>
+                                <p class="text-xs text-gray-400 mt-1">Black truffle, panchetta, creamy sauce</p>
+                            </div>
+                            <div class="flex items-center justify-between pt-2 border-t border-yellow-500/10">
+                                <span class="price">₹349</span>
+                                <div class="flex items-center gap-2">
+                                    <button class="qty-btn dec-btn" data-id="5">−</button>
+                                    <span class="qty-display text-white font-bold w-6 text-center" data-id="5">0</span>
+                                    <button class="qty-btn inc-btn" data-id="5">+</button>
+                                </div>
+                            </div>
+                            <button class="add-to-cart w-full btn-primary py-2.5 rounded-lg text-xs font-bold transition-all" data-id="5" data-name="Truffle Carbonara" data-price="349">Add to Order</button>
+                        </div>
+                    </div>
+
+                    <!-- SALAD ITEMS -->
+                    <div class="menu-card glass rounded-2xl overflow-hidden hover-lift" data-category="salad">
+                        <div class="relative h-48 overflow-hidden image-overlay">
+                            <img src="https://images.unsplash.com/photo-1550304943-4f24f54ddde9?q=80&w=800&auto=format&fit=crop" alt="Caesar Salad" class="w-full h-full object-cover transition-transform duration-500" loading="lazy" />
+                        </div>
+                        <div class="p-5 space-y-3">
+                            <div>
+                                <h4 class="font-bold text-white text-lg">Caesar Delight</h4>
+                                <p class="text-xs text-gray-400 mt-1">Romaine, croutons, parmesan, house dressing</p>
+                            </div>
+                            <div class="flex items-center justify-between pt-2 border-t border-yellow-500/10">
+                                <span class="price">₹179</span>
+                                <div class="flex items-center gap-2">
+                                    <button class="qty-btn dec-btn" data-id="6">−</button>
+                                    <span class="qty-display text-white font-bold w-6 text-center" data-id="6">0</span>
+                                    <button class="qty-btn inc-btn" data-id="6">+</button>
+                                </div>
+                            </div>
+                            <button class="add-to-cart w-full btn-primary py-2.5 rounded-lg text-xs font-bold transition-all" data-id="6" data-name="Caesar Delight" data-price="179">Add to Order</button>
+                        </div>
+                    </div>
+
+                    <!-- DRINKS ITEMS -->
+                    <div class="menu-card glass rounded-2xl overflow-hidden hover-lift" data-category="drinks">
+                        <div class="relative h-48 overflow-hidden image-overlay">
+                            <img src="https://images.unsplash.com/photo-1461023058943-07fcbe16d735?q=80&w=800&auto=format&fit=crop" alt="Iced Coffee" class="w-full h-full object-cover transition-transform duration-500" loading="lazy" />
+                        </div>
+                        <div class="p-5 space-y-3">
+                            <div>
+                                <h4 class="font-bold text-white text-lg">Espresso Elegance</h4>
+                                <p class="text-xs text-gray-400 mt-1">Double espresso, cold milk, premium blend</p>
+                            </div>
+                            <div class="flex items-center justify-between pt-2 border-t border-yellow-500/10">
+                                <span class="price">₹149</span>
+                                <div class="flex items-center gap-2">
+                                    <button class="qty-btn dec-btn" data-id="7">−</button>
+                                    <span class="qty-display text-white font-bold w-6 text-center" data-id="7">0</span>
+                                    <button class="qty-btn inc-btn" data-id="7">+</button>
+                                </div>
+                            </div>
+                            <button class="add-to-cart w-full btn-primary py-2.5 rounded-lg text-xs font-bold transition-all" data-id="7" data-name="Espresso Elegance" data-price="149">Add to Order</button>
+                        </div>
+                    </div>
+
+                    <!-- DRINKS ITEMS - Lemonade -->
+                    <div class="menu-card glass rounded-2xl overflow-hidden hover-lift" data-category="drinks">
+                        <div class="relative h-48 overflow-hidden image-overlay">
+                            <img src="https://images.unsplash.com/photo-1621263764928-df1444c5e859?q=80&w=800&auto=format&fit=crop" alt="Lemonade" class="w-full h-full object-cover transition-transform duration-500" loading="lazy" />
+                        </div>
+                        <div class="p-5 space-y-3">
+                            <div>
+                                <h4 class="font-bold text-white text-lg">Fresh Citrus Punch</h4>
+                                <p class="text-xs text-gray-400 mt-1">Hand-squeezed lemon, mint, premium soda</p>
+                            </div>
+                            <div class="flex items-center justify-between pt-2 border-t border-yellow-500/10">
+                                <span class="price">₹129</span>
+                                <div class="flex items-center gap-2">
+                                    <button class="qty-btn dec-btn" data-id="8">−</button>
+                                    <span class="qty-display text-white font-bold w-6 text-center" data-id="8">0</span>
+                                    <button class="qty-btn inc-btn" data-id="8">+</button>
+                                </div>
+                            </div>
+                            <button class="add-to-cart w-full btn-primary py-2.5 rounded-lg text-xs font-bold transition-all" data-id="8" data-name="Fresh Citrus Punch" data-price="129">Add to Order</button>
+                        </div>
+                    </div>
+
+                </div><!-- /menuGrid -->
+            </div><!-- /tab-order -->
+
+            <!-- ===== TAB 2: BOOK TABLE ===== -->
+            <div id="tab-booking" class="tab-panel">
+                <div class="max-w-3xl mx-auto glass rounded-3xl p-8 md:p-12 border border-yellow-500/20">
+                    <div class="text-center mb-10 space-y-2">
+                        <h3 class="section-title text-3xl md:text-4xl">Reserve Your Experience</h3>
+                        <p class="text-gray-400 text-sm">Select your preferred date and time. We'll confirm your reservation instantly.</p>
+                    </div>
+
+                    <form id="bookingForm" class="space-y-6">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-300 tracking-wider mb-2">FULL NAME</label>
+                                <input type="text" required placeholder="Your name" class="w-full px-4 py-3.5 rounded-lg glass border-0 focus:ring-2 focus:ring-yellow-500 transition-all text-sm text-white placeholder-gray-500" />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-300 tracking-wider mb-2">EMAIL</label>
+                                <input type="email" required placeholder="you@example.com" class="w-full px-4 py-3.5 rounded-lg glass border-0 focus:ring-2 focus:ring-yellow-500 transition-all text-sm text-white placeholder-gray-500" />
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-300 tracking-wider mb-2">DATE</label>
+                                <input type="date" required class="w-full px-4 py-3.5 rounded-lg glass border-0 focus:ring-2 focus:ring-yellow-500 transition-all text-sm text-white" />
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-300 tracking-wider mb-2">TIME</label>
+                                <select required class="w-full px-4 py-3.5 rounded-lg glass border-0 focus:ring-2 focus:ring-yellow-500 transition-all text-sm text-white">
+                                    <option value="">Select time</option>
+                                    <option>12:00 PM</option>
+                                    <option>12:30 PM</option>
+                                    <option>1:00 PM</option>
+                                    <option>6:00 PM</option>
+                                    <option>6:30 PM</option>
+                                    <option>7:00 PM</option>
+                                    <option>7:30 PM</option>
+                                    <option>8:00 PM</option>
+                                    <option>8:30 PM</option>
+                                    <option>9:00 PM</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-300 tracking-wider mb-2">GUESTS</label>
+                                <select required class="w-full px-4 py-3.5 rounded-lg glass border-0 focus:ring-2 focus:ring-yellow-500 transition-all text-sm text-white">
+                                    <option value="">Select guests</option>
+                                    <option>1</option>
+                                    <option>2</option>
+                                    <option>3</option>
+                                    <option>4</option>
+                                    <option>5</option>
+                                    <option>6</option>
+                                    <option>7</option>
+                                    <option>8+</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-gray-300 tracking-wider mb-2">SPECIAL REQUESTS</label>
+                            <textarea rows="3" placeholder="Any dietary restrictions, celebration, or seating preference…" class="w-full px-4 py-3.5 rounded-lg glass border-0 focus:ring-2 focus:ring-yellow-500 transition-all text-sm text-white placeholder-gray-500 resize-none"></textarea>
+                        </div>
+
+                        <button type="submit" class="w-full btn-primary py-4 rounded-lg font-bold text-lg flex items-center justify-center gap-2 hover:shadow-2xl transition-all">
+                            <i data-lucide="check-circle" class="w-5 h-5"></i>
+                            Confirm Reservation
+                        </button>
+                        <p class="text-center text-xs text-gray-400">We'll send confirmation to your email instantly</p>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ===== TAB 3: EVENTS ===== -->
+            <div id="tab-events" class="tab-panel">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+
+                    <!-- Event card 1 -->
+                    <div class="menu-card glass rounded-3xl overflow-hidden hover-lift border border-yellow-500/20">
+                        <div class="h-52 overflow-hidden image-overlay">
+                            <img src="https://images.unsplash.com/photo-1530023367847-a683933f4172?q=80&w=800&auto=format&fit=crop" alt="Private Party" class="w-full h-full object-cover transition-transform duration-500" loading="lazy" />
+                        </div>
+                        <div class="p-8 space-y-4">
+                            <div class="flex items-center gap-2 text-xs font-bold text-yellow-400 uppercase tracking-widest">
+                                <i data-lucide="party-popper" class="w-4 h-4"></i> Private Events
+                            </div>
+                            <h4 class="text-2xl font-serif font-bold text-white">Celebrations in Style</h4>
+                            <p class="text-sm text-gray-400 leading-relaxed">Host birthdays, anniversaries, and corporate events in our exclusive dining spaces. Customizable menus for up to 50 guests.</p>
+                            <a href="#booking" class="inline-flex items-center gap-2 text-yellow-400 font-bold hover:text-yellow-300 transition-colors group">
+                                Inquire Now <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Event card 2 -->
+                    <div class="menu-card glass rounded-3xl overflow-hidden hover-lift border border-yellow-500/20">
+                        <div class="h-52 overflow-hidden image-overlay">
+                            <img src="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=800&auto=format&fit=crop" alt="Decorations" class="w-full h-full object-cover transition-transform duration-500" loading="lazy" />
+                        </div>
+                        <div class="p-8 space-y-4">
+                            <div class="flex items-center gap-2 text-xs font-bold text-yellow-400 uppercase tracking-widest">
+                                <i data-lucide="sparkles" class="w-4 h-4"></i> Premium Decor
+                            </div>
+                            <h4 class="text-2xl font-serif font-bold text-white">Bespoke Decoration</h4>
+                            <p class="text-sm text-gray-400 leading-relaxed">Let our design team create the perfect ambiance. Floral arrangements, custom lighting, and elegant table settings.</p>
+                            <a href="#booking" class="inline-flex items-center gap-2 text-yellow-400 font-bold hover:text-yellow-300 transition-colors group">
+                                Get a Quote <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ============================================================
+    CART SLIDEOVER
+    ============================================================ -->
+    <div id="cartOverlay" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-400"></div>
+
+    <div id="cartPanel" class="fixed top-0 right-0 z-50 h-full w-full max-w-md glass transform translate-x-full transition-transform duration-400 flex flex-col border-l border-yellow-500/20">
+        <!-- Header -->
+        <div class="flex items-center justify-between p-6 border-b border-yellow-500/10">
+            <h3 class="text-xl font-bold text-white flex items-center gap-3">
+                <i data-lucide="shopping-bag" class="w-6 h-6 text-yellow-400"></i>
+                Your Order
+            </h3>
+            <button id="closeCartBtn" class="p-2 rounded-lg hover:bg-yellow-500/10 transition-colors">
+                <i data-lucide="x" class="w-5 h-5 text-yellow-400"></i>
+            </button>
+        </div>
+
+        <!-- Items -->
+        <div id="cartItems" class="flex-1 overflow-y-auto p-6 space-y-4">
+            <div id="emptyCart" class="flex flex-col items-center justify-center h-full text-center text-gray-400">
+                <i data-lucide="shopping-bag" class="w-16 h-16 mb-4 opacity-30"></i>
+                <p class="text-sm">Your cart is empty</p>
+                <p class="text-xs mt-1">Add items from the menu to get started</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="border-t border-yellow-500/10 p-6 space-y-4 bg-black/50 backdrop-blur-sm">
+            <div class="space-y-3">
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-400">Subtotal</span>
+                    <span id="cartSubtotal" class="text-white font-bold">₹0</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-400">Delivery</span>
+                    <span class="text-white font-bold">₹0</span>
+                </div>
+                <div class="flex justify-between text-lg font-bold pt-2 border-t border-yellow-500/10">
+                    <span class="text-white">Total</span>
+                    <span id="cartTotal" class="text-yellow-400">₹0</span>
+                </div>
+            </div>
+            <button id="checkoutBtn" class="w-full btn-primary py-4 rounded-lg font-bold flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed transition-all hover:shadow-xl">
+                <i data-lucide="credit-card" class="w-5 h-5"></i>
+                Proceed to Checkout
+            </button>
+        </div>
+    </div>
+
+    <!-- ============================================================
+    FOOTER
+    ============================================================ -->
+    <footer class="bg-black border-t border-yellow-500/10 pt-20 pb-8">
+        <div class="max-w-7xl mx-auto px-4 md:px-8 grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+            <div class="space-y-4">
+                <div>
+                    <div class="text-3xl font-serif font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">AK</div>
+                    <div class="text-xs font-bold text-yellow-500 tracking-[0.2em]">RESTO</div>
+                </div>
+                <p class="text-gray-400 text-sm leading-relaxed">Premium culinary experience with world-class service and ambiance.</p>
+                <div class="flex gap-3">
+                    <a href="#" class="p-2 rounded-lg bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20 transition-colors">
+                        <i data-lucide="facebook" class="w-4 h-4"></i>
+                    </a>
+                    <a href="#" class="p-2 rounded-lg bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20 transition-colors">
+                        <i data-lucide="instagram" class="w-4 h-4"></i>
+                    </a>
+                </div>
+            </div>
+            <div>
+                <h5 class="text-white text-sm font-bold mb-4 uppercase tracking-widest">Menu</h5>
+                <ul class="space-y-3 text-sm text-gray-400">
+                    <li><a href="#menu" class="hover:text-yellow-400 transition-colors">Order Food</a></li>
+                    <li><a href="#booking" class="hover:text-yellow-400 transition-colors">Book a Table</a></li>
+                    <li><a href="#events" class="hover:text-yellow-400 transition-colors">Events</a></li>
+                </ul>
+            </div>
+            <div>
+                <h5 class="text-white text-sm font-bold mb-4 uppercase tracking-widest">Contact</h5>
+                <ul class="space-y-3 text-sm text-gray-400">
+                    <li>📍 123 Gourmet Street, Premium City</li>
+                    <li><a href="tel:+919876543210" class="hover:text-yellow-400 transition-colors">📱 +91 98765 43210</a></li>
+                    <li><a href="mailto:reservations@akresto.com" class="hover:text-yellow-400 transition-colors">✉️ reservations@akresto.com</a></li>
+                </ul>
+            </div>
+            <div>
+                <h5 class="text-white text-sm font-bold mb-4 uppercase tracking-widest">Hours</h5>
+                <ul class="space-y-2 text-sm text-gray-400">
+                    <li>Mon – Fri: 11:00 AM – 11:00 PM</li>
+                    <li>Sat – Sun: 11:00 AM – 12:00 AM</li>
+                    <li class="text-yellow-400 font-bold">✓ Open Now</li>
+                </ul>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto px-4 md:px-8 pt-8 border-t border-yellow-500/10 text-center text-xs text-gray-500">
+            &copy; 2026 AK Resto. Premium Dining. All rights reserved.
+        </div>
+    </footer>
+
+    <!-- ============================================================
+    JAVASCRIPT (SAME AS BEFORE + ENHANCEMENTS)
+    ============================================================ -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            lucide.createIcons();
+
+            // ─── Mobile drawer ───
+            const mobileBtn = document.getElementById('mobileMenuBtn');
+            const drawer = document.getElementById('mobileDrawer');
+            const closeDrawer = document.getElementById('closeDrawerBtn');
+
+            function openDrawer() {
+                drawer.classList.remove('-translate-x-full');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeDrawerFn() {
+                drawer.classList.add('-translate-x-full');
+                document.body.style.overflow = '';
+            }
+
+            if (mobileBtn) mobileBtn.addEventListener('click', openDrawer);
+            if (closeDrawer) closeDrawer.addEventListener('click', closeDrawerFn);
+            document.querySelectorAll('#mobileDrawer a').forEach(link => {
+                link.addEventListener('click', closeDrawerFn);
+            });
+
+            // ─── Tabs ───
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabPanels = {
+                'tab-order': document.getElementById('tab-order'),
+                'tab-booking': document.getElementById('tab-booking'),
+                'tab-events': document.getElementById('tab-events'),
+            };
+
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    Object.values(tabPanels).forEach(p => p.classList.remove('active'));
+                    const target = this.dataset.tab;
+                    if (tabPanels[target]) tabPanels[target].classList.add('active');
+                    lucide.createIcons();
+                });
+            });
+
+            // ─── Category filter ───
+            const categoryBtns = document.querySelectorAll('.category-btn');
+            const menuItems = document.querySelectorAll('.menu-card');
+
+            categoryBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    categoryBtns.forEach(b => {
+                        b.classList.remove('bg-yellow-500', 'text-black', 'shadow-lg');
+                        b.classList.add('glass', 'text-yellow-400');
+                    });
+                    this.classList.remove('glass', 'text-yellow-400');
+                    this.classList.add('bg-yellow-500', 'text-black', 'shadow-lg');
+
+                    const cat = this.dataset.cat;
+                    menuItems.forEach(item => {
+                        if (cat === 'all' || item.dataset.category === cat) {
+                            item.style.display = '';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                });
+            });
+
+            // ─── Cart state ───
+            let cart = [];
+            const cartCountEl = document.getElementById('cartCount');
+            const cartItemsEl = document.getElementById('cartItems');
+            const emptyCartEl = document.getElementById('emptyCart');
+            const cartSubtotalEl = document.getElementById('cartSubtotal');
+            const cartTotalEl = document.getElementById('cartTotal');
+            const checkoutBtn = document.getElementById('checkoutBtn');
+            const cartPanel = document.getElementById('cartPanel');
+            const cartOverlay = document.getElementById('cartOverlay');
+            const cartToggle = document.getElementById('cartToggle');
+            const closeCartBtn = document.getElementById('closeCartBtn');
+
+            function openCart() {
+                cartPanel.classList.remove('translate-x-full');
+                cartOverlay.classList.remove('opacity-0', 'pointer-events-none');
+                document.body.style.overflow = 'hidden';
+                renderCart();
+            }
+
+            function closeCart() {
+                cartPanel.classList.add('translate-x-full');
+                cartOverlay.classList.add('opacity-0', 'pointer-events-none');
+                document.body.style.overflow = '';
+            }
+
+            if (cartToggle) cartToggle.addEventListener('click', openCart);
+            if (closeCartBtn) closeCartBtn.addEventListener('click', closeCart);
+            if (cartOverlay) cartOverlay.addEventListener('click', closeCart);
+
+            // ─── Add / remove from cart ───
+            const addBtns = document.querySelectorAll('.add-to-cart');
+
+            function updateQtyDisplay(itemId) {
+                const display = document.querySelector(`.qty-display[data-id="${itemId}"]`);
+                if (display) {
+                    const found = cart.find(c => c.id === itemId);
+                    display.textContent = found ? found.qty : 0;
+                }
+            }
+
+            function updateCartBadge() {
+                const total = cart.reduce((sum, item) => sum + item.qty, 0);
+                cartCountEl.textContent = total;
+                cartCountEl.classList.add('pop');
+                setTimeout(() => cartCountEl.classList.remove('pop'), 250);
+                if (checkoutBtn) {
+                    checkoutBtn.disabled = total === 0;
+                }
+            }
+
+            function renderCart() {
+                const existingItems = cartItemsEl.querySelectorAll('.cart-item');
+                existingItems.forEach(el => el.remove());
+
+                if (cart.length === 0) {
+                    emptyCartEl.style.display = 'flex';
+                    cartSubtotalEl.textContent = '₹0';
+                    cartTotalEl.textContent = '₹0';
+                    updateCartBadge();
+                    return;
+                }
+
+                emptyCartEl.style.display = 'none';
+
+                let subtotal = 0;
+                cart.forEach(item => {
+                    subtotal += item.price * item.qty;
+
+                    const div = document.createElement('div');
+                    div.className = 'cart-item glass p-4 rounded-lg border border-yellow-500/10 flex items-center justify-between';
+                    div.innerHTML = `
+                        <div>
+                            <p class="font-bold text-white text-sm">${item.name}</p>
+                            <p class="text-xs text-gray-400">₹${item.price} × ${item.qty}</p>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <span class="text-sm font-bold text-yellow-400">₹${item.price * item.qty}</span>
+                            <button class="remove-item text-gray-400 hover:text-red-400 transition-colors">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    `;
+                    cartItemsEl.appendChild(div);
+                    lucide.createIcons();
+
+                    const removeBtn = div.querySelector('.remove-item');
+                    removeBtn.addEventListener('click', function() {
+                        cart = cart.filter(c => c.id !== item.id);
+                        const display = document.querySelector(`.qty-display[data-id="${item.id}"]`);
+                        if (display) display.textContent = '0';
+                        renderCart();
+                        updateCartBadge();
+                    });
+                });
+
+                const delivery = subtotal > 0 && subtotal < 500 ? 40 : 0;
+                const total = subtotal + delivery;
+                cartSubtotalEl.textContent = `₹${subtotal}`;
+                cartTotalEl.textContent = `₹${total}`;
+                updateCartBadge();
+            }
+
+            // Add to cart
+            addBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = parseInt(this.dataset.id);
+                    const name = this.dataset.name;
+                    const price = parseInt(this.dataset.price);
+
+                    const existing = cart.find(c => c.id === id);
+                    if (existing) {
+                        existing.qty += 1;
+                    } else {
+                        cart.push({ id, name, price, qty: 1 });
+                    }
+
+                    updateQtyDisplay(id);
+                    updateCartBadge();
+                    this.classList.add('scale-95');
+                    setTimeout(() => this.classList.remove('scale-95'), 150);
+                });
+            });
+
+            // Quantity buttons
+            document.querySelectorAll('.inc-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = parseInt(this.dataset.id);
+                    const existing = cart.find(c => c.id === id);
+                    if (existing) {
+                        existing.qty += 1;
+                    } else {
+                        const card = this.closest('.menu-card');
+                        const addBtn = card.querySelector('.add-to-cart');
+                        if (addBtn) {
+                            cart.push({ id, name: addBtn.dataset.name, price: parseInt(addBtn.dataset.price), qty: 1 });
+                        }
+                    }
+                    updateQtyDisplay(id);
+                    updateCartBadge();
+                });
+            });
+
+            document.querySelectorAll('.dec-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = parseInt(this.dataset.id);
+                    const existing = cart.find(c => c.id === id);
+                    if (existing) {
+                        if (existing.qty > 1) {
+                            existing.qty -= 1;
+                        } else {
+                            cart = cart.filter(c => c.id !== id);
+                        }
+                    }
+                    updateQtyDisplay(id);
+                    updateCartBadge();
+                });
+            });
+
+            // ─── Checkout ───
+            if (checkoutBtn) {
+                checkoutBtn.addEventListener('click', function() {
+                    if (cart.length === 0) return;
+                    alert('✅ Order confirmed!\n\n' + cart.map(c => `${c.name} × ${c.qty} = ₹${c.price * c.qty}`).join('\n') + `\n\nTotal: ₹${cart.reduce((s, c) => s + c.price * c.qty, 0)}\n\nThank you for your order!`);
+                    cart = [];
+                    document.querySelectorAll('.qty-display').forEach(el => el.textContent = '0');
+                    renderCart();
+                    updateCartBadge();
+                    closeCart();
+                });
+            }
+
+            // ─── Booking form ───
+            const bookingForm = document.getElementById('bookingForm');
+            if (bookingForm) {
+                bookingForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const btn = this.querySelector('button[type="submit"]');
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '<i data-lucide="loader-circle" class="w-5 h-5 animate-spin"></i> Processing…';
+                    btn.disabled = true;
+                    lucide.createIcons();
+
+                    setTimeout(() => {
+                        btn.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i> Reserved!';
+                        btn.classList.remove('btn-primary');
+                        btn.classList.add('bg-green-600', 'text-white');
+                        lucide.createIcons();
+
+                        setTimeout(() => {
+                            btn.innerHTML = originalText;
+                            btn.classList.remove('bg-green-600', 'text-white');
+                            btn.classList.add('btn-primary');
+                            btn.disabled = false;
+                            this.reset();
+                            lucide.createIcons();
+                        }, 2500);
+                    }, 1800);
+                });
+            }
+
+            // ─── Navbar scroll ───
+            const navbar = document.getElementById('navbar');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 30) {
+                    navbar.classList.add('shadow-lg');
+                } else {
+                    navbar.classList.remove('shadow-lg');
+                }
+            });
+
+            updateCartBadge();
+            renderCart();
+
+        });
+    </script>
+
+</body>
+</html>

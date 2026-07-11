@@ -1,0 +1,147 @@
+2026-06-22T23:53:40.341217Z  INFO tailwindcss_oxide::scanner: Provided sources:
+2026-06-22T23:53:40.341382Z  INFO tailwindcss_oxide::scanner: Source: PublicSourceEntry { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app", pattern: "./**/*.{js,ts,jsx,tsx}", negated: false }
+2026-06-22T23:53:40.341445Z  INFO tailwindcss_oxide::scanner: Source: PublicSourceEntry { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app", pattern: "../components/**/*.{js,ts,jsx,tsx}", negated: false }
+2026-06-22T23:53:40.341473Z  INFO tailwindcss_oxide::scanner: Source: PublicSourceEntry { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app", pattern: "../context/**/*.{js,ts,jsx,tsx}", negated: false }
+2026-06-22T23:53:40.341498Z  INFO tailwindcss_oxide::scanner: Source: PublicSourceEntry { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app", pattern: "../hooks/**/*.{js,ts,jsx,tsx}", negated: false }
+2026-06-22T23:53:40.341807Z  INFO tailwindcss_oxide::scanner: Source: PublicSourceEntry { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app", pattern: "../lib/**/*.{js,ts,jsx,tsx}", negated: false }
+2026-06-22T23:53:40.341833Z  INFO tailwindcss_oxide::scanner: Source: PublicSourceEntry { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app", pattern: "../providers/**/*.{js,ts,jsx,tsx}", negated: false }
+2026-06-22T23:53:40.341840Z  INFO tailwindcss_oxide::scanner: Source: PublicSourceEntry { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app", pattern: "../services/**/*.{js,ts,jsx,tsx}", negated: false }
+2026-06-22T23:53:40.341847Z  INFO tailwindcss_oxide::scanner: Source: PublicSourceEntry { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app", pattern: "../store/**/*.{js,ts,jsx,tsx}", negated: false }
+2026-06-22T23:53:40.341854Z  INFO tailwindcss_oxide::scanner: Source: PublicSourceEntry { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app", pattern: "../src/**/*.{js,ts,jsx,tsx}", negated: false }
+2026-06-22T23:53:40.354544Z  INFO tailwindcss_oxide::scanner: Optimized sources:
+2026-06-22T23:53:40.354598Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app", pattern: "**/*.js" }
+2026-06-22T23:53:40.354636Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app", pattern: "**/*.ts" }
+2026-06-22T23:53:40.354643Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app", pattern: "**/*.jsx" }
+2026-06-22T23:53:40.354649Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app", pattern: "**/*.tsx" }
+2026-06-22T23:53:40.354656Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\components", pattern: "**/*.js" }
+2026-06-22T23:53:40.354664Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\components", pattern: "**/*.ts" }
+2026-06-22T23:53:40.354671Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\components", pattern: "**/*.jsx" }
+2026-06-22T23:53:40.354678Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\components", pattern: "**/*.tsx" }
+2026-06-22T23:53:40.354685Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\context", pattern: "**/*.js" }
+2026-06-22T23:53:40.354694Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\context", pattern: "**/*.ts" }
+2026-06-22T23:53:40.354701Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\context", pattern: "**/*.jsx" }
+2026-06-22T23:53:40.354708Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\context", pattern: "**/*.tsx" }
+2026-06-22T23:53:40.354715Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\hooks", pattern: "**/*.js" }
+2026-06-22T23:53:40.354722Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\hooks", pattern: "**/*.ts" }
+2026-06-22T23:53:40.354822Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\hooks", pattern: "**/*.jsx" }
+2026-06-22T23:53:40.354841Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\hooks", pattern: "**/*.tsx" }
+2026-06-22T23:53:40.354848Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\lib", pattern: "**/*.js" }
+2026-06-22T23:53:40.354856Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\lib", pattern: "**/*.ts" }
+2026-06-22T23:53:40.354863Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\lib", pattern: "**/*.jsx" }
+2026-06-22T23:53:40.354870Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\lib", pattern: "**/*.tsx" }
+2026-06-22T23:53:40.354879Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\providers", pattern: "**/*.js" }
+2026-06-22T23:53:40.354886Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\providers", pattern: "**/*.ts" }
+2026-06-22T23:53:40.354893Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\providers", pattern: "**/*.jsx" }
+2026-06-22T23:53:40.354902Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\providers", pattern: "**/*.tsx" }
+2026-06-22T23:53:40.354908Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\services", pattern: "**/*.js" }
+2026-06-22T23:53:40.354914Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\services", pattern: "**/*.ts" }
+2026-06-22T23:53:40.354921Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\services", pattern: "**/*.jsx" }
+2026-06-22T23:53:40.354929Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\services", pattern: "**/*.tsx" }
+2026-06-22T23:53:40.354936Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\store", pattern: "**/*.js" }
+2026-06-22T23:53:40.354942Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\store", pattern: "**/*.ts" }
+2026-06-22T23:53:40.354949Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\store", pattern: "**/*.jsx" }
+2026-06-22T23:53:40.354955Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\store", pattern: "**/*.tsx" }
+2026-06-22T23:53:40.354961Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\src", pattern: "**/*.js" }
+2026-06-22T23:53:40.354967Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\src", pattern: "**/*.ts" }
+2026-06-22T23:53:40.354974Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\src", pattern: "**/*.jsx" }
+2026-06-22T23:53:40.354981Z  INFO tailwindcss_oxide::scanner: Source: Pattern { base: "D:\\A3 resto\\a3-resto-saas\\apps\\web\\src", pattern: "**/*.tsx" }
+2026-06-22T23:53:40.359399Z  INFO discover_sources: tailwindcss_oxide::scanner: enter
+2026-06-22T23:53:40.359471Z  INFO discover_sources:walk_synchronous: tailwindcss_oxide::scanner: enter
+2026-06-22T23:53:40.420045Z  INFO discover_sources:walk_synchronous: tailwindcss_oxide::scanner: exit
+2026-06-22T23:53:40.421932Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app\\book-table\\page.tsx"
+2026-06-22T23:53:40.422050Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\components\\dashboard\\OwnerDashboard.tsx"
+2026-06-22T23:53:40.422142Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app\\checkout\\page.tsx"
+2026-06-22T23:53:40.422353Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app\\dashboard\\ai-insights\\page.tsx"
+2026-06-22T23:53:40.422367Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\components\\dashboard\\WaiterDashboard.tsx"
+2026-06-22T23:53:40.422505Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app\\dashboard\\analytics\\page.tsx"
+2026-06-22T23:53:40.422514Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\components\\layout\\dashboard-language.ts"
+2026-06-22T23:53:40.422648Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\components\\layout\\DashboardShell.tsx"
+2026-06-22T23:53:40.422653Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app\\dashboard\\billing\\page.tsx"
+2026-06-22T23:53:40.422776Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\components\\layout\\Navbar.tsx"
+2026-06-22T23:53:40.422811Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app\\dashboard\\customers\\page.tsx"
+2026-06-22T23:53:40.422955Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\components\\layout\\Sidebar.tsx"
+2026-06-22T23:53:40.422981Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app\\dashboard\\inventory\\page.tsx"
+2026-06-22T23:53:40.423117Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app\\dashboard\\invoice\\page.tsx"
+2026-06-22T23:53:40.423145Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\components\\login\\LoginForm.tsx"
+2026-06-22T23:53:40.423325Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\components\\login\\RoleSelector.tsx"
+2026-06-22T23:53:40.423510Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\components\\protected-route.tsx"
+2026-06-22T23:53:40.423631Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\services\\order.service.ts"
+2026-06-22T23:53:40.423671Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\components\\providers\\theme-provider.tsx"
+2026-06-22T23:53:40.423813Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\services\\public.service.ts"
+2026-06-22T23:53:40.423851Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\components\\theme-toggle.tsx"
+2026-06-22T23:53:40.423959Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\services\\reservation.service.ts"
+2026-06-22T23:53:40.424020Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\lib\\eslint-disable.ts"
+2026-06-22T23:53:40.424080Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\services\\restaurant.service.ts"
+2026-06-22T23:53:40.424157Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\services\\api.ts"
+2026-06-22T23:53:40.424210Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\services\\socket.ts"
+2026-06-22T23:53:40.424284Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\services\\auth.service.ts"
+2026-06-22T23:53:40.424358Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\services\\upload.service.ts"
+2026-06-22T23:53:40.424440Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\services\\billing.service.ts"
+2026-06-22T23:53:40.424519Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\src\\services\\api-error.ts"
+2026-06-22T23:53:40.424575Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\services\\helpers.ts"
+2026-06-22T23:53:40.423285Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app\\dashboard\\kitchen\\page.tsx"
+2026-06-22T23:53:40.424682Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\src\\services\\request.ts"
+2026-06-22T23:53:40.424761Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\services\\index.ts"
+2026-06-22T23:53:40.424783Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app\\dashboard\\layout.tsx"
+2026-06-22T23:53:40.424844Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\src\\services\\response-handler.ts"
+2026-06-22T23:53:40.425022Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\src\\types\\api.types.ts"
+2026-06-22T23:53:40.425031Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app\\dashboard\\menu\\page.tsx"
+2026-06-22T23:53:40.425186Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app\\dashboard\\notifications\\page.tsx"
+2026-06-22T23:53:40.425206Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\src\\types\\auth.types.ts"
+2026-06-22T23:53:40.425394Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app\\dashboard\\orders\\page.tsx"
+2026-06-22T23:53:40.425573Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app\\dashboard\\page.tsx"
+2026-06-22T23:53:40.425748Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app\\dashboard\\payments\\page.tsx"
+2026-06-22T23:53:40.425746Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app\\dashboard\\waiter\\page.tsx"
+2026-06-22T23:53:40.425954Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app\\delivery-partner\\dashboard\\page.tsx"
+2026-06-22T23:53:40.425971Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app\\dashboard\\pos\\page.tsx"
+2026-06-22T23:53:40.426015Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\src\\types\\billing.types.ts"
+2026-06-22T23:53:40.426122Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app\\dashboard\\qr-tables\\page.tsx"
+2026-06-22T23:53:40.426125Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app\\delivery-partner\\signup\\page.tsx"
+2026-06-22T23:53:40.426147Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\src\\types\\inventory.types.ts"
+2026-06-22T23:53:40.426265Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app\\dashboard\\reservations\\page.tsx"
+2026-06-22T23:53:40.426277Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app\\layout.tsx"
+2026-06-22T23:53:40.426286Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\src\\types\\menu.types.ts"
+2026-06-22T23:53:40.426395Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app\\dashboard\\restaurants\\page.tsx"
+2026-06-22T23:53:40.426420Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\src\\types\\order.types.ts"
+2026-06-22T23:53:40.426431Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\services\\inventory.service.ts"
+2026-06-22T23:53:40.426458Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app\\login\\page.tsx"
+2026-06-22T23:53:40.426527Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app\\dashboard\\staff\\page.tsx"
+2026-06-22T23:53:40.426549Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\src\\types\\reservation.types.ts"
+2026-06-22T23:53:40.426635Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app\\manifest.ts"
+2026-06-22T23:53:40.426650Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app\\qr-order\\page.tsx"
+2026-06-22T23:53:40.426711Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\services\\menu.service.ts"
+2026-06-22T23:53:40.426767Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app\\restaurant\\[slug]\\page.tsx"
+2026-06-22T23:53:40.426769Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\src\\types\\restaurant.types.ts"
+2026-06-22T23:53:40.426770Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app\\onboarding\\page.tsx"
+2026-06-22T23:53:40.426862Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\services\\online-ordering.service.ts"
+2026-06-22T23:53:40.426904Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app\\restaurant-login\\page.tsx"
+2026-06-22T23:53:40.426945Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app\\online-ordering\\page.tsx"
+2026-06-22T23:53:40.426987Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\src\\types\\user.types.ts"
+2026-06-22T23:53:40.427002Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\hooks\\use-realtime.ts"
+2026-06-22T23:53:40.427029Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app\\super-admin\\login\\page.tsx"
+2026-06-22T23:53:40.427079Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app\\order\\[id]\\page.tsx"
+2026-06-22T23:53:40.427147Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\hooks\\use-role-based-redirect.ts"
+2026-06-22T23:53:40.427173Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\context\\auth-context-new.tsx"
+2026-06-22T23:53:40.427213Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app\\page.tsx"
+2026-06-22T23:53:40.427275Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\app\\super-admin\\page.tsx"
+2026-06-22T23:53:40.427285Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\components\\common\\animated-components.tsx"
+2026-06-22T23:53:40.427330Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\context\\auth-context.tsx"
+2026-06-22T23:53:40.427371Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\components\\customer\\ordering-experience.tsx"
+2026-06-22T23:53:40.427439Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\components\\dashboard\\ChefDashboard.tsx"
+2026-06-22T23:53:40.427461Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\context\\notification-context.tsx"
+2026-06-22T23:53:40.427463Z  INFO tailwindcss_oxide::scanner: Reading "D:\\A3 resto\\a3-resto-saas\\apps\\web\\components\\dashboard\\CashierDashboard.tsx"
+2026-06-22T23:53:40.429746Z  INFO discover_sources: tailwindcss_oxide::scanner: exit
+2026-06-22T23:53:40.429804Z  INFO extract_candidates: tailwindcss_oxide::scanner: enter
+2026-06-22T23:53:40.429813Z  INFO extract_candidates:parse_all_blobs: tailwindcss_oxide::scanner: enter
+2026-06-22T23:53:40.429825Z  INFO extract_candidates:parse_all_blobs:extract: tailwindcss_oxide::scanner: enter
+2026-06-22T23:53:40.445019Z  INFO extract_candidates:parse_all_blobs:extract: tailwindcss_oxide::scanner: exit
+2026-06-22T23:53:40.445343Z  INFO extract_candidates:parse_all_blobs: tailwindcss_oxide::scanner: exit
+2026-06-22T23:53:40.448057Z  INFO extract_candidates: tailwindcss_oxide::scanner: exit
+2026-06-22T23:53:40.451715Z  INFO get_files: tailwindcss_oxide::scanner: enter
+2026-06-22T23:53:40.451782Z  INFO get_files:discover_sources: tailwindcss_oxide::scanner: enter
+2026-06-22T23:53:40.451806Z  INFO get_files:discover_sources: tailwindcss_oxide::scanner: exit
+2026-06-22T23:53:40.452635Z  INFO get_files: tailwindcss_oxide::scanner: exit
+2026-06-22T23:53:40.453588Z  INFO get_globs: tailwindcss_oxide::scanner: enter
+2026-06-22T23:53:40.453636Z  INFO get_globs:discover_sources: tailwindcss_oxide::scanner: enter
+2026-06-22T23:53:40.453643Z  INFO get_globs:discover_sources: tailwindcss_oxide::scanner: exit
+2026-06-22T23:53:40.456625Z  INFO get_globs: tailwindcss_oxide::scanner: exit

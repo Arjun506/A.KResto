@@ -1,0 +1,72 @@
+
+> web@0.1.0 build
+> next build
+
+▲ Next.js 16.2.6 (Turbopack)
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 43s
+  Skipping validation of types
+  Finished TypeScript config validation in 28ms ...
+  Collecting page data using 7 workers ...
+  Generating static pages using 7 workers (0/48) ...
+  Generating static pages using 7 workers (12/48) 
+  Generating static pages using 7 workers (24/48) 
+  Generating static pages using 7 workers (36/48) 
+✓ Generating static pages using 7 workers (48/48) in 9.1s
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /ak-connect
+├ ○ /book-table
+├ ○ /checkout
+├ ○ /dashboard
+├ ○ /dashboard/ai-insights
+├ ○ /dashboard/analytics
+├ ○ /dashboard/app-store
+├ ○ /dashboard/billing
+├ ○ /dashboard/customers
+├ ○ /dashboard/finance
+├ ○ /dashboard/growth
+├ ○ /dashboard/inventory
+├ ○ /dashboard/invoice
+├ ○ /dashboard/kitchen
+├ ○ /dashboard/launch-center
+├ ○ /dashboard/menu
+├ ○ /dashboard/notifications
+├ ○ /dashboard/orders
+├ ○ /dashboard/payments
+├ ○ /dashboard/pos
+├ ○ /dashboard/qr-tables
+├ ○ /dashboard/reservations
+├ ○ /dashboard/restaurant-operations
+├ ○ /dashboard/restaurants
+├ ○ /dashboard/settings
+├ ○ /dashboard/shop
+├ ○ /dashboard/staff
+├ ○ /dashboard/waiter
+├ ○ /delivery-partner/dashboard
+├ ○ /delivery-partner/signup
+├ ○ /forgot-password
+├ ○ /login
+├ ○ /manifest.webmanifest
+├ ○ /onboarding
+├ ○ /online-ordering
+├ ƒ /order/[id]
+├ ○ /qr-order
+├ ○ /restaurant-login
+├ ƒ /restaurant/[slug]
+├ ○ /select-industry
+├ ○ /signup
+├ ○ /super-admin
+├ ○ /super-admin/login
+├ ○ /verify-email
+├ ○ /verify-otp
+└ ○ /workspaces
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

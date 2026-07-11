@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AK Resto — Premium Dining & Food Delivery</title>
+
+    <!-- Tailwind + Fonts + Icons -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet" />
+
+    <!-- Razorpay Payment Gateway -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <style>
+        /* ── Base Styles ── */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+            color: #f5f5f5;
+            overflow-x: hidden;
+        }
+
+        .font-serif {
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* ── Scrollbar ── */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #c9a87c, #a67c52);
+            border-radius: 12px;
+        }
+
+        /* ── Animations ── */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(201, 168, 124, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(201, 168, 124, 0.6); }
+        }
+        .animate-glow {
+            animation: glow 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -1000% 0; }
+            100% { background-position: 1000% 0; }
+        }
+        .shimmer-text {
+            background: linear-gradient(90deg, #f5efe8 0%, #c9a87c 50%, #f5efe8 100%);
+            background-size: 1000% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes slide-up {
+            0% { opacity: 0; transform: translateY(40px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-up {
+            animation: slide-up 0.8s ease-out forwards;
+        }
+
+        @keyframes slide-right {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+        .slide-in-right {
+            animation: slide-right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes fade-in {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        .animate-fade-in {
+            animation: fade-in 0.6s ease forwards;
+        }
+
+        /* ── Glass Morphism ── */
+        .glass {
+            background: rgba(30, 27, 24, 0.7);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .glass-light {
+            background: rgba(255, 252, 248, 0.08);
+            backdrop-filter: blur(20px);
+        }
+
+        /* ── Buttons ── */
+        .btn-primary {
+            background: linear-gradient(135deg, #c9a87c, #e8d4b8);
+            color: #1a1a1a;
+            font-weight: 600;
+            padding: 12px 28px;
+            border-radius: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(201, 168, 124, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(201, 168, 124, 0.5);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #c9a87c;
+            border: 2px solid #c9a87c;
+            padding: 10px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(201, 168, 124, 0.1);
+        }
+
+        /* ── Loading States ── */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(201, 168, 124, 0.3);
+            border-radius: 50%;
+            border-top-color: #c9a87c;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ── Toast Notifications ── */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            glass;
+            padding: 16px 24px;
+            border-radius: 12px;
+            z-index: 50;
+            animation: slide-up 0.3s ease;
+        }
+
+        .toast.success {
+            border-left: 4px solid #10b981;
+        }
+
+        .toast.error {
+            border-left: 4px solid #ef4444;
+        }
+
+        .toast.info {
+            border-left: 4px solid #3b82f6;
+        }
+
+        /* ── Video Background ── */
+        .video-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 1;
+        }
+
+        .spinner {
+            border: 4px solid rgba(201, 168, 124, 0.1);
+            border-top: 4px solid #c9a87c;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- ═════════════════════════════════════════════════════════════ -->
+    <!-- Navigation Bar -->
+    <!-- ═════════════════════════════════════════════════════════════ -->
+    <nav id="navbar" class="fixed top-0 w-full glass z-40 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <!-- Logo -->
+            <div class="flex items-center gap-2">
+                <div class="w-10 h-10 glass rounded-lg flex items-center justify-center">
+                    <span class="text-xl font-bold shimmer-text">AK</span>
+                </div>
+                <span class="font-serif text-2xl font-bold">AK Resto</span>
+            </div>
+
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex gap-8 flex-1 justify-center">
+                <button class="nav-link text-sm hover:text-yellow-400 transition">Menu</button>
+                <button class="nav-link text-sm hover:text-yellow-400 transition">Book Table</button>
+                <button class="nav-link text-sm hover:text-yellow-400 transition">Orders</button>
+                <button class="nav-link text-sm hover:text-yellow-400 transition">Events</button>
+            </div>
+
+            <!-- Cart & Auth -->
+            <div class="flex items-center gap-4">
+                <button id="cartBtn" class="relative p-2 hover:bg-yellow-900/20 rounded-lg transition" onclick="openCart()">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    <span id="cartBadge" class="absolute -top-1 -right-1 w-5 h-5 bg-yellow-500 rounded-full text-xs flex items-center justify-center text-black font-bold hidden">0</span>
+                </button>
+                <button id="userBtn" class="btn-secondary text-sm" onclick="handleUserClick()">Sign In</button>
+                <button class="md:hidden p-2" onclick="openDrawer()">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ═════════════════════════════════════════════════════════════ -->
+    <!-- Loading Spinner -->
+    <!-- ═════════════════════════════════════════════════════════════ -->
+    <div id="loadingSpinner" class="fixed inset-0 glass z-50 hidden flex items-center justify-center">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- ═════════════════════════════════════════════════════════════ -->
+    <!-- Hero Section with Video Background -->
+    <!-- ═════════════════════════════════════════════════════════════ -->
+    <section class="relative h-screen md:h-[600px] mt-16 overflow-hidden flex items-center justify-center">
+        <!-- Video Background with Fallback -->
+        <div class="absolute inset-0">
+            <video id="heroBg" class="video-bg" autoplay muted loop playsinline>
+                <source src="" type="video/mp4">
+                Your browser doesn't support HTML5 video.
+            </video>
+            <!-- Fallback Image -->
+            <img id="heroImg" src="https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=1200&h=600&fit=crop" alt="Restaurant" class="absolute inset-0 w-full h-full object-cover" />
+            <!-- Gradient Overlay -->
+            <div class="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/80"></div>
+        </div>
+
+        <!-- Content -->
+        <div class="relative z-10 max-w-3xl mx-auto px-4 text-center">
+            <h1 class="text-5xl md:text-6xl font-serif font-bold mb-4 shimmer-text animate-slide-up">
+                Experience Premium Dining
+            </h1>
+            <p class="text-lg text-gray-300 mb-8 animate-slide-up" style="animation-delay: 0.1s">
+                Fresh ingredients, authentic recipes, exceptional service
+            </p>
+
+            <!-- Status Badge -->
+            <div class="flex items-center gap-3 justify-center mb-8 animate-slide-up" style="animation-delay: 0.2s">
+                <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                <span class="text-sm" id="statusText">Loading status...</span>
+            </div>
+
+            <!-- CTAs -->
+            <div class="flex gap-4 justify-center flex-wrap animate-slide-up" style="animation-delay: 0.3s">
+                <button class="btn-primary" onclick="scrollToTab('menu')">Order Food</button>
+                <button class="btn-secondary" onclick="scrollToTab('booking')">Book Table</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═════════════════════════════════════════════════════════════ -->
+    <!-- Tab Navigation -->
+    <!-- ═════════════════════════════════════════════════════════════ -->
+    <div class="sticky top-16 glass z-30 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex gap-8 overflow-x-auto">
+            <button class="tab-btn text-yellow-400 pb-4 pt-4 border-b-2 border-yellow-400 text-sm font-medium" data-tab="menu" onclick="switchTab('menu')">
+                Order Food
+            </button>
+            <button class="tab-btn text-gray-400 pb-4 pt-4 border-b-2 border-transparent text-sm font-medium hover:text-gray-300" data-tab="booking" onclick="switchTab('booking')">
+                Book Table
+            </button>
+            <button class="tab-btn text-gray-400 pb-4 pt-4 border-b-2 border-transparent text-sm font-medium hover:text-gray-300" data-tab="orders" onclick="switchTab('orders')">
+                Track Order
+            </button>
+            <button class="tab-btn text-gray-400 pb-4 pt-4 border-b-2 border-transparent text-sm font-medium hover:text-gray-300" data-tab="events" onclick="switchTab('events')">
+                Events
+            </button>
+        </div>
+    </div>
+
+    <!-- ═════════════════════════════════════════════════════════════ -->
+    <!-- Main Content -->
+    <!-- ═════════════════════════════════════════════════════════════ -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <!-- Menu Tab -->
+        <div id="menu-tab" class="tab-content">
+            <!-- Category Filters -->
+            <div class="mb-8 overflow-x-auto">
+                <div class="flex gap-4 pb-4">
+                    <button class="category-btn px-6 py-2 rounded-full glass text-sm font-medium transition" data-category="all" onclick="filterMenu('all')">
+                        All Items
+                    </button>
+                    <button class="category-btn px-6 py-2 rounded-full glass text-sm font-medium transition hover:bg-yellow-900/20" data-category="veg" onclick="filterMenu('veg')">
+                        🌱 Vegetarian
+                    </button>
+                    <button class="category-btn px-6 py-2 rounded-full glass text-sm font-medium transition hover:bg-yellow-900/20" data-category="non-veg" onclick="filterMenu('non-veg')">
+                        🍗 Non-Veg
+                    </button>
+                    <button class="category-btn px-6 py-2 rounded-full glass text-sm font-medium transition hover:bg-yellow-900/20" data-category="desserts" onclick="filterMenu('desserts')">
+                        🍰 Desserts
+                    </button>
+                    <button class="category-btn px-6 py-2 rounded-full glass text-sm font-medium transition hover:bg-yellow-900/20" data-category="beverages" onclick="filterMenu('beverages')">
+                        🥤 Beverages
+                    </button>
+                </div>
+            </div>
+
+            <!-- Menu Items Grid -->
+            <div id="menuGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Items loaded from API -->
+                <div class="col-span-full text-center py-12">
+                    <div class="spinner mx-auto mb-4"></div>
+                    <p class="text-gray-400">Loading menu items...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Booking Tab -->
+        <div id="booking-tab" class="tab-content hidden">
+            <div class="max-w-2xl mx-auto">
+                <div class="glass rounded-2xl p-8">
+                    <h2 class="text-2xl font-bold mb-8">Reserve Your Table</h2>
+                    <form id="bookingForm" onsubmit="handleBooking(event)">
+                        <div class="grid md:grid-cols-2 gap-6 mb-6">
+                            <input type="text" placeholder="Full Name" required class="glass rounded-lg px-4 py-3 text-white outline-none" />
+                            <input type="email" placeholder="Email" required class="glass rounded-lg px-4 py-3 text-white outline-none" />
+                        </div>
+                        <div class="grid md:grid-cols-3 gap-6 mb-6">
+                            <input type="date" required class="glass rounded-lg px-4 py-3 text-white outline-none" />
+                            <input type="time" required class="glass rounded-lg px-4 py-3 text-white outline-none" />
+                            <select required class="glass rounded-lg px-4 py-3 text-white outline-none">
+                                <option value="">Guests</option>
+                                <option>1 Guest</option>
+                                <option>2 Guests</option>
+                                <option>3 Guests</option>
+                                <option>4 Guests</option>
+                                <option>5+ Guests</option>
+                            </select>
+                        </div>
+                        <textarea placeholder="Special Requests" rows="4" class="w-full glass rounded-lg px-4 py-3 text-white outline-none mb-6"></textarea>
+                        <button type="submit" class="btn-primary w-full">Reserve Table</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Tracking Tab -->
+        <div id="orders-tab" class="tab-content hidden">
+            <div class="max-w-2xl mx-auto">
+                <div class="glass rounded-2xl p-8">
+                    <h2 class="text-2xl font-bold mb-6">Track Your Orders</h2>
+                    <input type="text" id="orderTrackingId" placeholder="Enter Order ID" class="w-full glass rounded-lg px-4 py-3 text-white outline-none mb-4" />
+                    <button class="btn-primary w-full mb-8" onclick="trackOrder()">Search Order</button>
+                    
+                    <!-- Order Status Timeline -->
+                    <div id="orderStatus" class="hidden space-y-4">
+                        <!-- Order details loaded here -->
+                    </div>
+                    
+                    <!-- Recent Orders -->
+                    <div id="recentOrders" class="space-y-4">
+                        <p class="text-gray-400">Sign in to view your recent orders</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Events Tab -->
+        <div id="events-tab" class="tab-content hidden">
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Event 1 -->
+                <div class="glass rounded-2xl overflow-hidden hover:shadow-2xl transition">
+                    <div class="h-48 bg-gradient-to-br from-yellow-600 to-yellow-900 relative">
+                        <img src="https://images.unsplash.com/photo-1519167758993-14fbdf4bd98e?w=500&h=300&fit=crop" alt="Events" class="w-full h-full object-cover opacity-90" />
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-2">Private Parties & Corporate Events</h3>
+                        <p class="text-gray-300 mb-4">Perfect venue for your special celebrations</p>
+                        <button class="btn-primary w-full" onclick="inquireEvent('private')">Inquire Now</button>
+                    </div>
+                </div>
+
+                <!-- Event 2 -->
+                <div class="glass rounded-2xl overflow-hidden hover:shadow-2xl transition">
+                    <div class="h-48 bg-gradient-to-br from-yellow-600 to-yellow-900 relative">
+                        <img src="https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=500&h=300&fit=crop" alt="Catering" class="w-full h-full object-cover opacity-90" />
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-2">Catering Services</h3>
+                        <p class="text-gray-300 mb-4">Delicious food delivered to your venue</p>
+                        <button class="btn-primary w-full" onclick="inquireEvent('catering')">Get Quote</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ═════════════════════════════════════════════════════════════ -->
+    <!-- Shopping Cart Slide Panel -->
+    <!-- ═════════════════════════════════════════════════════════════ -->
+    <div id="cartOverlay" class="fixed inset-0 bg-black/50 hidden z-40" onclick="closeCart()"></div>
+    <div id="cartPanel" class="fixed right-0 top-0 h-full w-full max-w-md glass transform translate-x-full transition-transform duration-300 z-40 flex flex-col">
+        <!-- Header -->
+        <div class="flex items-center justify-between p-6 border-b border-yellow-900/20">
+            <h2 class="text-xl font-bold">Your Order</h2>
+            <button onclick="closeCart()" class="p-2 hover:bg-yellow-900/20 rounded">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Items -->
+        <div id="cartItems" class="flex-1 overflow-y-auto p-6 space-y-4">
+            <p class="text-gray-400 text-center">Your cart is empty</p>
+        </div>
+
+        <!-- Footer -->
+        <div class="border-t border-yellow-900/20 p-6 space-y-4">
+            <div class="space-y-2">
+                <div class="flex justify-between text-sm">
+                    <span>Subtotal</span>
+                    <span id="subtotal">₹0</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span>Delivery Fee</span>
+                    <span id="deliveryFee">₹40</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span>Tax (18%)</span>
+                    <span id="tax">₹0</span>
+                </div>
+            </div>
+            <div class="border-t border-yellow-900/20 pt-4 flex justify-between font-bold">
+                <span>Total</span>
+                <span id="cartTotal">₹0</span>
+            </div>
+            <button class="btn-primary w-full" onclick="proceedToCheckout()">Proceed to Checkout</button>
+        </div>
+    </div>
+
+    <!-- ═════════════════════════════════════════════════════════════ -->
+    <!-- Footer -->
+    <!-- ═════════════════════════════════════════════════════════════ -->
+    <footer class="border-t border-yellow-900/20 mt-20 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-8 mb-8">
+                <!-- Company -->
+                <div>
+                    <h3 class="font-bold mb-4">AK Resto</h3>
+                    <p class="text-gray-400 text-sm">Premium dining experience with authentic recipes and fresh ingredients.</p>
+                </div>
+                <!-- Quick Links -->
+                <div>
+                    <h3 class="font-bold mb-4">Quick Links</h3>
+                    <ul class="text-sm text-gray-400 space-y-2">
+                        <li><button onclick="scrollToTab('menu')" class="hover:text-yellow-400">Menu</button></li>
+                        <li><button onclick="scrollToTab('booking')" class="hover:text-yellow-400">Book Table</button></li>
+                        <li><button onclick="scrollToTab('events')" class="hover:text-yellow-400">Events</button></li>
+                    </ul>
+                </div>
+                <!-- Contact -->
+                <div>
+                    <h3 class="font-bold mb-4">Contact</h3>
+                    <ul class="text-sm text-gray-400 space-y-2">
+                        <li>📍 123 Food Street, City</li>
+                        <li>📞 +1 (555) 123-4567</li>
+                        <li>✉️ info@akrestos.com</li>
+                    </ul>
+                </div>
+                <!-- Hours -->
+                <div>
+                    <h3 class="font-bold mb-4">Hours</h3>
+                    <ul class="text-sm text-gray-400 space-y-2">
+                        <li>Mon - Fri: 11 AM - 11 PM</li>
+                        <li>Sat - Sun: 10 AM - 12 AM</li>
+                        <li id="openStatus">Status: <span class="text-green-400">Open Now</span></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-yellow-900/20 pt-8 text-center text-sm text-gray-400">
+                <p>&copy; 2024 AK Resto. All rights reserved. | <a href="#" class="hover:text-yellow-400">Privacy Policy</a> | <a href="#" class="hover:text-yellow-400">Terms</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ═════════════════════════════════════════════════════════════ -->
+    <!-- JavaScript -->
+    <!-- ═════════════════════════════════════════════════════════════ -->
+    <script>
+        // ── Configuration ──
+        const API_BASE_URL = 'http://localhost:3001';
+        const RAZORPAY_KEY_ID = 'YOUR_RAZORPAY_KEY_ID'; // Set from environment
+        const restaurantId = localStorage.getItem('restaurantId') || 'default';
+
+        // ── State Management ──
+        let cartItems = [];
+        let currentUser = null;
+        let authToken = localStorage.getItem('authToken');
+        let menuItems = [];
+        let currentFilter = 'all';
+
+        // ── API Fetchers ──
+        class APIClient {
+            static async request(endpoint, options = {}) {
+                const url = `${API_BASE_URL}${endpoint}`;
+                const headers = {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                };
+
+                if (authToken) {
+                    headers['Authorization'] = `Bearer ${authToken}`;
+                }
+
+                try {
+                    showLoadingSpinner(true);
+                    const response = await fetch(url, {
+                        ...options,
+                        headers
+                    });
+
+                    if (!response.ok) {
+                        if (response.status === 401) {
+                            handleAuthError();
+                        }
+                        throw new Error(`API Error: ${response.status}`);
+                    }
+
+                    return await response.json();
+                } catch (error) {
+                    console.error('API Error:', error);
+                    showToast('Error connecting to server', 'error');
+                    throw error;
+                } finally {
+                    showLoadingSpinner(false);
+                }
+            }
+
+            // ── Menu Fetchers ──
+            static async getMenuItems(restaurantId) {
+                return this.request(`/menu/items?restaurantId=${restaurantId}`);
+            }
+
+            static async getMenuCategories(restaurantId) {
+                return this.request(`/menu/categories?restaurantId=${restaurantId}`);
+            }
+
+            // ── Order Fetchers ──
+            static async createOrder(orderData) {
+                return this.request('/orders', {
+                    method: 'POST',
+                    body: JSON.stringify(orderData)
+                });
+            }
+
+            static async getOrderStatus(orderId) {
+                return this.request(`/orders/${orderId}`);
+            }
+
+            static async getUserOrders() {
+                return this.request('/orders/user/me');
+            }
+
+            // ── Booking Fetchers ──
+            static async createReservation(reservationData) {
+                return this.request('/reservations', {
+                    method: 'POST',
+                    body: JSON.stringify(reservationData)
+                });
+            }
+
+            // ── Authentication ──
+            static async login(email, password) {
+                const response = await this.request('/auth/login', {
+                    method: 'POST',
+                    body: JSON.stringify({ email, password })
+                });
+                authToken = response.data.token;
+                localStorage.setItem('authToken', authToken);
+                return response;
+            }
+
+            static async signup(userData) {
+                return this.request('/auth/signup', {
+                    method: 'POST',
+                    body: JSON.stringify(userData)
+                });
+            }
+
+            // ── Restaurant Info ──
+            static async getRestaurantInfo(restaurantId) {
+                return this.request(`/restaurants/${restaurantId}`);
+            }
+        }
+
+        // ── Menu Management ──
+        async function loadMenuItems() {
+            try {
+                const response = await APIClient.getMenuItems(restaurantId);
+                menuItems = response.data || [];
+                renderMenuItems(menuItems);
+                await loadRestaurantInfo();
+            } catch (error) {
+                console.error('Failed to load menu:', error);
+                // Fallback to demo items
+                loadDemoMenu();
+            }
+        }
+
+        function renderMenuItems(items) {
+            const grid = document.getElementById('menuGrid');
+            
+            if (items.length === 0) {
+                grid.innerHTML = '<div class="col-span-full text-center py-12"><p class="text-gray-400">No items available</p></div>';
+                return;
+            }
+
+            grid.innerHTML = items.map((item, idx) => `
+                <div class="glass rounded-2xl overflow-hidden hover:shadow-2xl transition transform hover:scale-105 hover:-translate-y-3" style="animation: slide-up 0.8s ease-out ${idx * 0.1}s backwards">
+                    <div class="relative h-48 overflow-hidden">
+                        <img src="${item.image || 'https://via.placeholder.com/400x300?text=' + item.name}" 
+                             alt="${item.name}" 
+                             class="w-full h-full object-cover"
+                             loading="lazy" />
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                        ${item.isPopular ? '<span class="absolute top-4 right-4 bg-yellow-500 text-black px-3 py-1 rounded-full text-xs font-bold">⭐ Popular</span>' : ''}
+                    </div>
+                    <div class="p-5">
+                        <h4 class="font-bold text-lg text-white mb-1">${item.name}</h4>
+                        <p class="text-gray-400 text-sm mb-3">${item.description || 'Fresh and delicious'}</p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xl font-bold text-yellow-400">₹${item.price}</span>
+                            <button class="btn-primary px-4 py-2 text-sm" onclick="addToCart(${JSON.stringify(item).replace(/"/g, '&quot;')})">
+                                Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterMenu(category) {
+            currentFilter = category;
+            const filtered = category === 'all' ? menuItems : menuItems.filter(item => item.category === category);
+            renderMenuItems(filtered);
+        }
+
+        // ── Demo Menu (Fallback) ──
+        function loadDemoMenu() {
+            const demoItems = [
+                { id: 1, name: 'Margherita Pizza', description: 'Fresh mozzarella & basil', price: 249, category: 'veg', image: 'https://images.unsplash.com/photo-1604068549290-dea0e4a305ca?w=400&h=300&fit=crop', isPopular: true },
+                { id: 2, name: 'Classic Prime Burger', description: 'Juicy beef patty', price: 199, category: 'non-veg', image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop' },
+                { id: 3, name: 'Caesar Salad', description: 'Fresh greens with croutons', price: 179, category: 'veg', image: 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=400&h=300&fit=crop' },
+                { id: 4, name: 'Garlic Bread', description: 'Crispy & buttery', price: 99, category: 'veg', image: 'https://images.unsplash.com/photo-1599599810694-b5ac4dd4b20f?w=400&h=300&fit=crop' },
+                { id: 5, name: 'Chocolate Cake', description: 'Rich & decadent', price: 149, category: 'desserts', image: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&h=300&fit=crop', isPopular: true },
+                { id: 6, name: 'Fresh Orange Juice', description: '100% natural', price: 129, category: 'beverages', image: 'https://images.unsplash.com/photo-1600271886742-f049cd451bba?w=400&h=300&fit=crop' },
+            ];
+            menuItems = demoItems;
+            renderMenuItems(menuItems);
+        }
+
+        // ── Restaurant Info ──
+        async function loadRestaurantInfo() {
+            try {
+                const response = await APIClient.getRestaurantInfo(restaurantId);
+                const restaurant = response.data;
+                
+                // Update hero video if available
+                if (restaurant.videoUrl) {
+                    const videoBg = document.getElementById('heroBg');
+                    const videoSource = videoBg.querySelector('source');
+                    videoSource.src = restaurant.videoUrl;
+                    videoBg.load();
+                }
+
+                // Update status
+                document.getElementById('statusText').textContent = restaurant.isOpen ? '✓ Open Now' : '✗ Currently Closed';
+                if (restaurant.isOpen) {
+                    document.getElementById('statusText').parentElement.querySelector('div').classList.add('bg-green-400');
+                }
+            } catch (error) {
+                console.error('Failed to load restaurant info:', error);
+            }
+        }
+
+        // ── Cart Management ──
+        function addToCart(item) {
+            const existingItem = cartItems.find(ci => ci.id === item.id);
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cartItems.push({ ...item, quantity: 1 });
+            }
+            updateCart();
+            showToast(`${item.name} added to cart`, 'success');
+        }
+
+        function removeFromCart(itemId) {
+            cartItems = cartItems.filter(item => item.id !== itemId);
+            updateCart();
+        }
+
+        function updateCart() {
+            renderCartItems();
+            updateCartBadge();
+            calculateTotals();
+        }
+
+        function renderCartItems() {
+            const cartContainer = document.getElementById('cartItems');
+            if (cartItems.length === 0) {
+                cartContainer.innerHTML = '<p class="text-gray-400 text-center">Your cart is empty</p>';
+                return;
+            }
+
+            cartContainer.innerHTML = cartItems.map(item => `
+                <div class="glass rounded-lg p-4 flex justify-between items-center">
+                    <div class="flex-1">
+                        <h4 class="font-bold text-sm">${item.name}</h4>
+                        <p class="text-yellow-400 text-sm">₹${item.price} x ${item.quantity}</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="updateQuantity(${item.id}, ${item.quantity - 1})" class="p-1 hover:bg-yellow-900/20 rounded">-</button>
+                        <span class="w-6 text-center text-sm">${item.quantity}</span>
+                        <button onclick="updateQuantity(${item.id}, ${item.quantity + 1})" class="p-1 hover:bg-yellow-900/20 rounded">+</button>
+                        <button onclick="removeFromCart(${item.id})" class="ml-2 p-1 hover:bg-red-900/20 rounded text-red-400">×</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateQuantity(itemId, newQuantity) {
+            if (newQuantity <= 0) {
+                removeFromCart(itemId);
+                return;
+            }
+            const item = cartItems.find(i => i.id === itemId);
+            if (item) {
+                item.quantity = newQuantity;
+                updateCart();
+            }
+        }
+
+        function updateCartBadge() {
+            const badge = document.getElementById('cartBadge');
+            const total = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+            if (total > 0) {
+                badge.textContent = total;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function calculateTotals() {
+            const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const deliveryFee = subtotal > 0 ? 40 : 0;
+            const tax = (subtotal + deliveryFee) * 0.18;
+            const total = subtotal + deliveryFee + tax;
+
+            document.getElementById('subtotal').textContent = `₹${subtotal}`;
+            document.getElementById('deliveryFee').textContent = `₹${deliveryFee}`;
+            document.getElementById('tax').textContent = `₹${Math.round(tax)}`;
+            document.getElementById('cartTotal').textContent = `₹${Math.round(total)}`;
+        }
+
+        function openCart() {
+            document.getElementById('cartPanel').classList.remove('translate-x-full');
+            document.getElementById('cartOverlay').classList.remove('hidden');
+        }
+
+        function closeCart() {
+            document.getElementById('cartPanel').classList.add('translate-x-full');
+            document.getElementById('cartOverlay').classList.add('hidden');
+        }
+
+        // ── Payment Gateway (Razorpay) ──
+        async function proceedToCheckout() {
+            if (cartItems.length === 0) {
+                showToast('Cart is empty', 'error');
+                return;
+            }
+
+            const orderData = {
+                items: cartItems,
+                restaurantId: restaurantId,
+                customerEmail: currentUser?.email || prompt('Enter your email:'),
+                customerPhone: currentUser?.phone || prompt('Enter your phone:'),
+                deliveryAddress: prompt('Enter delivery address:')
+            };
+
+            try {
+                // Create order in backend
+                const response = await APIClient.createOrder(orderData);
+                const order = response.data;
+
+                // Initialize Razorpay payment
+                const options = {
+                    key: RAZORPAY_KEY_ID,
+                    amount: Math.round(parseFloat(document.getElementById('cartTotal').textContent.replace('₹', '')) * 100),
+                    currency: 'INR',
+                    name: 'AK Resto',
+                    description: `Order #${order.id}`,
+                    order_id: order.razorpayOrderId,
+                    handler: async function (response) {
+                        // Verify payment
+                        await verifyPayment(response, order.id);
+                    },
+                    prefill: {
+                        email: orderData.customerEmail,
+                        contact: orderData.customerPhone
+                    },
+                    theme: {
+                        color: '#c9a87c'
+                    }
+                };
+
+                const rzp = new Razorpay(options);
+                rzp.open();
+            } catch (error) {
+                showToast('Checkout failed', 'error');
+            }
+        }
+
+        async function verifyPayment(paymentResponse, orderId) {
+            try {
+                const verifyResponse = await APIClient.request('/payments/verify', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        orderId,
+                        razorpayPaymentId: paymentResponse.razorpay_payment_id,
+                        razorpayOrderId: paymentResponse.razorpay_order_id,
+                        razorpaySignature: paymentResponse.razorpay_signature
+                    })
+                });
+
+                if (verifyResponse.success) {
+                    showToast('Payment successful! Order confirmed.', 'success');
+                    cartItems = [];
+                    updateCart();
+                    closeCart();
+                    switchTab('orders');
+                    // Load order tracking
+                    setTimeout(() => trackOrderById(orderId), 500);
+                } else {
+                    showToast('Payment verification failed', 'error');
+                }
+            } catch (error) {
+                showToast('Payment verification failed', 'error');
+            }
+        }
+
+        // ── Order Tracking ──
+        async function trackOrder() {
+            const orderId = document.getElementById('orderTrackingId').value;
+            if (!orderId) {
+                showToast('Enter order ID', 'error');
+                return;
+            }
+            await trackOrderById(orderId);
+        }
+
+        async function trackOrderById(orderId) {
+            try {
+                const response = await APIClient.getOrderStatus(orderId);
+                const order = response.data;
+                displayOrderStatus(order);
+            } catch (error) {
+                showToast('Order not found', 'error');
+            }
+        }
+
+        function displayOrderStatus(order) {
+            const statuses = ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery', 'delivered'];
+            const currentStatusIdx = statuses.indexOf(order.status);
+
+            const statusHtml = `
+                <div class="mb-8">
+                    <h3 class="font-bold mb-4">Order #${order.id}</h3>
+                    <div class="flex justify-between mb-8">
+                        ${statuses.map((status, idx) => `
+                            <div class="flex flex-col items-center flex-1">
+                                <div class="w-10 h-10 rounded-full flex items-center justify-center ${idx <= currentStatusIdx ? 'bg-yellow-500 text-black' : 'bg-gray-700 text-gray-400'} mb-2">
+                                    ${idx < currentStatusIdx ? '✓' : idx}
+                                </div>
+                                <p class="text-xs capitalize">${status.replace('_', ' ')}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="space-y-3">
+                        <p><strong>Total:</strong> ₹${order.total}</p>
+                        <p><strong>Delivery Address:</strong> ${order.deliveryAddress}</p>
+                        <p><strong>Estimated Time:</strong> ${order.estimatedDeliveryTime || 'Calculating...'}</p>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('orderStatus').innerHTML = statusHtml;
+            document.getElementById('orderStatus').classList.remove('hidden');
+        }
+
+        // ── Booking Management ──
+        async function handleBooking(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+
+            const reservationData = {
+                name: formData.get('name'),
+                email: formData.get('email'),
+                date: formData.get('date'),
+                time: formData.get('time'),
+                guests: formData.get('guests'),
+                specialRequests: formData.get('requests'),
+                restaurantId: restaurantId
+            };
+
+            try {
+                const response = await APIClient.createReservation(reservationData);
+                showToast('Reservation confirmed! Check your email for details.', 'success');
+                form.reset();
+            } catch (error) {
+                showToast('Reservation failed', 'error');
+            }
+        }
+
+        // ── Tab Switching ──
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+
+            // Update buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('text-yellow-400', 'border-b-2', 'border-yellow-400');
+                btn.classList.add('text-gray-400', 'border-transparent');
+            });
+
+            // Show selected tab
+            document.getElementById(`${tabName}-tab`).classList.remove('hidden');
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('text-yellow-400', 'border-b-2', 'border-yellow-400');
+        }
+
+        function scrollToTab(tabName) {
+            switchTab(tabName);
+            const tabNav = document.querySelector(`[data-tab="${tabName}"]`);
+            tabNav.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // ── UI Helpers ──
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'fade-in 0.3s ease reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function showLoadingSpinner(show) {
+            document.getElementById('loadingSpinner').classList.toggle('hidden', !show);
+        }
+
+        function openDrawer() {
+            console.log('Mobile menu opened');
+        }
+
+        function handleUserClick() {
+            if (authToken) {
+                // Show user menu
+                console.log('User menu clicked');
+            } else {
+                // Show login/signup modal
+                const email = prompt('Enter email:');
+                const password = prompt('Enter password:');
+                if (email && password) {
+                    loginUser(email, password);
+                }
+            }
+        }
+
+        async function loginUser(email, password) {
+            try {
+                const response = await APIClient.login(email, password);
+                currentUser = response.data.user;
+                document.getElementById('userBtn').textContent = currentUser.name || 'Account';
+                showToast('Logged in successfully', 'success');
+            } catch (error) {
+                showToast('Login failed', 'error');
+            }
+        }
+
+        function inquireEvent(type) {
+            const subject = type === 'private' ? 'Private Party Inquiry' : 'Catering Service Inquiry';
+            const email = prompt(`For ${subject}, please enter your email:`);
+            if (email) {
+                showToast('We will contact you soon at ' + email, 'success');
+            }
+        }
+
+        // ── Initialization ──
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Load menu and restaurant info
+            await loadMenuItems();
+
+            // Load user orders if logged in
+            if (authToken) {
+                try {
+                    const response = await APIClient.getUserOrders();
+                    console.log('User orders:', response.data);
+                } catch (error) {
+                    console.error('Failed to load user orders');
+                }
+            }
+
+            // Setup navbar scroll effect
+            window.addEventListener('scroll', () => {
+                const navbar = document.getElementById('navbar');
+                if (window.scrollY > 50) {
+                    navbar.classList.add('shadow-lg');
+                } else {
+                    navbar.classList.remove('shadow-lg');
+                }
+            });
+        });
+
+        // Fallback: Load demo items if API fails
+        window.addEventListener('load', () => {
+            if (menuItems.length === 0) {
+                loadDemoMenu();
+            }
+        });
+    </script>
+</body>
+</html>

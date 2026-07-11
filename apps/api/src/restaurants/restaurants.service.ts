@@ -1,0 +1,184 @@
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { PlanTier } from '@prisma/client';
+
+import { PrismaService } from '../prisma/prisma.service';
+import type { JwtUser } from '../common/types/jwt-user.interface';
+import type { CreateRestaurantDto } from './dto/create-restaurant.dto';
+import type { UpdateRestaurantDto } from './dto/update-restaurant.dto';
+
+@Injectable()
+export class RestaurantsService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  private isSuperAdmin(user: JwtUser | undefined): boolean {
+    return user?.role === 'SUPER_ADMIN';
+  }
+
+  private requireTenantRestaurantId(user: JwtUser | undefined): string {
+    if (!user?.restaurantId)
+      throw new ForbiddenException('Missing restaurantId in token');
+    return user.restaurantId;
+  }
+
+  async listRestaurants(user: JwtUser | undefined) {
+    if (this.isSuperAdmin(user)) {
+      return this.prisma.tenant.findMany({
+        include: { subscriptions: true },
+        orderBy: { createdAt: 'desc' },
+      });
+    }
+
+    const tenantRestaurantId = this.requireTenantRestaurantId(user);
+
+    return this.prisma.tenant.findMany({
+      where: { id: tenantRestaurantId },
+      include: { subscriptions: true },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async createRestaurant(
+    user: JwtUser | undefined,
+    input: CreateRestaurantDto,
+  ) {
+    if (!this.isSuperAdmin(user)) {
+      throw new ForbiddenException('Only SUPER_ADMIN can create restaurants');
+    }
+
+    const slug = input.slug ?? input.name.toLowerCase().replace(/\s+/g, '-');
+
+    const created = await this.prisma.tenant.create({
+      data: {
+        name: input.name,
+        location: input.location,
+        slug,
+        isActive: input.isActive ?? true,
+      },
+    });
+
+    const currentPeriodStart = new Date();
+    const currentPeriodEnd = input.expiresAt
+      ? new Date(input.expiresAt)
+      : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+
+    await this.prisma.subscriptions.create({
+      data: {
+        restaurantId: created.id,
+        planName: input.planName ?? PlanTier.PROFESSIONAL,
+        status: 'ACTIVE',
+        currentPeriodStart,
+        currentPeriodEnd,
+      },
+    });
+
+    return this.prisma.tenant.findUnique({
+      where: { id: created.id },
+      include: { subscriptions: true },
+    });
+  }
+
+  async getRestaurant(user: JwtUser | undefined, id: string) {
+    if (this.isSuperAdmin(user)) {
+      const restaurant = await this.prisma.tenant.findUnique({
+        where: { id },
+        include: { subscriptions: true },
+      });
+      if (!restaurant) throw new NotFoundException('Restaurant not found');
+      return restaurant;
+    }
+
+    const tenantRestaurantId = this.requireTenantRestaurantId(user);
+    if (id !== tenantRestaurantId) {
+      throw new NotFoundException('Restaurant not found');
+    }
+
+    const restaurant = await this.prisma.tenant.findFirst({
+      where: { id: tenantRestaurantId },
+      include: { subscriptions: true },
+    });
+
+    if (!restaurant) throw new NotFoundException('Restaurant not found');
+    return restaurant;
+  }
+
+  async updateRestaurant(
+    user: JwtUser | undefined,
+    id: string,
+    input: UpdateRestaurantDto,
+  ) {
+    if (!this.isSuperAdmin(user) && user?.restaurantId !== id) {
+      throw new ForbiddenException('Not allowed');
+    }
+
+    const existing = await this.prisma.tenant.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('Restaurant not found');
+
+    const slug =
+      input.slug ??
+      (input.name
+        ? input.name.toLowerCase().replace(/\s+/g, '-')
+        : existing.slug);
+
+    await this.prisma.tenant.update({
+      where: { id },
+      data: {
+        name: input.name,
+        location: input.location,
+        slug,
+        isActive: input.isActive,
+      },
+    });
+
+    if (input.planName !== undefined || input.expiresAt !== undefined) {
+      const activeSub = await this.prisma.subscriptions.findFirst({
+        where: { restaurantId: id },
+      });
+
+      if (activeSub) {
+        await this.prisma.subscriptions.update({
+          where: { id: activeSub.id },
+          data: {
+            ...(input.planName !== undefined && { planName: input.planName }),
+            ...(input.expiresAt !== undefined && {
+              currentPeriodEnd: new Date(input.expiresAt),
+            }),
+          },
+        });
+      } else {
+        await this.prisma.subscriptions.create({
+          data: {
+            restaurantId: id,
+            planName: input.planName ?? PlanTier.PROFESSIONAL,
+            status: 'ACTIVE',
+            currentPeriodStart: new Date(),
+            currentPeriodEnd: input.expiresAt
+              ? new Date(input.expiresAt)
+              : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+          },
+        });
+      }
+    }
+
+    return this.prisma.tenant.findUnique({
+      where: { id },
+      include: { subscriptions: true },
+    });
+  }
+
+  async deleteRestaurant(user: JwtUser | undefined, id: string) {
+    if (!this.isSuperAdmin(user) && user?.restaurantId !== id) {
+      throw new ForbiddenException('Not allowed');
+    }
+
+    try {
+      await this.prisma.tenant.delete({ where: { id } });
+      return { id };
+    } catch {
+      throw new NotFoundException('Restaurant not found');
+    }
+  }
+}

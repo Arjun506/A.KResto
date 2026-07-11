@@ -1,0 +1,67 @@
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import * as Joi from 'joi';
+
+/**
+ * Environment configuration module
+ * Validates all environment variables on app startup
+ */
+@Module({
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      validationSchema: Joi.object({
+        // Application
+        NODE_ENV: Joi.string()
+          .valid('development', 'production', 'test')
+          .default('development'),
+        PORT: Joi.number().default(3001),
+        LOG_LEVEL: Joi.string()
+          .valid('error', 'warn', 'info', 'debug')
+          .default('info'),
+
+        // Database
+        DATABASE_URL: Joi.string().required(),
+        DATABASE_POOL_MIN: Joi.number().default(5),
+        DATABASE_POOL_MAX: Joi.number().default(20),
+
+        // Redis
+        REDIS_HOST: Joi.string().default('localhost'),
+        REDIS_PORT: Joi.number().default(6379),
+        REDIS_PASSWORD: Joi.string().optional(),
+
+        // JWT
+        JWT_SECRET: Joi.string().required(),
+        JWT_EXPIRATION: Joi.string().default('24h'),
+
+        // Email
+        SENDGRID_API_KEY: Joi.string().optional(),
+        SENDER_EMAIL: Joi.string().email().required(),
+
+        // SMS
+        TWILIO_ACCOUNT_SID: Joi.string().optional(),
+        TWILIO_AUTH_TOKEN: Joi.string().optional(),
+        TWILIO_PHONE_NUMBER: Joi.string().optional(),
+
+        // OpenAI
+        OPENAI_API_KEY: Joi.string().optional(),
+        OPENAI_MODEL: Joi.string().default('gpt-4-turbo'),
+
+        // Stripe
+        STRIPE_SECRET_KEY: Joi.string().optional(),
+        STRIPE_WEBHOOK_SECRET: Joi.string().optional(),
+
+        // Sentry
+        SENTRY_DSN: Joi.string().optional(),
+
+        // Frontend
+        NEXT_PUBLIC_API_URL: Joi.string().required(),
+      }),
+      validationOptions: {
+        allowUnknown: true,
+        abortEarly: true,
+      },
+    }),
+  ],
+})
+export class EnvConfigModule {}
