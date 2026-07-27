@@ -37,9 +37,21 @@ import * as Joi from 'joi';
         JWT_SECRET: Joi.string().required(),
         JWT_EXPIRATION: Joi.string().default('24h'),
 
+        // KMS Cryptographic Keys (Required in production)
+        SAAS_MASTER_ENCRYPTION_KEY: Joi.string().when('NODE_ENV', {
+          is: 'production',
+          then: Joi.required(),
+          otherwise: Joi.optional(),
+        }),
+        SAAS_BLIND_INDEX_KEY: Joi.string().when('NODE_ENV', {
+          is: 'production',
+          then: Joi.required(),
+          otherwise: Joi.optional(),
+        }),
+
         // Email
         SENDGRID_API_KEY: Joi.string().optional(),
-        SENDER_EMAIL: Joi.string().email().required(),
+        SENDER_EMAIL: Joi.string().email().optional(),
 
         // SMS
         TWILIO_ACCOUNT_SID: Joi.string().optional(),
@@ -62,7 +74,7 @@ import * as Joi from 'joi';
         SENTRY_DSN: Joi.string().optional(),
 
         // Frontend
-        NEXT_PUBLIC_API_URL: Joi.string().required(),
+        NEXT_PUBLIC_API_URL: Joi.string().optional(),
       }),
       validationOptions: {
         allowUnknown: true,

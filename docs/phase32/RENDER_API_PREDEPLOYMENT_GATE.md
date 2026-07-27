@@ -1,31 +1,32 @@
-# Phase 32A — Render API Pre-Deployment Gate Report
+# Phase 32A.1 — Render API Pre-Deployment Gate Report
 
 **Final Pre-Deployment Gate Status**: `PASS`
 
 ---
 
-## Pre-Deployment Verification Summary
+## Forensic Verification Summary
 
-- **RENDER_API_PREDEPLOYMENT_GATE**: `PASS`
-- **RENDER_API_RUNTIME**: `DOCKER` (`apps/api/Dockerfile`)
+- **RENDER_API_SECURITY_GATE**: `PASS`
+- **DOCKER_CONTEXT_GATE**: `PASS`
+- **RENDER_RUNTIME**: `DOCKER`
 - **RENDER_ROOT_DIRECTORY**: `apps/api`
-- **INSTALL_COMMAND**: Handled inside Dockerfile (`RUN npm ci`)
-- **BUILD_COMMAND**: Handled inside Dockerfile (`RUN npm run build`)
-- **START_COMMAND**: `node dist/main.js` (Dockerfile `CMD ["node", "dist/main.js"]`)
-- **MIGRATION_COMMAND**: `npx prisma migrate deploy`
-- **MIGRATION_EXECUTION_LOCATION**: Executed against existing Supabase staging database
-- **PORT_BINDING**: `PASS` (Reads `process.env.PORT`)
-- **HOST_BINDING**: `PASS` (Explicitly updated `app.listen(port, '0.0.0.0')`)
-- **LIVENESS_ENDPOINT**: `/api/v1/health`
-- **READINESS_ENDPOINT**: `/api/v1/ready`
+- **DOCKERFILE_PATH**: `apps/api/Dockerfile`
+
+- **LIVENESS_ENDPOINT**: `/api/v1/health` (Process status & uptime)
+- **READINESS_ENDPOINT**: `/api/v1/ready` (Database ping status check)
 - **RENDER_HEALTH_CHECK_ENDPOINT**: `/api/v1/health`
 
-- **DATABASE_GATE**: `PASS` (Existing Supabase staging PostgreSQL verified)
-- **REDIS_GATE**: `PASS` (Existing Upstash staging Redis TLS verified)
-- **KMS_GATE**: `PASS` (Development & production master key handling verified)
-- **SECURITY_GATE**: `PASS` (Zero committed secrets, `.env` gitignored)
+- **KMS_FAIL_CLOSED**: `PASS` (Throws exception if `SAAS_MASTER_ENCRYPTION_KEY` or `SAAS_BLIND_INDEX_KEY` is missing in `production`)
+- **JWT_FAIL_CLOSED**: `PASS` (Throws exception if `JWT_SECRET` is missing)
+
+- **STRIPE_MODE**: `SANDBOX`
+- **EMAIL_MODE**: `SIMULATED`
+- **SMS_MODE**: `SIMULATED`
+
+- **API_DATABASE_CONNECTION_TYPE**: `Supabase Pooled Connection`
+- **MIGRATION_DATABASE_CONNECTION_TYPE**: `Supabase Direct Session Connection`
 
 - **PRISMA_VALIDATE**: `PASS`
 - **PRISMA_GENERATE**: `PASS`
-- **BACKEND_BUILD**: `PASS` (`nest build` succeeded)
+- **BACKEND_BUILD**: `PASS`
 - **TESTS**: `67 Test Suites PASS / 124 Tests PASS`

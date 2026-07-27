@@ -20,11 +20,17 @@ export class DataEncryptionService {
     private readonly prisma: PrismaService,
     private readonly kms: KeyManagementService,
   ) {
-    const rawIndexSecret =
-      process.env.SAAS_BLIND_INDEX_KEY || 'dev-local-blind-index-key-secret!';
+    const rawIndexSecret = process.env.SAAS_BLIND_INDEX_KEY;
+    if (!rawIndexSecret && process.env.NODE_ENV === 'production') {
+      throw new Error(
+        'SAAS_BLIND_INDEX_KEY environment variable is required in production/staging mode',
+      );
+    }
+    const indexKeyToHash =
+      rawIndexSecret || 'dev-local-blind-index-key-secret!';
     this.blindIndexSecret = crypto
       .createHash('sha256')
-      .update(rawIndexSecret)
+      .update(indexKeyToHash)
       .digest();
   }
 

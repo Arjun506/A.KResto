@@ -18,10 +18,14 @@ export class KeyManagementService implements KeyManagementProvider {
   private readonly masterKey: Buffer;
 
   constructor(private readonly prisma: PrismaService) {
-    const rawSecret =
-      process.env.SAAS_MASTER_ENCRYPTION_KEY ||
-      'dev-local-master-key-32-bytes-long!';
-    this.masterKey = crypto.createHash('sha256').update(rawSecret).digest();
+    const rawSecret = process.env.SAAS_MASTER_ENCRYPTION_KEY;
+    if (!rawSecret && process.env.NODE_ENV === 'production') {
+      throw new Error(
+        'SAAS_MASTER_ENCRYPTION_KEY environment variable is required in production/staging mode',
+      );
+    }
+    const keyToHash = rawSecret || 'dev-local-master-key-32-bytes-long!';
+    this.masterKey = crypto.createHash('sha256').update(keyToHash).digest();
   }
 
   // KMS Provider wraps/unwraps DEKs using the Master Key (MEK)
