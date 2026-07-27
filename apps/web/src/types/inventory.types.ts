@@ -1,6 +1,6 @@
 export type InventoryItem = {
   id: string;
-  restaurantId: string;
+  tenantId: string;
   name: string;
   sku?: string | null;
   quantity: string;
@@ -12,7 +12,7 @@ export type InventoryItem = {
 
 export type Supplier = {
   id: string;
-  restaurantId: string;
+  tenantId: string;
   name: string;
   email?: string | null;
   phone?: string | null;
@@ -22,9 +22,10 @@ export type Supplier = {
 
 export type PurchaseOrder = {
   id: string;
-  restaurantId: string;
+  tenantId: string;
   supplierId?: string | null;
   status: 'DRAFT' | 'ORDERED' | 'RECEIVED' | 'CANCELLED';
   totalAmount: string;
 };
+
 

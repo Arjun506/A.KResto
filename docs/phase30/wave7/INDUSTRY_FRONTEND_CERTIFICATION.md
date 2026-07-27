@@ -1,0 +1,13 @@
+# Phase 30 Wave 7 — Industry Frontend Certification
+
+---
+
+## 32 Industry Capabilities Certification Overview
+
+- **Restaurant Pack**: `PACK_UI = PASS`, `PACK_CONTRACT = PASS`, `PACK_BACKEND = BACKEND_READY`, `PACK_E2E = VERIFIED`.
+- **Retail Store Pack**: `PACK_UI = PASS`, `PACK_CONTRACT = PASS`, `PACK_BACKEND = BACKEND_READY`, `PACK_E2E = VERIFIED`.
+- **Hotel & Hospitality Pack**: `PACK_UI = PASS`, `PACK_CONTRACT = PASS`, `PACK_BACKEND = CONTRACT_REQUIRED`, `PACK_E2E = UI_COMPLETE`.
+- **Salon & Beauty Pack**: `PACK_UI = PASS`, `PACK_CONTRACT = PASS`, `PACK_BACKEND = CONTRACT_REQUIRED`, `PACK_E2E = UI_COMPLETE`.
+- **Healthcare Pack**: `PACK_UI = PASS`, `PACK_CONTRACT = PASS`, `PACK_BACKEND = CONTRACT_REQUIRED`, `PACK_E2E = UI_COMPLETE`.
+- **Logistics Pack**: `PACK_UI = PASS`, `PACK_CONTRACT = PASS`, `PACK_BACKEND = BACKEND_READY`, `PACK_E2E = VERIFIED`.
+- **Generic Business Pack**: `PACK_UI = PASS`, `PACK_CONTRACT = PASS`, `PACK_BACKEND = BACKEND_READY`, `PACK_E2E = VERIFIED`.

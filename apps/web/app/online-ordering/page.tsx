@@ -1,4 +1,4 @@
-﻿import { Suspense } from "react";
+import { Suspense } from "react";
 import UnifiedOrderingExperience from "@/components/customer/ordering-experience";
 
 export default function OnlineOrderingPage() {
@@ -8,3 +8,4 @@ export default function OnlineOrderingPage() {
     </Suspense>
   );
 }
+

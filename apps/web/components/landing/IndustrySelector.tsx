@@ -99,3 +99,4 @@ export default function IndustrySelector() {
     </section>
   );
 }
+

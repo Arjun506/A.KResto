@@ -190,7 +190,7 @@ export class WorkspaceProvisioningService {
       sub: result.owner.id,
       email: result.owner.email,
       role: result.owner.role,
-      restaurantId: result.workspace.id,
+      tenantId: result.workspace.id,
     } as const;
 
     const access_token = await this.jwtService.signAsync(payload);
@@ -213,7 +213,7 @@ export class WorkspaceProvisioningService {
         name: result.owner.name,
         email: result.owner.email,
         role: result.owner.role,
-        restaurantId: result.workspace.id,
+        tenantId: result.workspace.id,
       },
       branch: result.branch,
       subscription: result.subscription,

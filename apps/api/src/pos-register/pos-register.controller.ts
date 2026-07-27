@@ -51,10 +51,7 @@ export class PosRegisterController {
 
   @Post('session/cash-log')
   @RequirePermission('pos:write')
-  async addCashLog(
-    @Req() req: AuthenticatedRequest,
-    @Body() dto: CashLogDto,
-  ) {
+  async addCashLog(@Req() req: AuthenticatedRequest, @Body() dto: CashLogDto) {
     const user = req.user as JwtUser;
     const tenantId = req.tenantId as string;
     const data = await this.service.addCashLog(tenantId, user.id, dto);

@@ -47,3 +47,4 @@ export const addRegisterCashLog = async (data: {
 export const getRegisterSessionHistory = async (): Promise<PosSession[]> => {
   return unwrap<PosSession[]>(api.get('/pos-register/sessions'));
 };
+

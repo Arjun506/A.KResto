@@ -21,16 +21,7 @@ interface GlassContainerProps {
 export const GlassContainer: React.FC<GlassContainerProps> = ({ children, className = '', onClick }) => (
   <div
     onClick={onClick}
-    className={`
-      backdrop-blur-xl bg-white/10 dark:bg-white/5
-      border border-white/20 dark:border-white/10
-      rounded-2xl p-4 sm:p-6
-      transition-all duration-300 ease-out
-      hover:bg-white/15 dark:hover:bg-white/8
-      hover:border-white/30 dark:hover:border-white/15
-      hover:shadow-2xl
-      ${className}
-    `}
+    className={`glass p-4 sm:p-6 transition-all duration-300 ease-out ${className}`}
   >
     {children}
   </div>
@@ -62,24 +53,24 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
   type = 'button',
 }) => {
   const baseClasses = `
-    font-semibold rounded-xl transition-all duration-300 ease-out
-    transform hover:scale-105 active:scale-95
+    font-semibold rounded-2xl transition-all duration-350 ease-out
+    transform hover:scale-[1.02] active:scale-95
     disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100
     focus:outline-none focus:ring-2 focus:ring-offset-2
     flex items-center justify-center gap-2
   `;
 
   const variants = {
-    primary: 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 shadow-lg hover:shadow-xl focus:ring-purple-500',
-    secondary: 'bg-white/20 dark:bg-white/10 text-gray-900 dark:text-white border border-white/30 dark:border-white/20 hover:bg-white/30 dark:hover:bg-white/15 focus:ring-blue-500',
-    danger: 'bg-red-600 text-white hover:bg-red-700 shadow-lg hover:shadow-xl focus:ring-red-500',
-    ghost: 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800',
+    primary: 'bg-[#4F46E5] text-white hover:bg-[#4338CA] dark:bg-primary dark:hover:bg-primary/95 shadow-md hover:shadow-lg focus:ring-[#4F46E5] dark:focus:ring-primary',
+    secondary: 'bg-white dark:bg-surface text-gray-900 dark:text-text-secondary border border-[#E7ECF5] dark:border-border hover:bg-[#F3F7FC] dark:hover:bg-hover-bg focus:ring-slate-500',
+    danger: 'bg-[#EF4444] text-white hover:bg-red-700 dark:bg-accent-danger dark:hover:bg-accent-danger/95 shadow-md hover:shadow-lg focus:ring-red-500',
+    ghost: 'text-gray-700 dark:text-text-secondary hover:bg-[#F3F7FC] dark:hover:bg-hover-bg',
   };
 
   const sizes = {
-    sm: 'px-3 py-2 text-sm',
-    md: 'px-6 py-3 text-base',
-    lg: 'px-8 py-4 text-lg',
+    sm: 'px-4 py-2 text-sm',
+    md: 'px-6 h-[48px] text-base',
+    lg: 'px-8 h-[54px] text-lg',
   };
 
   return (
@@ -130,7 +121,7 @@ export const RestaurantCard: React.FC<RestaurantCardProps> = ({
 }) => (
   <div
     onClick={onClick}
-    className="group relative cursor-pointer rounded-2xl overflow-hidden"
+    className="group relative cursor-pointer rounded-2xl overflow-hidden border border-[#E7ECF5] dark:border-[#1E293B]"
   >
     {/* Image with overlay animation */}
     <div className="relative h-48 overflow-hidden">
@@ -143,7 +134,7 @@ export const RestaurantCard: React.FC<RestaurantCardProps> = ({
 
       {/* Offer badge */}
       {offer && (
-        <div className="absolute top-3 left-3 bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1 rounded-full text-sm font-bold animate-pulse">
+        <div className="absolute top-3 left-3 bg-[#4F46E5] text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">
           {offer}% OFF
         </div>
       )}
@@ -168,15 +159,13 @@ export const RestaurantCard: React.FC<RestaurantCardProps> = ({
           </div>
         </div>
 
-        <div className="flex gap-2 flex-wrap">
-          {tags.slice(0, 2).map((tag) => (
-            <span
-              key={tag}
-              className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-2 py-1 rounded-full"
-            >
-              {tag}
-            </span>
-          ))}
+        <div className="flex justify-between items-center mt-3">
+          <span className="text-sm font-bold text-gray-900 dark:text-white">Rs. {price}</span>
+          <span
+            className="text-xs bg-[#F3F7FC] dark:bg-surface text-[#4F46E5] dark:text-primary px-2 py-1 rounded-full"
+          >
+            {category}
+          </span>
         </div>
 
         <div className="text-xs text-gray-600 dark:text-gray-400">
@@ -233,8 +222,8 @@ export const MenuItemCard: React.FC<MenuItemCardProps> = ({
 
         {/* Rating badge */}
         {rating && (
-          <div className="absolute top-2 right-2 bg-gradient-to-r from-amber-400 to-orange-400 text-white px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1">
-            <Star className="w-3 h-3 fill-white" />
+          <div className="absolute top-2 right-2 bg-white/90 dark:bg-slate-900/90 border border-[#E7ECF5] dark:border-[#233045] text-slate-800 dark:text-white px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1">
+            <Star className="w-3 h-3 fill-[#4F46E5] text-[#4F46E5] dark:fill-[#6366F1] dark:text-[#6366F1]" />
             {rating}
           </div>
         )}
@@ -288,7 +277,7 @@ export const AnimatedSearchBar: React.FC<AnimatedSearchBarProps> = ({
   onFocus,
   onBlur,
 }) => (
-  <GlassContainer className="w-full">
+  <GlassContainer className="w-full rounded-2xl">
     <input
       type="text"
       placeholder={placeholder}
@@ -320,14 +309,11 @@ export const FilterChip: React.FC<FilterChipProps> = ({
 }) => (
   <button
     onClick={onClick}
-    className={`
-      px-4 py-2 rounded-full transition-all duration-300 ease-out
-      flex items-center gap-2 font-medium whitespace-nowrap
-      ${selected
-        ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
-        : 'bg-white/10 dark:bg-white/5 text-gray-700 dark:text-gray-300 border border-white/20 hover:bg-white/20 dark:hover:bg-white/10'
-      }
-    `}
+    className={`px-4 py-2 text-xs font-bold rounded-xl transition-all duration-150 ${
+        selected
+        ? 'bg-[#4F46E5] dark:bg-primary text-white shadow-md'
+        : 'bg-white dark:bg-surface text-gray-700 dark:text-text-secondary border border-[#E7ECF5] dark:border-border'
+      }`}
   >
     {icon}
     {label}
@@ -340,11 +326,11 @@ export const FilterChip: React.FC<FilterChipProps> = ({
 
 export const SkeletonCard: React.FC = () => (
   <div className="rounded-2xl overflow-hidden space-y-4">
-    <div className="h-48 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 rounded-xl animate-pulse" />
+    <div className="h-48 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
     <div className="space-y-3 px-4">
-      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse w-3/4" />
-      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
-      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse w-2/3" />
+      <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded-lg animate-pulse w-3/4" />
+      <div className="h-3 bg-slate-200 dark:bg-slate-800 rounded-lg animate-pulse" />
+      <div className="h-3 bg-slate-200 dark:bg-slate-800 rounded-lg animate-pulse w-2/3" />
     </div>
   </div>
 );
@@ -359,14 +345,14 @@ interface StatusBadgeProps {
 
 export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
   const statusConfig = {
-    pending: { label: 'Pending', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300', icon: null },
-    accepted: { label: 'Accepted', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300', icon: Check },
-    preparing: { label: 'Preparing', color: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300', icon: null },
-    ready: { label: 'Ready to Pick', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300', icon: Check },
-    picked_up: { label: 'Picked Up', color: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300', icon: Truck },
-    in_delivery: { label: 'On the Way', color: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300', icon: Truck },
-    delivered: { label: 'Delivered', color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300', icon: Check },
-    cancelled: { label: 'Cancelled', color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300', icon: null },
+    pending: { label: 'Pending', color: 'bg-cyan-50 text-cyan-600 dark:bg-accent-cyan/15 dark:text-accent-cyan', icon: null },
+    accepted: { label: 'Accepted', color: 'bg-blue-50 text-blue-600 dark:bg-accent-blue/10 dark:text-accent-blue', icon: Check },
+    preparing: { label: 'Preparing', color: 'bg-purple-50 text-purple-600 dark:bg-accent-purple/10 dark:text-accent-purple', icon: null },
+    ready: { label: 'Ready to Pick', color: 'bg-green-50 text-green-600 dark:bg-accent-emerald/10 dark:text-accent-emerald', icon: Check },
+    picked_up: { label: 'Picked Up', color: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400', icon: Truck },
+    in_delivery: { label: 'On the Way', color: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400', icon: Truck },
+    delivered: { label: 'Delivered', color: 'bg-emerald-50 text-emerald-600 dark:bg-accent-emerald/10 dark:text-accent-emerald', icon: Check },
+    cancelled: { label: 'Cancelled', color: 'bg-red-50 text-red-600 dark:bg-accent-danger/10 dark:text-accent-danger', icon: null },
   };
 
   const config = statusConfig[status];
@@ -463,7 +449,7 @@ export const OrderTimeline: React.FC<OrderTimelineProps> = ({ events, currentSta
               className={`
                 w-4 h-4 rounded-full transition-all duration-300
                 ${currentStatus === event.status
-                  ? 'bg-gradient-to-r from-purple-600 to-blue-600 ring-4 ring-purple-200 dark:ring-purple-900'
+                  ? 'bg-[#4F46E5] dark:bg-[#6366F1] ring-4 ring-[#4F46E5]/15 dark:ring-[#6366F1]/20'
                   : 'bg-gray-300 dark:bg-gray-600'
                 }
               `}
@@ -505,14 +491,14 @@ interface AlertProps {
 }
 
 export const Alert: React.FC<AlertProps> = ({ type, title, message, onClose }) => {
-  const alertConfig = {
-    success: { bg: 'bg-green-50 dark:bg-green-900/20', border: 'border-green-200 dark:border-green-800', icon: '✓', color: 'text-green-600 dark:text-green-400' },
-    error: { bg: 'bg-red-50 dark:bg-red-900/20', border: 'border-red-200 dark:border-red-800', icon: '⚠', color: 'text-red-600 dark:text-red-400' },
-    warning: { bg: 'bg-yellow-50 dark:bg-yellow-900/20', border: 'border-yellow-200 dark:border-yellow-800', icon: '!', color: 'text-yellow-600 dark:text-yellow-400' },
-    info: { bg: 'bg-blue-50 dark:bg-blue-900/20', border: 'border-blue-200 dark:border-blue-800', icon: 'i', color: 'text-blue-600 dark:text-blue-400' },
+  const variants = {
+    success: { bg: 'bg-green-50 dark:bg-accent-emerald/10', border: 'border-green-200 dark:border-accent-emerald/20', icon: '✓', color: 'text-green-600 dark:text-accent-emerald' },
+    error: { bg: 'bg-red-50 dark:bg-accent-danger/10', border: 'border-red-200 dark:border-accent-danger/20', icon: '⚠', color: 'text-red-600 dark:text-accent-danger' },
+    warning: { bg: 'bg-purple-50 dark:bg-accent-purple/10', border: 'border-purple-200 dark:border-accent-purple/20', icon: '!', color: 'text-purple-600 dark:text-accent-purple' },
+    info: { bg: 'bg-blue-50 dark:bg-accent-blue/10', border: 'border-blue-200 dark:border-accent-blue/20', icon: 'i', color: 'text-blue-600 dark:text-accent-blue' },
   };
 
-  const config = alertConfig[type];
+  const config = variants[type];
 
   return (
     <div
@@ -594,3 +580,4 @@ export const DeliveryPartnerCard: React.FC<DeliveryPartnerCardProps> = ({
     </div>
   </GlassContainer>
 );
+

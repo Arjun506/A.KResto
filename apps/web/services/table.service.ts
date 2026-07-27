@@ -11,7 +11,7 @@ const unwrap = async <T,>(
 
 export interface Table {
   id: string;
-  restaurantId: string;
+  tenantId: string;
   branchId: string | null;
   name: string;
   code: string;
@@ -38,3 +38,4 @@ export const updateTable = async (id: string, data: { name?: string; capacity?: 
 export const deleteTable = async (id: string): Promise<{ id: string }> => {
   return unwrap<{ id: string }>(api.delete(`/restaurants/tables/${id}`));
 };
+

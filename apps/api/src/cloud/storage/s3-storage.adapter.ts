@@ -9,14 +9,20 @@ export class S3StorageAdapter implements StorageAdapter {
 
   async save(key: string, buffer: Buffer, mimeType: string): Promise<string> {
     console.log(`[S3StorageAdapter] Mock saving key: ${key}`);
-    throw new NotImplementedException('S3 Storage Engine integration is slated for future release.');
+    throw new NotImplementedException(
+      'S3 Storage Engine integration is slated for future release.',
+    );
   }
 
   async get(key: string): Promise<Buffer> {
-    throw new NotImplementedException('S3 Storage Engine integration is slated for future release.');
+    throw new NotImplementedException(
+      'S3 Storage Engine integration is slated for future release.',
+    );
   }
 
   async delete(key: string): Promise<void> {
-    throw new NotImplementedException('S3 Storage Engine integration is slated for future release.');
+    throw new NotImplementedException(
+      'S3 Storage Engine integration is slated for future release.',
+    );
   }
 }

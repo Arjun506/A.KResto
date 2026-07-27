@@ -126,7 +126,8 @@ const bootstrapModules: ModuleDefinition[] = [
     moduleId: 'pos-terminal',
     moduleName: 'Point of Sale (POS)',
     version: '2.1.0',
-    description: 'Universal billing, table layouts, receipt printer pairing, and checkout terminal.',
+    description:
+      'Universal billing, table layouts, receipt printer pairing, and checkout terminal.',
     category: 'POS',
     dependencies: [],
     industryCompatibility: ['*'],
@@ -153,7 +154,8 @@ const bootstrapModules: ModuleDefinition[] = [
     moduleId: 'inventory-manager',
     moduleName: 'Inventory Controller',
     version: '1.4.0',
-    description: 'Ingredient lists, raw stock alerts, purchase orders, and supplier catalogs.',
+    description:
+      'Ingredient lists, raw stock alerts, purchase orders, and supplier catalogs.',
     category: 'Operations',
     dependencies: [],
     industryCompatibility: ['*'],
@@ -180,7 +182,8 @@ const bootstrapModules: ModuleDefinition[] = [
     moduleId: 'crm-loyalty',
     moduleName: 'CRM & Loyalty Program',
     version: '1.2.0',
-    description: 'Track customer profiles, purchase history, reward points, and tier membership levels.',
+    description:
+      'Track customer profiles, purchase history, reward points, and tier membership levels.',
     category: 'CRM',
     dependencies: [],
     industryCompatibility: ['*'],
@@ -207,7 +210,8 @@ const bootstrapModules: ModuleDefinition[] = [
     moduleId: 'ai-copilot',
     moduleName: 'AI Copilot Assistant',
     version: '1.0.0-beta',
-    description: 'Automate sales reports, auto-generate dish descriptions, and optimize printer setups.',
+    description:
+      'Automate sales reports, auto-generate dish descriptions, and optimize printer setups.',
     category: 'AI Agents',
     dependencies: [],
     industryCompatibility: ['*'],
@@ -241,7 +245,8 @@ const bootstrapModules: ModuleDefinition[] = [
     moduleId: 'retail-industry-pack',
     moduleName: 'Retail Operations Bundle',
     version: '1.0.0',
-    description: 'Preconfigured master data templates and barcodes for grocery/convenience setups.',
+    description:
+      'Preconfigured master data templates and barcodes for grocery/convenience setups.',
     category: 'Industry Packs',
     dependencies: [],
     industryCompatibility: ['*'],
@@ -253,7 +258,7 @@ const bootstrapModules: ModuleDefinition[] = [
     featureFlags: [],
     licenseStatus: 'COMMERCIAL',
     subscriptionRequirements: [{ planTier: 'STARTER', required: true }],
-  }
+  },
 ];
 
 @Injectable()

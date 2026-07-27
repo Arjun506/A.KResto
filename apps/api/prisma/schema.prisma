@@ -7,56 +7,450 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ─────────────────────────────────────────────
-// CORE BUSINESS OS MODELS
-// ─────────────────────────────────────────────
-
 model Tenant {
-  id        String       @id @default(cuid())
-  name      String
-  slug      String       @unique
-  location  String?
-  email     String?
-  phone     String?
-  address   String?
-  timezone  String       @default("UTC")
-  currency  String       @default("USD")
-  language  String       @default("en")
-  status    TenantStatus @default(ACTIVE)
-  isActive  Boolean      @default(true)
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
-  logo      String?
-  industry  String       @default("RESTAURANT")
-  settings  Json?
-
-  categories         categories[]
-  inventory_items    inventory_items[]
-  menu_items         menu_items[]
-  menu_item_addons   menu_item_addons[]
-  menu_item_variants menu_item_variants[]
-  orders             orders[]
-  purchase_orders    purchase_orders[]
-  reservations       reservations[]
-  subscriptions      subscriptions[]
-  suppliers          suppliers[]
-  tables             tables[]
-  users              users[]
-  auditLogs          audit_logs[]
-  tenant_features    tenant_features[]
-  branches           branch[]
-  roles_permissions  roles_permissions[]
+  id                    String                  @id @default(cuid())
+  name                  String
+  slug                  String                  @unique
+  location              String?
+  email                 String?
+  phone                 String?
+  address               String?
+  timezone              String                  @default("UTC")
+  currency              String                  @default("USD")
+  isActive              Boolean                 @default(true)
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  deletedAt             DateTime?
+  logo                  String?
+  industry              String                  @default("RESTAURANT")
+  settings              Json?
+  language              String                  @default("en")
+  status                TenantStatus            @default(ACTIVE)
+  branding              Json?
+  customDomains         String[]                @default([])
+  limits                Json?
+  metadata              Json?
+  organizations         organizations[]
+  businesses            businesses[]
+  customers             customers[]
+  products              products[]
+  priceBooks            price_books[]
+  warehouses            warehouses[]
+  inventoryMasterItems  inventory_master_items[]
+  transactions          transactions_registry[]
+  universalOrders       universal_orders[]
+  paymentTransactions   payment_transactions[]
+  paymentSettlements     payment_settlements[]
+  giftCards             gift_cards[]
+  paymentReconciliations payment_reconciliations[]
+  paymentIntents        payment_intents[]
+  workflowDefinitions   workflow_definitions[]
+  workflowInstances     workflow_instances[]
+  workflowApprovals     workflow_approvals[]
+  workflowTasks         workflow_tasks[]
+  workflowSlas          workflow_slas[]
+  workflowWebhooks      workflow_webhooks[]
+  crmLeads              crm_leads[]
+  crmOpportunities      crm_opportunities[]
+  crmCases              crm_cases[]
+  crmInteractions       crm_interactions[]
+  crmTickets            crm_tickets[]
+  crmFeedbacks          crm_feedbacks[]
+  crmRelationships      crm_relationships[]
+  restTables            rest_tables[]
+  restReservations      rest_reservations[]
+  restKitchenTickets    rest_kitchen_tickets[]
+  restShifts            rest_shifts[]
+  platformPackConfigs   platform_pack_configs[]
+  platformPackInstallations platform_pack_installations[]
+  custFavorites         cust_favorites[]
+  custReviews           cust_reviews[]
+  custCarts             cust_carts[]
+  consoleDashboards     console_dashboards[]
+  consoleWidgets        console_widgets[]
+  consolePinnedNav      console_pinned_nav[]
+  consoleSavedViews     console_saved_views[]
+  consoleWorkspaces     console_workspaces[]
+  aiPrompts             ai_prompts[]
+  aiAgents              ai_agents[]
+  aiAgentRuns           ai_agent_runs[]
+  aiMemories            ai_memories[]
+  aiConversations       ai_conversations[]
+  aiUsageMetrics        ai_usage_metrics[]
+  aiGuardrails          ai_guardrails[]
+  aiSkills              ai_skills[]
+  aiTools               ai_tools[]
+  hotelProperties       hotel_properties[]
+  hotelRooms            hotel_rooms[]
+  hotelRoomTypes        hotel_room_types[]
+  hotelBookings         hotel_bookings[]
+  retailStores          retail_stores[]
+  retailStockBatches    retail_stock_batches[]
+  retailPromotions      retail_promotions[]
+  retailPurchaseOrders  retail_purchase_orders[]
+  retailSuppliers       retail_suppliers[]
+  retailReturns         retail_returns[]
+  hcFacilities          hc_facilities[]
+  hcPatientProfiles     hc_patient_profiles[]
+  hcAppointments        hc_appointments[]
+  logisticsHubs         logistics_hubs[]
+  logisticsVehicles     logistics_vehicles[]
+  logisticsShipments    logistics_shipments[]
+  logisticsRoutes       logistics_routes[]
+  logisticsReturns      logistics_returns[]
+  auditLogs             audit_logs[]
+  securityKeyMetadata   security_key_metadata[]
+  securityAccessEvents  security_access_events[]
+  branches              branch[]
+  categories            categories[]
+  employees             employees[]
+  inventory_items       inventory_items[]
+  inventory_movements   inventory_movements[]
+  menu_item_addons      menu_item_addons[]
   menu_item_ingredients menu_item_ingredients[]
-  inventory_movements inventory_movements[]
+  menu_item_variants    menu_item_variants[]
+  menu_items            menu_items[]
+  orders                orders[]
+  purchase_orders       purchase_orders[]
+  reservations          reservations[]
+  roles_permissions     roles_permissions[]
+  subscriptions         subscriptions[]
+  suppliers             suppliers[]
+  tables                tables[]
+  tenant_features       tenant_features[]
+  users                 users[]
 
-  @@map("restaurants")
+  @@map("tenants")
+}
 
-  employees         employees[]
+model organizations {
+  id          String       @id @default(cuid())
+  tenantId    String
+  name        String
+  code        String?
+  description String?
+  metadata    Json?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  deletedAt   DateTime?
+  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  businesses  businesses[]
+
+  @@index([tenantId])
+  @@map("organizations")
+}
+
+model businesses {
+  id             String         @id @default(cuid())
+  tenantId       String?
+  organizationId String
+  name           String
+  legalName      String?
+  displayName    String?
+  code           String?
+  description    String?
+  industry       String?
+  status         BusinessStatus @default(PENDING_VERIFICATION)
+  isVerified     Boolean        @default(false)
+  branding       Json?
+  socialLinks    Json?
+  metadata       Json?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  deletedAt      DateTime?
+  organization   organizations  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tenant         Tenant?        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  divisions      divisions[]
+
+  ownerships     business_ownership[]
+  outgoingRelations business_relationships[] @relation("SourceBusiness")
+  incomingRelations business_relationships[] @relation("TargetBusiness")
+  settings       business_settings?
+  categoryMappings business_category_mapping[]
+  contacts       business_contacts[]
+  addresses      business_addresses[]
+  tagMappings    business_tag_mapping[]
+  attachments    business_attachments[]
+  notes          business_notes[]
+  timeline       business_timeline[]
+  customers      customers[]
+  products       products[]
+  productSuppliers product_suppliers[]
+  warehouses     warehouses[]
+  transactions   transactions_registry[]
+  universalOrders universal_orders[]
+  paymentTransactions payment_transactions[]
+  paymentSettlements payment_settlements[]
+  crmLeads           crm_leads[]
+
+  @@index([organizationId])
+  @@index([tenantId])
+  @@index([status])
+  @@map("businesses")
+}
+
+model business_ownership {
+  id          String        @id @default(cuid())
+  businessId  String
+  userId      String
+  role        OwnershipRole @default(OWNER)
+  percentage  Float?
+  isCurrent   Boolean       @default(true)
+  assignedAt  DateTime      @default(now())
+  unassignedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  business    businesses    @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  user        users         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([businessId])
+  @@index([userId])
+  @@map("business_ownership")
+}
+
+model business_relationships {
+  id               String           @id @default(cuid())
+  sourceBusinessId String
+  targetBusinessId String
+  type             RelationshipType
+  metadata         Json?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  deletedAt        DateTime?
+  sourceBusiness   businesses       @relation("SourceBusiness", fields: [sourceBusinessId], references: [id], onDelete: Cascade)
+  targetBusiness   businesses       @relation("TargetBusiness", fields: [targetBusinessId], references: [id], onDelete: Cascade)
+
+  @@index([sourceBusinessId])
+  @@index([targetBusinessId])
+  @@map("business_relationships")
+}
+
+model business_settings {
+  id                  String     @id @default(cuid())
+  businessId          String     @unique
+  locale              String     @default("en-US")
+  currency            String     @default("USD")
+  timezone            String     @default("UTC")
+  language            String     @default("en")
+  fiscalYearStart     String     @default("01-01")
+  workingHours        Json?
+  regionalPreferences Json?
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+  business            businesses @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@map("business_settings")
+}
+
+model business_categories {
+  id          String   @id @default(cuid())
+  tenantId    String?
+  name        String
+  slug        String   @unique
+  description String?
+  icon        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+  mappings    business_category_mapping[]
+
+  @@map("business_categories")
+}
+
+model business_category_mapping {
+  id         String              @id @default(cuid())
+  businessId String
+  categoryId String
+  createdAt  DateTime            @default(now())
+  business   businesses          @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  category   business_categories @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([businessId, categoryId])
+  @@map("business_category_mapping")
+}
+
+model business_contacts {
+  id         String      @id @default(cuid())
+  businessId String
+  type       ContactType @default(PRIMARY)
+  name       String
+  title      String?
+  email      String?
+  phone      String?
+  isPrimary  Boolean     @default(false)
+  metadata   Json?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  deletedAt  DateTime?
+  business   businesses  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId])
+  @@map("business_contacts")
+}
+
+model business_addresses {
+  id         String      @id @default(cuid())
+  businessId String
+  type       AddressType @default(HEAD_OFFICE)
+  line1      String
+  line2      String?
+  city       String
+  state      String?
+  postalCode String?
+  country    String
+  latitude   Float?
+  longitude  Float?
+  timezone   String      @default("UTC")
+  isPrimary  Boolean     @default(false)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  deletedAt  DateTime?
+  business   businesses  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId])
+  @@map("business_addresses")
+}
+
+model business_tags {
+  id        String                 @id @default(cuid())
+  tenantId  String?
+  name      String                 @unique
+  color     String?
+  createdAt DateTime               @default(now())
+  mappings  business_tag_mapping[]
+
+  @@map("business_tags")
+}
+
+model business_tag_mapping {
+  id         String        @id @default(cuid())
+  businessId String
+  tagId      String
+  createdAt  DateTime      @default(now())
+  business   businesses    @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  tag        business_tags @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([businessId, tagId])
+  @@map("business_tag_mapping")
+}
+
+model business_attachments {
+  id         String             @id @default(cuid())
+  businessId String
+  fileKey    String
+  fileName   String
+  fileSize   Int
+  mimeType   String
+  category   AttachmentCategory @default(DOCUMENT)
+  url        String
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+  deletedAt  DateTime?
+  business   businesses         @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId])
+  @@map("business_attachments")
+}
+
+model business_notes {
+  id         String     @id @default(cuid())
+  businessId String
+  authorId   String
+  content    String
+  isPrivate  Boolean    @default(true)
+  isPinned   Boolean    @default(false)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  deletedAt  DateTime?
+  business   businesses @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  author     users      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([businessId])
+  @@map("business_notes")
+}
+
+model business_timeline {
+  id          String     @id @default(cuid())
+  businessId  String
+  actorId     String?
+  eventType   String
+  description String
+  metadata    Json?
+  createdAt   DateTime   @default(now())
+  business    businesses @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId])
+  @@map("business_timeline")
+}
+
+model divisions {
+  id         String     @id @default(cuid())
+  businessId String
+  name       String
+  code       String?
+  metadata   Json?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  deletedAt  DateTime?
+  business   businesses @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  locations  locations[]
+
+  @@index([businessId])
+  @@map("divisions")
+}
+
+model locations {
+  id          String        @id @default(cuid())
+  divisionId  String
+  name        String
+  code        String?
+  address     String?
+  timezone    String        @default("UTC")
+  metadata    Json?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  deletedAt   DateTime?
+  division    divisions     @relation(fields: [divisionId], references: [id], onDelete: Cascade)
+  departments departments[]
+
+  @@index([divisionId])
+  @@map("locations")
+}
+
+model departments {
+  id         String    @id @default(cuid())
+  locationId String
+  name       String
+  code       String?
+  metadata   Json?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
+  location   locations @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  teams      teams[]
+
+  @@index([locationId])
+  @@map("departments")
+}
+
+model teams {
+  id           String      @id @default(cuid())
+  departmentId String
+  name         String
+  code         String?
+  metadata     Json?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  deletedAt    DateTime?
+  department   departments @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  @@index([departmentId])
+  @@map("teams")
 }
 
 model subscriptions {
   id                 String             @id @default(cuid())
-  restaurantId       String
+  tenantId           String
   planName           PlanTier           @default(TRIAL)
   status             SubscriptionStatus @default(TRIALING)
   billingEmail       String?
@@ -64,34 +458,30 @@ model subscriptions {
   currentPeriodEnd   DateTime
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
-  restaurants        Tenant             @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  tenant             Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
-  @@index([restaurantId])
+  @@index([tenantId])
   @@index([status])
 }
 
 model audit_logs {
-  id           String  @id @default(cuid())
-  restaurantId String
-  userId       String?
-
-  entity   String
-  entityId String
-  action   String
-  changes  String[]
-
+  id        String   @id @default(cuid())
+  tenantId  String
+  userId    String?
+  entity    String
+  entityId  String
+  action    String
+  changes   String[]
   oldValues Json?
   newValues Json?
   ipAddress String?
   userAgent String?
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user      users?   @relation(fields: [userId], references: [id])
 
-  restaurants Tenant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  user        users? @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  @@index([restaurantId])
+  @@index([tenantId])
   @@index([userId])
   @@index([entity])
   @@index([entityId])
@@ -100,153 +490,150 @@ model audit_logs {
 
 model tenant_features {
   id         String   @id @default(cuid())
-  tenantId   String   @map("restaurantId")
+  tenantId   String
   featureKey String
   isEnabled  Boolean  @default(true)
-  config     Json?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  config     Json?
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@unique([tenantId, featureKey])
   @@map("tenant_features")
 }
 
 model branch {
-  id        String   @id @default(cuid())
-  tenantId  String   @map("restaurantId")
+  id        String      @id @default(cuid())
+  tenantId  String
   name      String
-  code      String?
   location  String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  code      String?
   address   String?
   phone     String?
   email     String?
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  isActive  Boolean     @default(true)
+  tenant    Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  employees employees[]
 
   @@unique([tenantId, code])
   @@map("branches")
-
-  employees         employees[]
 }
 
 model roles_permissions {
-  id          String   @id @default(cuid())
-  tenantId    String   @map("restaurantId")
+  id          String    @id @default(cuid())
+  tenantId    String
   roleName    String
   permissions String[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@unique([tenantId, roleName])
   @@map("roles_permissions")
 }
 
-// ─────────────────────────────────────────────
-// USERS
-// ─────────────────────────────────────────────
-
 model users {
-  id              String         @id @default(cuid())
-  restaurantId    String?
-  name            String
-  email           String         @unique
-  passwordHash    String
-  role            UserRole       @default(CUSTOMER)
-  isActive        Boolean        @default(true)
-  lastLoginAt     DateTime?
-  profileImageUrl String?
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  restaurants     Tenant?        @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  reservations    reservations[]
-  auditLogs       audit_logs[]
-
-  @@index([restaurantId])
-  @@index([role])
-  notifications           notification_recipients[]
-  notificationPreferences notification_preferences[]
-  registerSessions        pos_register_sessions[]
-  employeeProfile         employees?
+  id                      String                     @id @default(cuid())
+  tenantId                String?
+  name                    String
+  email                   String                     @unique
+  passwordHash            String
+  role                    UserRole                   @default(CUSTOMER)
+  isActive                Boolean                    @default(true)
+  lastLoginAt             DateTime?
+  createdAt               DateTime                   @default(now())
+  updatedAt               DateTime                   @updatedAt
+  deletedAt               DateTime?
+  profileImageUrl         String?
+  auditLogs               audit_logs[]
   approvedLeaves          employee_leaves[]
+  employeeProfile         employees?
+  notificationPreferences notification_preferences[]
+  notifications           notification_recipients[]
+  registerSessions        pos_register_sessions[]
+  reservations            reservations[]
+  businessOwnerships      business_ownership[]
+  businessNotes          business_notes[]
+  customerNotes          customer_notes[]
+  customers              customers[]
+  tenant                  Tenant?                    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  otpSessions             otp_sessions[]
+  passwordResetTokens     password_reset_tokens[]
+  refreshSessions         refresh_sessions[]
+
+  @@index([tenantId])
+  @@index([role])
 }
 
-// ─────────────────────────────────────────────
-// RESTAURANT OPERATIONAL MODELS
-// ─────────────────────────────────────────────
-
 model categories {
-  id           String       @id @default(cuid())
-  restaurantId String
-  name         String
-  sortOrder    Int          @default(0)
-  isActive     Boolean      @default(true)
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  restaurants  Tenant       @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  menu_items   menu_items[]
+  id         String       @id @default(cuid())
+  tenantId   String
+  name       String
+  sortOrder  Int          @default(0)
+  isActive   Boolean      @default(true)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  tenant     Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  menu_items menu_items[]
 
-  @@unique([restaurantId, name])
-  @@index([restaurantId])
+  @@unique([tenantId, name])
+  @@index([tenantId])
 }
 
 model menu_items {
-  id                 String               @id @default(cuid())
-  restaurantId       String
-  categoryId         String?
-  name               String
-  description        String?
-  price              Decimal              @db.Decimal(10, 2)
-  imageUrl           String?
-  isAvailable        Boolean              @default(true)
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime             @updatedAt
-  categories         categories?          @relation(fields: [categoryId], references: [id])
-  restaurants        Tenant               @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  menu_item_addons   menu_item_addons[]
-  menu_item_variants menu_item_variants[]
+  id                    String                  @id @default(cuid())
+  tenantId              String
+  categoryId            String?
+  name                  String
+  description           String?
+  price                 Decimal                 @db.Decimal(10, 2)
+  imageUrl              String?
+  isAvailable           Boolean                 @default(true)
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  menu_item_addons      menu_item_addons[]
   menu_item_ingredients menu_item_ingredients[]
-  order_items        order_items[]
+  menu_item_variants    menu_item_variants[]
+  categories            categories?             @relation(fields: [categoryId], references: [id])
+  tenant                Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  order_items           order_items[]
 
   @@index([categoryId])
-  @@index([restaurantId])
+  @@index([tenantId])
 }
 
 model menu_item_variants {
-  id           String     @id @default(cuid())
-  restaurantId String
-  menuItemId   String
-  name         String
-  priceDelta   Decimal    @default(0) @db.Decimal(10, 2)
-  isActive     Boolean    @default(true)
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  menu_items   menu_items @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
-  restaurants  Tenant     @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  id         String     @id @default(cuid())
+  tenantId   String
+  menuItemId String
+  name       String
+  priceDelta Decimal    @default(0) @db.Decimal(10, 2)
+  isActive   Boolean    @default(true)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  menu_items menu_items @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  tenant     Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
-  @@index([restaurantId])
+  @@index([tenantId])
   @@index([menuItemId])
 }
 
 model menu_item_addons {
-  id           String     @id @default(cuid())
-  restaurantId String
-  menuItemId   String
-  name         String
-  price        Decimal    @default(0) @db.Decimal(10, 2)
-  isActive     Boolean    @default(true)
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  menu_items   menu_items @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
-  restaurants  Tenant     @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  id         String     @id @default(cuid())
+  tenantId   String
+  menuItemId String
+  name       String
+  price      Decimal    @default(0) @db.Decimal(10, 2)
+  isActive   Boolean    @default(true)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  menu_items menu_items @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  tenant     Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
-  @@index([restaurantId])
+  @@index([tenantId])
   @@index([menuItemId])
 }
 
@@ -267,31 +654,34 @@ model order_items {
 }
 
 model orders {
-  id            String        @id @default(cuid())
+  id            String           @id @default(cuid())
   orderNumber   String
   customerName  String?
   customerPhone String?
-  status        OrderStatus   @default(PENDING)
-  totalAmount   Decimal       @db.Decimal(10, 2)
-  restaurantId  String
+  totalAmount   Decimal          @db.Decimal(10, 2)
+  tenantId      String
   tableId       String
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  order_items   order_items[]
-  restaurants   Tenant        @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  tables        tables        @relation(fields: [tableId], references: [id])
-  payments      order_payments[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  status        OrderStatus      @default(PENDING)
   invoice       invoices?
+  order_items   order_items[]
+  payments      order_payments[]
+  tenant        Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tables        tables           @relation(fields: [tableId], references: [id])
+  retailReturns retail_returns[]
+  logisticsShipments logistics_shipments[]
+  logisticsReturns   logistics_returns[]
 
-  @@unique([restaurantId, orderNumber])
-  @@index([restaurantId])
+  @@unique([tenantId, orderNumber])
+  @@index([tenantId])
   @@index([status])
   @@index([tableId])
 }
 
 model tables {
   id           String         @id @default(cuid())
-  restaurantId String
+  tenantId     String
   name         String
   code         String
   capacity     Int            @default(2)
@@ -301,55 +691,54 @@ model tables {
   qrCode       String?        @unique
   orders       orders[]
   reservations reservations[]
-  restaurants  Tenant         @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  tenant       Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
-  @@unique([restaurantId, code])
-  @@index([restaurantId])
+  @@unique([tenantId, code])
+  @@index([tenantId])
 }
 
 model inventory_items {
-  id            String     @id @default(cuid())
-  restaurantId  String
-  name          String
-  sku           String?
-  quantity      Decimal    @default(0) @db.Decimal(10, 2)
-  unit          String
-  lowStockLevel Decimal    @default(0) @db.Decimal(10, 2)
-  supplierId    String?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-  restaurants   Tenant     @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  suppliers     suppliers? @relation(fields: [supplierId], references: [id])
+  id                    String                  @id @default(cuid())
+  tenantId              String
+  name                  String
+  sku                   String?
+  quantity              Decimal                 @default(0) @db.Decimal(10, 2)
+  unit                  String
+  lowStockLevel         Decimal                 @default(0) @db.Decimal(10, 2)
+  supplierId            String?
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  tenant                Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  suppliers             suppliers?              @relation(fields: [supplierId], references: [id])
+  inventory_movements   inventory_movements[]
   menu_item_ingredients menu_item_ingredients[]
-  inventory_movements inventory_movements[]
 
-  @@unique([restaurantId, name])
-  @@index([restaurantId])
+  @@unique([tenantId, name])
+  @@index([tenantId])
   @@index([supplierId])
 }
 
 model menu_item_ingredients {
   id              String          @id @default(cuid())
-  restaurantId    String
+  tenantId        String
   menuItemId      String
   inventoryItemId String
   quantity        Decimal         @db.Decimal(10, 2)
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
-
-  restaurants     Tenant          @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  menu_items      menu_items      @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
   inventory_items inventory_items @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+  menu_items      menu_items      @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  tenant          Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@unique([menuItemId, inventoryItemId])
-  @@index([restaurantId])
+  @@index([tenantId])
   @@index([menuItemId])
   @@index([inventoryItemId])
 }
 
 model inventory_movements {
   id              String          @id @default(cuid())
-  restaurantId    String
+  tenantId        String
   inventoryItemId String
   orderId         String?
   orderItemId     String?
@@ -357,11 +746,10 @@ model inventory_movements {
   quantity        Decimal         @db.Decimal(10, 2)
   reason          String?
   createdAt       DateTime        @default(now())
-
-  restaurants     Tenant          @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   inventory_items inventory_items @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+  tenant          Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
-  @@index([restaurantId])
+  @@index([tenantId])
   @@index([inventoryItemId])
   @@index([orderId])
   @@index([type])
@@ -370,7 +758,7 @@ model inventory_movements {
 
 model suppliers {
   id              String            @id @default(cuid())
-  restaurantId    String
+  tenantId        String
   name            String
   email           String?
   phone           String?
@@ -380,15 +768,15 @@ model suppliers {
   updatedAt       DateTime          @updatedAt
   inventory_items inventory_items[]
   purchase_orders purchase_orders[]
-  restaurants     Tenant            @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  tenant          Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
-  @@unique([restaurantId, name])
-  @@index([restaurantId])
+  @@unique([tenantId, name])
+  @@index([tenantId])
 }
 
 model purchase_orders {
   id                   String                 @id @default(cuid())
-  restaurantId         String
+  tenantId             String
   supplierId           String?
   status               PurchaseOrderStatus    @default(DRAFT)
   expectedDeliveryDate DateTime?
@@ -397,10 +785,10 @@ model purchase_orders {
   createdAt            DateTime               @default(now())
   updatedAt            DateTime               @updatedAt
   purchase_order_items purchase_order_items[]
-  restaurants          Tenant                 @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  tenant               Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   suppliers            suppliers?             @relation(fields: [supplierId], references: [id])
 
-  @@index([restaurantId])
+  @@index([tenantId])
   @@index([supplierId])
   @@index([status])
 }
@@ -420,7 +808,7 @@ model purchase_order_items {
 
 model reservations {
   id              String            @id @default(cuid())
-  restaurantId    String
+  tenantId        String
   tableId         String
   customerName    String
   customerPhone   String?
@@ -432,19 +820,321 @@ model reservations {
   userId          String?
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
-  restaurants     Tenant            @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  tenant          Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   tables          tables            @relation(fields: [tableId], references: [id])
   users           users?            @relation(fields: [userId], references: [id])
 
-  @@index([restaurantId])
+  @@index([tenantId])
   @@index([tableId])
   @@index([status])
   @@index([reservationAt])
 }
 
-// ─────────────────────────────────────────────
-// ENUMS
-// ─────────────────────────────────────────────
+model order_payments {
+  id                String                 @id @default(cuid())
+  orderId           String
+  amount            Decimal                @db.Decimal(10, 2)
+  paymentMethod     String                 @default("CASH")
+  transactionId     String?
+  status            String                 @default("SUCCESS")
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  registerSessionId String?
+  order             orders                 @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  registerSession   pos_register_sessions? @relation(fields: [registerSessionId], references: [id])
+
+  @@index([orderId])
+  @@index([registerSessionId])
+}
+
+model invoices {
+  id            String   @id @default(cuid())
+  orderId       String   @unique
+  invoiceNumber String   @unique
+  subtotal      Decimal  @db.Decimal(10, 2)
+  tax           Decimal  @db.Decimal(10, 2)
+  serviceCharge Decimal  @db.Decimal(10, 2)
+  discount      Decimal  @db.Decimal(10, 2)
+  grandTotal    Decimal  @db.Decimal(10, 2)
+  pdfUrl        String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  order         orders   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+}
+
+model notifications {
+  id         String                    @id @default(cuid())
+  tenantId   String?
+  title      String
+  body       String
+  type       String                    @default("INFO")
+  priority   String                    @default("LOW")
+  category   String                    @default("general")
+  metadata   Json?
+  createdAt  DateTime                  @default(now())
+  history    notification_history[]
+  recipients notification_recipients[]
+
+  @@index([tenantId])
+  @@index([type])
+  @@index([category])
+  @@index([createdAt])
+}
+
+model notification_recipients {
+  id             String                 @id @default(cuid())
+  notificationId String
+  userId         String
+  read           Boolean                @default(false)
+  archived       Boolean                @default(false)
+  readAt         DateTime?
+  archivedAt     DateTime?
+  history        notification_history[]
+  notification   notifications          @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  user           users                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([notificationId])
+  @@index([userId])
+  @@index([read])
+  @@index([archived])
+}
+
+model notification_templates {
+  id            String   @id @default(cuid())
+  tenantId      String?
+  trigger       String   @unique
+  titleTemplate String
+  bodyTemplate  String
+  channels      String[]
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([trigger])
+}
+
+model notification_preferences {
+  id        String   @id @default(cuid())
+  userId    String
+  category  String
+  channels  String[]
+  updatedAt DateTime @updatedAt
+  user      users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, category])
+}
+
+model notification_history {
+  id             String                   @id @default(cuid())
+  notificationId String
+  recipientId    String?
+  channel        String
+  status         String                   @default("PENDING")
+  errorMessage   String?
+  attempts       Int                      @default(1)
+  sentAt         DateTime                 @default(now())
+  notification   notifications            @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  recipient      notification_recipients? @relation(fields: [recipientId], references: [id])
+
+  @@index([notificationId])
+  @@index([recipientId])
+  @@index([status])
+}
+
+model employees {
+  id           String                @id @default(cuid())
+  userId       String?               @unique
+  tenantId     String
+  branchId     String?
+  employeeId   String
+  name         String
+  email        String?
+  phone        String?
+  photoUrl     String?
+  department   String
+  designation  String
+  managerId    String?
+  role         String                @default("STAFF")
+  status       String                @default("ACTIVE")
+  salary       Decimal?              @db.Decimal(10, 2)
+  encryptedSalary String?
+  hireDate     DateTime              @default(now())
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+  attendance   employee_attendance[]
+  documents    employee_documents[]
+  leaves       employee_leaves[]
+  shifts       employee_shifts[]
+  branch       branch?               @relation(fields: [branchId], references: [id])
+  manager      employees?            @relation("ManagerSubordinates", fields: [managerId], references: [id])
+  subordinates employees[]           @relation("ManagerSubordinates")
+  tenant       Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user         users?                @relation(fields: [userId], references: [id])
+  restShifts   rest_shifts[]
+  housekeepingTasks hotel_housekeeping_tasks[]
+  hcAppointments hc_appointments[]
+  logisticsDriverAssignments logistics_driver_assignments[]
+  logisticsRoutes logistics_routes[]
+
+  @@unique([tenantId, employeeId])
+  @@index([tenantId])
+  @@index([branchId])
+  @@index([managerId])
+}
+
+model employee_attendance {
+  id         String    @id @default(cuid())
+  employeeId String
+  date       DateTime
+  clockIn    DateTime
+  clockOut   DateTime?
+  status     String    @default("ON_TIME")
+  latitude   Float?
+  longitude  Float?
+  qrToken    String?
+  breaks     Json?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  employee   employees @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, date])
+  @@index([employeeId])
+  @@index([date])
+}
+
+model employee_shifts {
+  id         String    @id @default(cuid())
+  employeeId String
+  startTime  String
+  endTime    String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  notes      String?
+  dayOfWeek  Int
+  employee   employees @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, dayOfWeek])
+  @@index([employeeId])
+}
+
+model employee_leaves {
+  id           String    @id @default(cuid())
+  employeeId   String
+  startDate    DateTime
+  endDate      DateTime
+  reason       String?
+  status       String    @default("PENDING")
+  approvedById String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  leaveType    String
+  approvedBy   users?    @relation(fields: [approvedById], references: [id])
+  employee     employees @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
+  @@index([approvedById])
+}
+
+model employee_documents {
+  id         String    @id @default(cuid())
+  employeeId String
+  name       String
+  createdAt  DateTime  @default(now())
+  expiryDate DateTime?
+  fileUrl    String
+  updatedAt  DateTime  @updatedAt
+  employee   employees @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
+}
+
+model pos_register_sessions {
+  id              String                   @id @default(cuid())
+  tenantId        String
+  cashierId       String
+  openingTime     DateTime                 @default(now())
+  closingTime     DateTime?
+  openingBalance  Decimal                  @db.Decimal(10, 2)
+  closingBalance  Decimal?                 @db.Decimal(10, 2)
+  expectedBalance Decimal?                 @db.Decimal(10, 2)
+  status          String                   @default("OPEN")
+  notes           String?
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+  payments        order_payments[]
+  cashLogs        pos_register_cash_logs[]
+  cashier         users                    @relation(fields: [cashierId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([cashierId])
+}
+
+model pos_register_cash_logs {
+  id        String                @id @default(cuid())
+  sessionId String
+  amount    Decimal               @db.Decimal(10, 2)
+  type      String
+  reason    String
+  createdAt DateTime              @default(now())
+  session   pos_register_sessions @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+}
+
+model otp_sessions {
+  id         String    @id @default(cuid())
+  userId     String?
+  email      String
+  purpose    String
+  otpHash    String
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  user users? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([email])
+  @@index([userId])
+  @@index([purpose])
+  @@index([expiresAt])
+}
+
+model password_reset_tokens {
+  id         String    @id @default(cuid())
+  userId     String
+  tokenHash  String
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  user users @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model refresh_sessions {
+  id               String    @id @default(cuid())
+  userId           String
+  refreshTokenHash String
+  deviceId         String?
+  ipAddress        String?
+  userAgent        String?
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  user users @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([refreshTokenHash])
+  @@index([expiresAt])
+  @@index([revokedAt])
+}
 
 enum TenantStatus {
   PENDING
@@ -463,12 +1153,19 @@ enum PlanTier {
 
 enum UserRole {
   SUPER_ADMIN
-  RESTAURANT_OWNER
+  OWNER
   MANAGER
+  SUPERVISOR
+  OPERATOR
   CASHIER
-  WAITER
-  CHEF
+  RECEPTIONIST
   CUSTOMER
+  VENDOR
+  SUPPLIER
+  PARTNER
+  AUDITOR
+  SUPPORT
+  DEVELOPER
 }
 
 enum SubscriptionStatus {
@@ -504,265 +1201,3936 @@ enum ReservationStatus {
   NO_SHOW
 }
 
-model order_payments {
-  id                String                 @id @default(cuid())
-  orderId           String
-  amount            Decimal                @db.Decimal(10, 2)
-  paymentMethod     String                 @default("CASH") // CASH, CARD, UPI, WALLET
-  transactionId     String?
-  status            String                 @default("SUCCESS") // SUCCESS, FAILED, REFUNDED
-  registerSessionId String?
-  registerSession   pos_register_sessions? @relation(fields: [registerSessionId], references: [id], onDelete: SetNull)
-  createdAt         DateTime               @default(now())
-  updatedAt         DateTime               @updatedAt
-
-  order             orders                 @relation(fields: [orderId], references: [id], onDelete: Cascade)
-
-  @@index([orderId])
-  @@index([registerSessionId])
+enum BusinessStatus {
+  DRAFT
+  PENDING_VERIFICATION
+  VERIFIED
+  ACTIVE
+  SUSPENDED
+  ARCHIVED
+  CLOSED
 }
 
-model invoices {
-  id            String   @id @default(cuid())
-  orderId       String   @unique
-  invoiceNumber String   @unique
-  subtotal      Decimal  @db.Decimal(10, 2)
-  tax           Decimal  @db.Decimal(10, 2)
-  serviceCharge Decimal  @db.Decimal(10, 2)
-  discount      Decimal  @db.Decimal(10, 2)
-  grandTotal    Decimal  @db.Decimal(10, 2)
-  pdfUrl        String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  order         orders   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-
-  @@index([orderId])
+enum OwnershipRole {
+  OWNER
+  MANAGER
+  OPERATOR
+  PARTNER
 }
 
+enum RelationshipType {
+  PARENT
+  CHILD
+  FRANCHISE
+  SUPPLIER
+  CUSTOMER
+  VENDOR
+  PARTNER
+  DISTRIBUTOR
+}
 
-model notifications {
-  id            String                  @id @default(cuid())
-  tenantId      String?
-  title         String
-  body          String
-  type          String                  @default("INFO") // INFO, SUCCESS, WARNING, ERROR, SYSTEM, BUSINESS, MARKETING, REMINDER, APPROVAL, TASK
-  priority      String                  @default("LOW") // LOW, MEDIUM, HIGH
-  category      String                  @default("general") // order, alert, system, inventory
-  metadata      Json?
-  createdAt     DateTime                @default(now())
-  recipients    notification_recipients[]
-  history       notification_history[]
+enum ContactType {
+  PRIMARY
+  BILLING
+  EMERGENCY
+  TECHNICAL
+  OTHER
+}
+
+enum AddressType {
+  HEAD_OFFICE
+  BRANCH
+  WAREHOUSE
+  BILLING
+  SHIPPING
+  STORE
+  OTHER
+}
+
+enum AttachmentCategory {
+  IMAGE
+  DOCUMENT
+  CERTIFICATE
+  LICENSE
+  CONTRACT
+  OTHER
+}
+
+enum CustomerIdentityType {
+  GUEST
+  REGISTERED
+  LINKED_USER
+  ANONYMOUS
+  BUSINESS
+  ORGANIZATION
+}
+
+enum CustomerLifecycleStage {
+  PROSPECT
+  LEAD
+  REGISTERED
+  VERIFIED
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  ARCHIVED
+  DELETED
+}
+
+enum CustomerStatus {
+  DRAFT
+  PENDING_VERIFICATION
+  VERIFIED
+  ACTIVE
+  SUSPENDED
+  ARCHIVED
+  CLOSED
+}
+
+enum ConsentType {
+  MARKETING
+  PRIVACY
+  DATA_SHARING
+  COOKIE
+  TERMS
+}
+
+enum LoyaltyTier {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+}
+
+enum LoyaltyStatus {
+  ACTIVE
+  INACTIVE
+  EXPIRED
+}
+
+enum CustomerContactType {
+  PRIMARY_EMAIL
+  SECONDARY_EMAIL
+  MOBILE_PHONE
+  WORK_PHONE
+  ALTERNATE
+}
+
+enum CustomerAddressType {
+  HOME
+  WORK
+  BILLING
+  SHIPPING
+  LOCATION
+  OTHER
+}
+
+enum CustomerRelationshipType {
+  FAMILY
+  ORGANIZATION
+  BUSINESS
+  EMERGENCY_CONTACT
+  SPOUSE
+  DEPENDENT
+  OTHER
+}
+
+enum CustomerAttachmentCategory {
+  ID_CARD
+  PROOF_OF_ADDRESS
+  CONTRACT
+  TAX_DOCUMENT
+  AVATAR
+  DOCUMENT
+  OTHER
+}
+
+model customers {
+  id                 String                 @id @default(cuid())
+  tenantId           String?
+  userId             String?
+  businessId         String?
+  customerCode       String?
+  identityType       CustomerIdentityType   @default(REGISTERED)
+  lifecycleStage     CustomerLifecycleStage @default(PROSPECT)
+  status             CustomerStatus         @default(ACTIVE)
+  verificationStatus String                 @default("UNVERIFIED")
+  externalId         String?
+  externalSystem     String?
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+  deletedAt          DateTime?
+  createdBy          String?
+  updatedBy          String?
+
+  tenant             Tenant?                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user               users?                 @relation(fields: [userId], references: [id], onDelete: SetNull)
+  business           businesses?            @relation(fields: [businessId], references: [id], onDelete: SetNull)
+
+  profile            customer_profiles?
+  consents           customer_consents[]
+  loyalty            customer_loyalty?
+  contacts           customer_contacts[]
+  addresses          customer_addresses[]
+  sourceRelations    customer_relationships[] @relation("SourceCustomer")
+  targetRelations    customer_relationships[] @relation("TargetCustomer")
+  groupMappings      customer_group_mappings[]
+  tagMappings        customer_tag_mappings[]
+  attachments        customer_attachments[]
+  notes              customer_notes[]
+  preferences        customer_preferences?
+  communications     customer_communications?
+  commHistory        customer_communication_history[]
+  transactions       transactions_registry[]
+  universalOrders    universal_orders[]
+  paymentTransactions payment_transactions[]
+  wallets            customer_wallets[]
+  paymentTokens      payment_tokens[]
+  billingSchedules   billing_schedules[]
+  verifications      customer_verifications[]
+  sourceMerges       customer_merge_history[] @relation("SourceCustomerMerge")
+  targetMerges       customer_merge_history[] @relation("TargetCustomerMerge")
+  timeline           customer_timeline[]
+  crmLeads           crm_leads[]
+  crmOpportunities   crm_opportunities[]
+  crmCases           crm_cases[]
+  crmInteractions    crm_interactions[]
+  crmConsents        crm_consents[]
+  crmLoyalty         crm_loyalty?
+  crmTickets         crm_tickets[]
+  crmFeedbacks       crm_feedbacks[]
+  crmRelationshipsFrom crm_relationships[] @relation("CrmFromCustomer")
+  crmRelationshipsTo   crm_relationships[] @relation("CrmToCustomer")
+  restReservations     rest_reservations[]
+  custFavorites        cust_favorites[]
+  custReviews          cust_reviews[]
+  custDevices          cust_devices[]
+  custCarts            cust_carts[]
+  custConsent          cust_consent_settings?
+  custWallet           cust_wallet_ledger?
+  aiMemories           ai_memories[]
+  hotelBookings        hotel_bookings[]
+  hcPatientProfile     hc_patient_profiles?
 
   @@index([tenantId])
-  @@index([type])
-  @@index([category])
-  @@index([createdAt])
-}
-
-model notification_recipients {
-  id             String                 @id @default(cuid())
-  notificationId String
-  userId         String
-  read           Boolean                @default(false)
-  archived       Boolean                @default(false)
-  readAt         DateTime?
-  archivedAt     DateTime?
-
-  notification   notifications          @relation(fields: [notificationId], references: [id], onDelete: Cascade)
-  user           users                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  history        notification_history[]
-
-  @@index([notificationId])
   @@index([userId])
-  @@index([read])
-  @@index([archived])
-}
-
-model notification_templates {
-  id            String                  @id @default(cuid())
-  tenantId      String?
-  trigger       String                  @unique // e.g., ORDER_CREATED, PAYMENT_SUCCESS, INVENTORY_LOW
-  titleTemplate String
-  bodyTemplate  String
-  channels      String[]                // IN_APP, EMAIL, SMS, WHATSAPP, PUSH, WEBHOOK
-  active        Boolean                 @default(true)
-  createdAt     DateTime                @default(now())
-  updatedAt     DateTime                @updatedAt
-
-  @@index([tenantId])
-  @@index([trigger])
-}
-
-model notification_preferences {
-  id        String                      @id @default(cuid())
-  userId    String
-  category  String                      // e.g. order, alert, system, general
-  channels  String[]                    // e.g. IN_APP, EMAIL, SMS
-  updatedAt DateTime                    @updatedAt
-
-  user      users                       @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, category])
-}
-
-model notification_history {
-  id             String                  @id @default(cuid())
-  notificationId String
-  recipientId    String?
-  channel        String                  // IN_APP, EMAIL, SMS, WHATSAPP, PUSH, WEBHOOK
-  status         String                  @default("PENDING") // PENDING, SUCCESS, FAILED
-  errorMessage   String?
-  attempts       Int                     @default(1)
-  sentAt         DateTime                @default(now())
-
-  notification   notifications           @relation(fields: [notificationId], references: [id], onDelete: Cascade)
-  recipient      notification_recipients? @relation(fields: [recipientId], references: [id], onDelete: SetNull)
-
-  @@index([notificationId])
-  @@index([recipientId])
+  @@index([businessId])
+  @@index([customerCode])
   @@index([status])
+  @@index([lifecycleStage])
+  @@map("customers")
 }
 
+model customer_profiles {
+  id            String    @id @default(cuid())
+  customerId    String    @unique
+  firstName     String?
+  lastName      String?
+  displayName   String?
+  preferredName String?
+  title         String?
+  dateOfBirth   DateTime?
+  gender        String?
+  avatarUrl     String?
+  metadata      Json?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  customer      customers @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
-model employees {
-  id              String                 @id @default(cuid())
-  userId          String?                @unique
-  tenantId        String
-  branchId        String?
-  employeeId      String                 // Unique code per tenant (e.g. EMP-001)
-  name            String
-  email           String?
-  phone           String?
-  photoUrl        String?
-  department      String                 // Kitchen, Front Office, Sales, Admin, etc.
-  designation     String                 // Chef, Waiter, Cashier, Manager, Stylist, doctor, etc.
-  managerId       String?
-  role            String                 @default("STAFF") // STAFF, MANAGER, HR_MANAGER
-  status          String                 @default("ACTIVE") // ACTIVE, INACTIVE, SUSPENDED
-  salary          Decimal?               @db.Decimal(10, 2)
-  hireDate        DateTime               @default(now())
-  createdAt       DateTime               @default(now())
-  updatedAt       DateTime               @updatedAt
-
-  user            users?                 @relation(fields: [userId], references: [id], onDelete: SetNull)
-  restaurants     Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  branch          branch?                @relation(fields: [branchId], references: [id], onDelete: SetNull)
-  manager         employees?             @relation("ManagerSubordinates", fields: [managerId], references: [id], onDelete: SetNull)
-  subordinates    employees[]            @relation("ManagerSubordinates")
-  attendance      employee_attendance[]
-  shifts          employee_shifts[]
-  leaves          employee_leaves[]
-  documents       employee_documents[]
-
-  @@unique([tenantId, employeeId])
-  @@index([tenantId])
-  @@index([branchId])
-  @@index([managerId])
+  @@map("customer_profiles")
 }
 
-model employee_attendance {
+model customer_consents {
+  id         String      @id @default(cuid())
+  customerId String
+  type       ConsentType
+  isGranted  Boolean     @default(true)
+  version    String      @default("1.0")
+  source     String      @default("WEB")
+  actorId    String?
+  grantedAt  DateTime    @default(now())
+  revokedAt  DateTime?
+  customer   customers   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@map("customer_consents")
+}
+
+model customer_loyalty {
+  id            String        @id @default(cuid())
+  customerId    String        @unique
+  tier          LoyaltyTier   @default(BRONZE)
+  status        LoyaltyStatus @default(ACTIVE)
+  pointsBalance Int           @default(0)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  customer      customers     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@map("customer_loyalty")
+}
+
+model customer_contacts {
+  id         String              @id @default(cuid())
+  customerId String
+  type       CustomerContactType @default(PRIMARY_EMAIL)
+  value      String
+  isPrimary  Boolean             @default(false)
+  isVerified Boolean             @default(false)
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+  deletedAt  DateTime?
+  customer   customers           @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@map("customer_contacts")
+}
+
+model customer_addresses {
+  id         String              @id @default(cuid())
+  customerId String
+  type       CustomerAddressType @default(HOME)
+  line1      String
+  line2      String?
+  city       String
+  state      String?
+  postalCode String?
+  country    String
+  latitude   Float?
+  longitude  Float?
+  timezone   String              @default("UTC")
+  isPrimary  Boolean             @default(false)
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+  deletedAt  DateTime?
+  customer   customers           @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@map("customer_addresses")
+}
+
+model customer_relationships {
+  id                   String                   @id @default(cuid())
+  sourceCustomerId     String
+  targetCustomerId     String?
+  targetBusinessId     String?
+  targetOrganizationId String?
+  type                 CustomerRelationshipType
+  notes                String?
+  createdAt            DateTime                 @default(now())
+  updatedAt            DateTime                 @updatedAt
+  deletedAt            DateTime?
+  sourceCustomer       customers                @relation("SourceCustomer", fields: [sourceCustomerId], references: [id], onDelete: Cascade)
+  targetCustomer       customers?               @relation("TargetCustomer", fields: [targetCustomerId], references: [id], onDelete: Cascade)
+
+  @@index([sourceCustomerId])
+  @@index([targetCustomerId])
+  @@map("customer_relationships")
+}
+
+model customer_groups {
+  id          String                  @id @default(cuid())
+  tenantId    String?
+  name        String
+  slug        String                  @unique
+  description String?
+  color       String?
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
+  deletedAt   DateTime?
+  mappings    customer_group_mappings[]
+
+  @@map("customer_groups")
+}
+
+model customer_group_mappings {
+  id         String          @id @default(cuid())
+  customerId String
+  groupId    String
+  assignedAt DateTime        @default(now())
+  customer   customers       @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  group      customer_groups @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, groupId])
+  @@map("customer_group_mappings")
+}
+
+model customer_tags {
+  id        String                @id @default(cuid())
+  tenantId  String?
+  name      String                @unique
+  color     String?
+  createdAt DateTime              @default(now())
+  mappings  customer_tag_mappings[]
+
+  @@map("customer_tags")
+}
+
+model customer_tag_mappings {
+  id         String        @id @default(cuid())
+  customerId String
+  tagId      String
+  assignedAt DateTime      @default(now())
+  customer   customers     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  tag        customer_tags @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, tagId])
+  @@map("customer_tag_mappings")
+}
+
+model customer_attachments {
+  id         String                     @id @default(cuid())
+  customerId String
+  fileKey    String
+  fileName   String
+  fileSize   Int
+  mimeType   String
+  category   CustomerAttachmentCategory @default(DOCUMENT)
+  url        String
+  createdAt  DateTime                   @default(now())
+  updatedAt  DateTime                   @updatedAt
+  deletedAt  DateTime?
+  customer   customers                  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@map("customer_attachments")
+}
+
+model customer_notes {
+  id         String    @id @default(cuid())
+  customerId String
+  authorId   String
+  content    String
+  isPrivate  Boolean   @default(true)
+  isPinned   Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  deletedAt  DateTime?
+  customer   customers @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  author     users     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@map("customer_notes")
+}
+
+model customer_preferences {
+  id                 String    @id @default(cuid())
+  customerId         String    @unique
+  language           String    @default("en")
+  currency           String    @default("USD")
+  timezone           String    @default("UTC")
+  dataSharingConsent Boolean   @default(false)
+  privacySettings    Json?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  customer           customers @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@map("customer_preferences")
+}
+
+model customer_communications {
+  id           String    @id @default(cuid())
+  customerId   String    @unique
+  emailOptIn   Boolean   @default(true)
+  smsOptIn     Boolean   @default(true)
+  pushOptIn    Boolean   @default(true)
+  whatsappOptIn Boolean  @default(false)
+  updatedAt    DateTime  @updatedAt
+  customer     customers @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@map("customer_communications")
+}
+
+model customer_communication_history {
+  id         String    @id @default(cuid())
+  customerId String
+  channel    String
+  recipient  String
+  subject    String?
+  content    String
+  status     String    @default("SENT")
+  sentAt     DateTime  @default(now())
+  actorId    String?
+  customer   customers @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@map("customer_communication_history")
+}
+
+model customer_verifications {
+  id         String    @id @default(cuid())
+  customerId String
+  channel    String
+  token      String
+  expiresAt  DateTime
+  isVerified Boolean   @default(false)
+  verifiedAt DateTime?
+  customer   customers @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@map("customer_verifications")
+}
+
+model customer_merge_history {
+  id               String    @id @default(cuid())
+  sourceCustomerId String
+  targetCustomerId String
+  mergedBy         String?
+  reason           String?
+  mergedAt         DateTime  @default(now())
+  sourceCustomer   customers @relation("SourceCustomerMerge", fields: [sourceCustomerId], references: [id], onDelete: Cascade)
+  targetCustomer   customers @relation("TargetCustomerMerge", fields: [targetCustomerId], references: [id], onDelete: Cascade)
+
+  @@index([sourceCustomerId])
+  @@index([targetCustomerId])
+  @@map("customer_merge_history")
+}
+
+model customer_timeline {
   id          String    @id @default(cuid())
-  employeeId  String
-  date        DateTime  // Day date index (e.g. 2026-07-10T00:00:00Z)
-  clockIn     DateTime
-  clockOut    DateTime?
-  status      String    @default("ON_TIME") // ON_TIME, LATE, ABSENT
-  latitude    Float?
-  longitude   Float?
-  qrToken     String?
-  breaks      Json?     // [{ start: DateTime, end: DateTime }]
+  customerId  String
+  actorId     String?
+  eventType   String
+  description String
+  metadata    Json?
+  createdAt   DateTime  @default(now())
+  customer    customers @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@map("customer_timeline")
+}
+
+enum ProductIdentityType {
+  PHYSICAL
+  DIGITAL
+  SERVICE
+  SUBSCRIPTION
+  MEMBERSHIP
+  RENTAL
+  COMPOSITE_BUNDLE
+}
+
+enum ProductLifecycleStage {
+  IDEATION
+  DEVELOPMENT
+  ACTIVE
+  DISCONTINUED
+  END_OF_LIFE
+}
+
+enum ProductStatus {
+  DRAFT
+  PENDING_REVIEW
+  ACTIVE
+  SUSPENDED
+  ARCHIVED
+  DELETED
+}
+
+enum PublishingStatus {
+  DRAFT
+  REVIEW
+  APPROVED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ProductRelationshipType {
+  RELATED
+  SIMILAR
+  CROSS_SELL
+  UP_SELL
+  ACCESSORY
+  REPLACEMENT
+}
+
+enum ProductMediaType {
+  IMAGE
+  VIDEO
+  DOCUMENT
+  MODEL_3D
+  OTHER
+}
+
+enum PriceType {
+  BASE
+  MSRP
+  COST
+  SALE
+  TIERED
+  SPECIAL
+}
+
+model products {
+  id               String                @id @default(cuid())
+  tenantId         String?
+  businessId       String?
+  sku              String
+  barcode          String?
+  name             String
+  slug             String                @unique
+  description      String?
+  shortDescription String?
+  identityType     ProductIdentityType   @default(PHYSICAL)
+  lifecycleStage   ProductLifecycleStage @default(ACTIVE)
+  status           ProductStatus         @default(ACTIVE)
+  publishingStatus PublishingStatus      @default(PUBLISHED)
+  brand            String?
+  isTaxable        Boolean               @default(true)
+  taxClassId       String?
+  primaryUomId     String?
+
+  // Inventory Readiness Toggles
+  trackInventory   Boolean               @default(false)
+  isBatchManaged   Boolean               @default(false)
+  isSerialized     Boolean               @default(false)
+  isExpiryManaged  Boolean               @default(false)
+  isStockManaged   Boolean               @default(false)
+
+  // SEO Baseline
+  seoTitle         String?
+  metaDescription  String?
+  metaKeywords     String?
+  canonicalUrl     String?
+
+  metadata         Json?
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+  deletedAt        DateTime?
+  createdBy        String?
+  updatedBy        String?
+
+  tenant           Tenant?               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  business         businesses?           @relation(fields: [businessId], references: [id], onDelete: SetNull)
+
+  versions         product_versions[]
+  translations     product_translations[]
+  sourceRelations  product_relationships[] @relation("SourceProduct")
+  targetRelations  product_relationships[] @relation("TargetProduct")
+  digitalAssets    product_digital_assets[]
+  compliance       product_compliance[]
+  categoryMappings product_category_mappings[]
+  attributeValues  product_attribute_values[]
+  options          product_options[]
+  variants         product_variants[]
+  parentBundles    product_bundles[]     @relation("ParentProduct")
+  componentBundles product_bundles[]     @relation("ComponentProduct")
+  media            product_media[]
+  prices           product_prices[]
+  suppliers        product_suppliers[]
+  availabilities   product_availability[]
+  tagMappings      product_tag_mappings[]
+  timeline         product_timeline[]
+  retailVariants   retail_product_variants[]
+  retailStockBatches retail_stock_batches[]
+
+  @@index([tenantId])
+  @@index([businessId])
+  @@index([sku])
+  @@index([status])
+  @@index([publishingStatus])
+  @@map("products")
+}
+
+model product_versions {
+  id             String    @id @default(cuid())
+  productId      String
+  versionNumber  Int
+  snapshot       Json
+  status         String    @default("PUBLISHED")
+  scheduledFor   DateTime?
+  publishedAt    DateTime?
+  createdBy      String?
+  createdAt      DateTime  @default(now())
+  product        products  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@map("product_versions")
+}
+
+model product_translations {
+  id               String    @id @default(cuid())
+  productId        String
+  locale           String
+  name             String
+  description      String?
+  shortDescription String?
+  seoTitle         String?
+  metaDescription  String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  product          products  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, locale])
+  @@map("product_translations")
+}
+
+model product_relationships {
+  id              String                  @id @default(cuid())
+  sourceProductId String
+  targetProductId String
+  type            ProductRelationshipType
+  position        Int                     @default(0)
+  createdAt       DateTime                @default(now())
+  sourceProduct   products                @relation("SourceProduct", fields: [sourceProductId], references: [id], onDelete: Cascade)
+  targetProduct   products                @relation("TargetProduct", fields: [targetProductId], references: [id], onDelete: Cascade)
+
+  @@index([sourceProductId])
+  @@index([targetProductId])
+  @@map("product_relationships")
+}
+
+model product_digital_assets {
+  id                 String    @id @default(cuid())
+  productId          String
+  fileKey            String
+  url                String
+  downloadLimit      Int?
+  expiryDays         Int?
+  requiresLicenseKey Boolean   @default(false)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  product            products  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@map("product_digital_assets")
+}
+
+model product_compliance {
+  id                 String    @id @default(cuid())
+  productId          String
+  certificationName  String
+  regulatoryCode     String?
+  countryRestriction String?
+  documentUrl        String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  product            products  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@map("product_compliance")
+}
+
+model product_categories {
+  id          String   @id @default(cuid())
+  tenantId    String?
+  parentId    String?
+  name        String
+  slug        String   @unique
+  description String?
+  icon        String?
+  position    Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  parent      product_categories?  @relation("CategoryParent", fields: [parentId], references: [id], onDelete: SetNull)
+  children    product_categories[] @relation("CategoryParent")
+  mappings    product_category_mappings[]
+
+  @@map("product_categories")
+}
+
+model product_category_mappings {
+  id         String             @id @default(cuid())
+  productId  String
+  categoryId String
+  isPrimary  Boolean            @default(false)
+  assignedAt DateTime           @default(now())
+  product    products           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  category   product_categories @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, categoryId])
+  @@map("product_category_mappings")
+}
+
+model product_attributes {
+  id        String   @id @default(cuid())
+  tenantId  String?
+  name      String
+  code      String   @unique
+  dataType  String   @default("STRING")
+  options   Json?
+  createdAt DateTime @default(now())
+  values    product_attribute_values[]
+
+  @@map("product_attributes")
+}
+
+model product_attribute_values {
+  id           String             @id @default(cuid())
+  productId    String
+  attributeId  String
+  valueString  String?
+  valueNumber  Float?
+  valueBoolean Boolean?
+  valueJson    Json?
+  createdAt    DateTime           @default(now())
+  product      products           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  attribute    product_attributes @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@map("product_attribute_values")
+}
+
+model product_options {
+  id        String   @id @default(cuid())
+  productId String
+  name      String
+  position  Int      @default(0)
+  values    Json
+  product   products @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@map("product_options")
+}
+
+model product_variants {
+  id                String             @id @default(cuid())
+  productId         String
+  sku               String
+  barcode           String?
+  name              String
+  optionCombination Json
+  priceAdjustment   Float              @default(0)
+  weight            Float?
+  isDefault         Boolean            @default(false)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  deletedAt         DateTime?
+  product           products           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  media             product_media[]
+  prices            product_prices[]
+
+  @@index([productId])
+  @@index([sku])
+  @@map("product_variants")
+}
+
+model product_bundles {
+  id                 String   @id @default(cuid())
+  parentProductId    String
+  componentProductId String
+  quantity           Float    @default(1)
+  discountPercentage Float    @default(0)
+  isOptional         Boolean  @default(false)
+  parentProduct      products @relation("ParentProduct", fields: [parentProductId], references: [id], onDelete: Cascade)
+  componentProduct   products @relation("ComponentProduct", fields: [componentProductId], references: [id], onDelete: Cascade)
+
+  @@index([parentProductId])
+  @@index([componentProductId])
+  @@map("product_bundles")
+}
+
+model product_media {
+  id        String           @id @default(cuid())
+  productId String
+  variantId String?
+  fileKey   String
+  fileName  String
+  mimeType  String
+  type      ProductMediaType @default(IMAGE)
+  url       String
+  isPrimary Boolean          @default(false)
+  position  Int              @default(0)
+  createdAt DateTime         @default(now())
+  deletedAt DateTime?
+  product   products         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant   product_variants? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+
+  @@index([productId])
+  @@map("product_media")
+}
+
+model product_prices {
+  id               String            @id @default(cuid())
+  productId        String
+  variantId        String?
+  priceType        PriceType         @default(BASE)
+  currency         String            @default("USD")
+  amount           Float
+  minQuantity      Int               @default(1)
+  targetCustomerId String?
+  targetBusinessId String?
+  regionCode       String?
+  channelCode      String?
+  startDate        DateTime?
+  endDate          DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  product          products          @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant          product_variants? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+
+  @@index([productId])
+  @@map("product_prices")
+}
+
+model product_uom {
+  id               String   @id @default(cuid())
+  tenantId         String?
+  name             String
+  code             String   @unique
+  symbol           String?
+  baseUnitId       String?
+  conversionFactor Float    @default(1)
+  createdAt        DateTime @default(now())
+
+  @@map("product_uom")
+}
+
+model product_suppliers {
+  id                 String     @id @default(cuid())
+  productId          String
+  supplierBusinessId String
+  supplierPartNumber String?
+  costPrice          Float?
+  moq                Int        @default(1)
+  leadTimeDays       Int?
+  isPrimary          Boolean    @default(false)
+  product            products   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  supplierBusiness   businesses @relation(fields: [supplierBusinessId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@map("product_suppliers")
+}
+
+model product_availability {
+  id            String   @id @default(cuid())
+  productId     String
+  channel       String
+  isAvailable   Boolean  @default(true)
+  allowPreorder Boolean  @default(false)
+  maxPerOrder   Int?
+  updatedAt     DateTime @updatedAt
+  product       products @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@map("product_availability")
+}
+
+model product_tags {
+  id        String                 @id @default(cuid())
+  tenantId  String?
+  name      String                 @unique
+  color     String?
+  createdAt DateTime               @default(now())
+  mappings  product_tag_mappings[]
+
+  @@map("product_tags")
+}
+
+model product_tag_mappings {
+  id        String       @id @default(cuid())
+  productId String
+  tagId     String
+  assignedAt DateTime    @default(now())
+  product   products     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  tag       product_tags @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, tagId])
+  @@map("product_tag_mappings")
+}
+
+model product_timeline {
+  id          String   @id @default(cuid())
+  productId   String
+  actorId     String?
+  eventType   String
+  description String
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  product     products @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@map("product_timeline")
+}
+
+enum TaxStrategy {
+  INCLUSIVE
+  EXCLUSIVE
+  EXEMPT
+  ZERO_RATED
+}
+
+enum PriceRuleType {
+  PERCENTAGE_DISCOUNT
+  FIXED_DISCOUNT
+  MARKUP
+  FIXED_PRICE
+  BUY_X_GET_Y
+}
+
+enum PriceBookStatus {
+  DRAFT
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum PricingWorkflowStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+  PUBLISHED
+}
+
+enum PricingStrategyType {
+  FIXED_PRICE
+  COST_PLUS
+  DYNAMIC
+  SUBSCRIPTION
+  USAGE_BASED
+  COMPETITIVE
+}
+
+enum CouponType {
+  PERCENTAGE
+  FIXED_AMOUNT
+  GIFT_CARD
+  VOUCHER
+}
+
+model price_books {
+  id             String                @id @default(cuid())
+  tenantId       String?
+  name           String
+  code           String                @unique
+  description    String?
+  isDefault      Boolean               @default(false)
+  status         PriceBookStatus       @default(ACTIVE)
+  workflowStatus PricingWorkflowStatus @default(PUBLISHED)
+  versionNumber  Int                   @default(1)
+  strategyType   PricingStrategyType   @default(FIXED_PRICE)
+  metadata       Json?
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  deletedAt      DateTime?
+
+  tenant         Tenant?               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  versions       price_book_versions[]
+  priceLists     price_lists[]
+  auditSnapshots price_audit_snapshots[]
+
+  @@index([tenantId])
+  @@index([code])
+  @@index([status])
+  @@index([workflowStatus])
+  @@map("price_books")
+}
+
+model price_book_versions {
+  id            String      @id @default(cuid())
+  priceBookId   String
+  versionNumber Int
+  snapshot      Json
+  status        String      @default("PUBLISHED")
+  scheduledFor  DateTime?
+  createdBy     String?
+  createdAt     DateTime    @default(now())
+  priceBook     price_books @relation(fields: [priceBookId], references: [id], onDelete: Cascade)
+
+  @@index([priceBookId])
+  @@map("price_book_versions")
+}
+
+model price_audit_snapshots {
+  id          String       @id @default(cuid())
+  priceBookId String?
+  productId   String?
+  actorId     String?
+  actionType  String
+  beforeState Json
+  afterState  Json
+  createdAt   DateTime     @default(now())
+  priceBook   price_books? @relation(fields: [priceBookId], references: [id], onDelete: SetNull)
+
+  @@index([priceBookId])
+  @@index([productId])
+  @@map("price_audit_snapshots")
+}
+
+model pricing_calendars {
+  id            String   @id @default(cuid())
+  tenantId      String?
+  name          String
+  timezone      String   @default("UTC")
+  blackoutDates Json?
+  businessHours Json?
+  createdAt     DateTime @default(now())
+
+  @@map("pricing_calendars")
+}
+
+model coupons {
+  id            String     @id @default(cuid())
+  tenantId      String?
+  code          String     @unique
+  name          String
+  type          CouponType @default(PERCENTAGE)
+  value         Float
+  minSpend      Float?
+  usageLimit    Int?
+  usedCount     Int        @default(0)
+  startDate     DateTime?
+  endDate       DateTime?
+  createdAt     DateTime   @default(now())
+  deletedAt     DateTime?
+
+  @@index([tenantId])
+  @@index([code])
+  @@map("coupons")
+}
+
+model price_lists {
+  id          String      @id @default(cuid())
+  priceBookId String
+  currency    String      @default("USD")
+  name        String
+  startDate   DateTime?
+  endDate     DateTime?
+  taxStrategy TaxStrategy @default(EXCLUSIVE)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  deletedAt   DateTime?
+  priceBook   price_books @relation(fields: [priceBookId], references: [id], onDelete: Cascade)
+  tierPrices  tier_prices[]
+
+  @@index([priceBookId])
+  @@map("price_lists")
+}
+
+model price_rules {
+  id                String        @id @default(cuid())
+  tenantId          String?
+  name              String
+  ruleType          PriceRuleType
+  value             Float
+  minQuantity       Int           @default(1)
+  priority          Int           @default(0)
+  isStackable       Boolean       @default(false)
+  formulaExpression String?
+  conditions        Json?
+  startDate         DateTime?
+  endDate           DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  deletedAt         DateTime?
+
+  @@index([tenantId])
+  @@index([priority])
+  @@map("price_rules")
+}
+
+model currencies {
+  id        String   @id @default(cuid())
+  tenantId  String?
+  code      String   @unique
+  name      String
+  symbol    String
+  precision Int      @default(2)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@map("currencies")
+}
+
+model exchange_rates {
+  id             String   @id @default(cuid())
+  baseCurrency   String
+  targetCurrency String
+  rate           Float
+  effectiveAt    DateTime @default(now())
+  source         String?
+  createdAt      DateTime @default(now())
+
+  @@index([baseCurrency, targetCurrency])
+  @@map("exchange_rates")
+}
+
+model customer_prices {
+  id          String    @id @default(cuid())
+  customerId  String
+  productId   String
+  variantId   String?
+  priceBookId String?
+  customPrice Float
+  currency    String    @default("USD")
+  startDate   DateTime?
+  endDate     DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([customerId])
+  @@index([productId])
+  @@map("customer_prices")
+}
+
+model business_prices {
+  id            String    @id @default(cuid())
+  businessId    String
+  productId     String
+  variantId     String?
+  priceBookId   String?
+  contractPrice Float
+  currency      String    @default("USD")
+  startDate     DateTime?
+  endDate       DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@index([businessId])
+  @@index([productId])
+  @@map("business_prices")
+}
+
+model channel_prices {
+  id          String   @id @default(cuid())
+  channelCode String
+  productId   String
+  variantId   String?
+  priceBookId String?
+  price       Float
+  currency    String   @default("USD")
+  createdAt   DateTime @default(now())
+
+  @@index([channelCode])
+  @@index([productId])
+  @@map("channel_prices")
+}
+
+model regional_prices {
+  id          String   @id @default(cuid())
+  regionCode  String
+  productId   String
+  variantId   String?
+  priceBookId String?
+  price       Float
+  currency    String   @default("USD")
+  createdAt   DateTime @default(now())
+
+  @@index([regionCode])
+  @@index([productId])
+  @@map("regional_prices")
+}
+
+model tier_prices {
+  id          String       @id @default(cuid())
+  priceListId String?
+  productId   String
+  variantId   String?
+  minQuantity Int
+  maxQuantity Int?
+  price       Float
+  currency    String       @default("USD")
+  createdAt   DateTime     @default(now())
+  priceList   price_lists? @relation(fields: [priceListId], references: [id], onDelete: SetNull)
+
+  @@index([productId])
+  @@map("tier_prices")
+}
+
+model promotions {
+  id            String        @id @default(cuid())
+  tenantId      String?
+  name          String
+  code          String        @unique
+  discountType  PriceRuleType @default(PERCENTAGE_DISCOUNT)
+  discountValue Float
+  usageLimit    Int?
+  usedCount     Int           @default(0)
+  startDate     DateTime
+  endDate       DateTime
+  status        String        @default("ACTIVE")
+  createdAt     DateTime      @default(now())
+  deletedAt     DateTime?
+
+  @@index([tenantId])
+  @@index([code])
+  @@map("promotions")
+}
+
+model discount_policies {
+  id                      String   @id @default(cuid())
+  tenantId                String?
+  name                    String
+  maxDiscountPercentage   Float
+  allowStacking           Boolean  @default(false)
+  createdAt               DateTime @default(now())
+
+  @@map("discount_policies")
+}
+
+model pricing_timeline {
+  id          String   @id @default(cuid())
+  productId   String?
+  priceBookId String?
+  actorId     String?
+  eventType   String
+  description String
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  @@index([productId])
+  @@index([priceBookId])
+  @@map("pricing_timeline")
+}
+
+enum WarehouseType {
+  MAIN_WAREHOUSE
+  RETAIL_STORE
+  RESTAURANT_KITCHEN
+  FULFILLMENT_CENTER
+  COLD_STORAGE
+  MOBILE_VAN
+  VIRTUAL
+}
+
+enum ValuationMethod {
+  FIFO
+  LIFO
+  AVCO
+  STANDARD_COST
+}
+
+enum StockMovementType {
+  RECEIPT
+  ISSUE
+  TRANSFER_IN
+  TRANSFER_OUT
+  RESERVATION
+  RELEASE
+  ADJUSTMENT_ADD
+  ADJUSTMENT_SUBTRACT
+  SCRAP
+}
+
+enum MovementWorkflowStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+  POSTED
+}
+
+enum StockStatus {
+  AVAILABLE
+  RESERVED
+  QUARANTINED
+  DAMAGED
+  RETURNED
+  IN_TRANSIT
+  ON_HOLD
+  BLOCKED
+}
+
+enum SerialStatus {
+  IN_STOCK
+  RESERVED
+  SOLD
+  RETURNED
+  DAMAGED
+}
+
+model inventory_master_items {
+  id                     String            @id @default(cuid())
+  tenantId               String?
+  productId              String
+  variantId              String?
+  sku                    String            @unique
+  name                   String
+  valuationMethod        ValuationMethod   @default(AVCO)
+  purchaseUomId          String?
+  storageUomId           String?
+  salesUomId             String?
+  reportingUomId         String?
+  purchaseToStorageFactor Float            @default(1)
+  salesToStorageFactor    Float            @default(1)
+  trackSerials           Boolean           @default(false)
+  trackBatches           Boolean           @default(false)
+  trackExpiry            Boolean           @default(false)
+  reorderPoint           Int               @default(10)
+  reorderQuantity        Int               @default(50)
+  safetyStock            Int               @default(5)
+  metadata               Json?
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+  deletedAt              DateTime?
+
+  tenant                 Tenant?           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  stockLevels            stock_levels[]
+  stockMovements         stock_movements[]
+  stockReservations      stock_reservations[]
+  batches                inventory_batches[]
+  serials                inventory_serials[]
+  inspections            quality_inspections[]
+  forecasts              inventory_forecasts[]
+
+  @@index([tenantId])
+  @@index([productId])
+  @@index([sku])
+  @@map("inventory_master_items")
+}
+
+model warehouses {
+  id             String            @id @default(cuid())
+  tenantId       String?
+  businessId     String?
+  code           String            @unique
+  name           String
+  type           WarehouseType     @default(MAIN_WAREHOUSE)
+  region         String?
+  zone           String?
+  campus         String?
+  building       String?
+  floor          String?
+  room           String?
+  address        String?
+  city           String?
+  country        String?
+  isActive       Boolean           @default(true)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  deletedAt      DateTime?
+
+  tenant         Tenant?           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  business       businesses?       @relation(fields: [businessId], references: [id], onDelete: SetNull)
+  storageLocations storage_locations[]
+  stockLevels    stock_levels[]
+  stockMovements stock_movements[]
+  stockReservations stock_reservations[]
+  sourceTransfers stock_transfers[] @relation("SourceWarehouse")
+  targetTransfers stock_transfers[] @relation("TargetWarehouse")
+  cycleCounts    cycle_counts[]
+
+  @@index([tenantId])
+  @@index([businessId])
+  @@index([code])
+  @@map("warehouses")
+}
+
+model inventory_versions {
+  id              String   @id @default(cuid())
+  inventoryItemId String?
+  warehouseId     String?
+  versionNumber   Int
+  snapshot        Json
+  status          String   @default("PUBLISHED")
+  createdBy       String?
+  createdAt       DateTime @default(now())
+
+  @@index([inventoryItemId])
+  @@index([warehouseId])
+  @@map("inventory_versions")
+}
+
+model inventory_snapshots {
+  id              String   @id @default(cuid())
+  warehouseId     String?
+  inventoryItemId String?
+  snapshotDate    DateTime @default(now())
+  totalQuantity   Float
+  totalValuation  Float
+  snapshotData    Json
+  createdAt       DateTime @default(now())
+
+  @@index([warehouseId])
+  @@index([inventoryItemId])
+  @@map("inventory_snapshots")
+}
+
+model quality_inspections {
+  id              String                 @id @default(cuid())
+  tenantId        String?
+  inventoryItemId String
+  batchId         String?
+  inspectionType  String                 @default("INCOMING")
+  status          String                 @default("PASSED")
+  notes           String?
+  inspectedBy     String?
+  createdAt       DateTime               @default(now())
+  inventoryItem   inventory_master_items @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+
+  @@index([inventoryItemId])
+  @@map("quality_inspections")
+}
+
+model inventory_forecasts {
+  id                      String                 @id @default(cuid())
+  inventoryItemId         String
+  forecastPeriod          String
+  predictedDemand        Float
+  recommendedSafetyStock Float
+  suggestedReorderQty     Float
+  createdAt               DateTime               @default(now())
+  inventoryItem           inventory_master_items @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+
+  @@index([inventoryItemId])
+  @@map("inventory_forecasts")
+}
+
+model storage_locations {
+  id            String            @id @default(cuid())
+  warehouseId   String
+  code          String            @unique
+  name          String
+  aisle         String?
+  rack          String?
+  shelf         String?
+  bin           String?
+  isColdStorage Boolean           @default(false)
+  createdAt     DateTime          @default(now())
+  warehouse     warehouses        @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  stockLevels   stock_levels[]
+  stockMovements stock_movements[]
+
+  @@index([warehouseId])
+  @@map("storage_locations")
+}
+
+model stock_levels {
+  id                String                 @id @default(cuid())
+  inventoryItemId   String
+  warehouseId       String
+  locationId        String?
+  status            StockStatus            @default(AVAILABLE)
+  quantityOnHand    Float                  @default(0)
+  quantityAvailable Float                  @default(0)
+  quantityReserved  Float                  @default(0)
+  quantityInTransit Float                  @default(0)
+  quantityDamaged   Float                  @default(0)
+  updatedAt         DateTime               @updatedAt
+  inventoryItem     inventory_master_items @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+  warehouse         warehouses             @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  location          storage_locations?     @relation(fields: [locationId], references: [id], onDelete: SetNull)
+
+  @@unique([inventoryItemId, warehouseId, locationId, status])
+  @@map("stock_levels")
+}
+
+model stock_movements {
+  id              String                 @id @default(cuid())
+  tenantId        String?
+  inventoryItemId String
+  warehouseId     String
+  locationId      String?
+  type            StockMovementType
+  workflowStatus  MovementWorkflowStatus @default(POSTED)
+  quantity        Float
+  unitCost        Float
+  totalCost       Float
+  referenceNumber String?
+  actorId         String?
+  notes           String?
+  createdAt       DateTime               @default(now())
+  inventoryItem   inventory_master_items @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+  warehouse       warehouses             @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  location        storage_locations?     @relation(fields: [locationId], references: [id], onDelete: SetNull)
+
+  @@index([inventoryItemId])
+  @@index([warehouseId])
+  @@map("stock_movements")
+}
+
+model stock_reservations {
+  id              String                 @id @default(cuid())
+  inventoryItemId String
+  warehouseId     String
+  quantity        Float
+  reservedForType String
+  reservedForId   String
+  expiresAt       DateTime?
+  isReleased      Boolean                @default(false)
+  createdAt       DateTime               @default(now())
+  inventoryItem   inventory_master_items @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+  warehouse       warehouses             @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+
+  @@index([inventoryItemId])
+  @@index([warehouseId])
+  @@map("stock_reservations")
+}
+
+model inventory_batches {
+  id              String                 @id @default(cuid())
+  inventoryItemId String
+  batchNumber     String
+  supplierBatchNo String?
+  manufacturedAt  DateTime?
+  expiresAt       DateTime?
+  quantityOnHand  Float                  @default(0)
+  createdAt       DateTime               @default(now())
+  inventoryItem   inventory_master_items @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+
+  @@index([inventoryItemId])
+  @@index([batchNumber])
+  @@map("inventory_batches")
+}
+
+model inventory_serials {
+  id              String                 @id @default(cuid())
+  inventoryItemId String
+  serialNumber    String                 @unique
+  status          SerialStatus           @default(IN_STOCK)
+  warehouseId     String?
+  locationId      String?
+  createdAt       DateTime               @default(now())
+  inventoryItem   inventory_master_items @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+
+  @@index([inventoryItemId])
+  @@index([serialNumber])
+  @@map("inventory_serials")
+}
+
+model stock_transfers {
+  id                String     @id @default(cuid())
+  tenantId          String?
+  transferNumber    String     @unique
+  sourceWarehouseId String
+  targetWarehouseId String
+  status            String     @default("PENDING")
+  shippedAt         DateTime?
+  receivedAt        DateTime?
+  createdAt         DateTime   @default(now())
+  sourceWarehouse   warehouses @relation("SourceWarehouse", fields: [sourceWarehouseId], references: [id], onDelete: Cascade)
+  targetWarehouse   warehouses @relation("TargetWarehouse", fields: [targetWarehouseId], references: [id], onDelete: Cascade)
+
+  @@index([sourceWarehouseId])
+  @@index([targetWarehouseId])
+  @@map("stock_transfers")
+}
+
+model cycle_counts {
+  id          String     @id @default(cuid())
+  tenantId    String?
+  warehouseId String
+  countNumber String     @unique
+  status      String     @default("IN_PROGRESS")
+  startedAt   DateTime   @default(now())
+  completedAt DateTime?
+  createdAt   DateTime   @default(now())
+  warehouse   warehouses @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+
+  @@index([warehouseId])
+  @@map("cycle_counts")
+}
+
+model inventory_timeline {
+  id              String   @id @default(cuid())
+  inventoryItemId String?
+  warehouseId     String?
+  actorId         String?
+  eventType       String
+  description     String
+  metadata        Json?
+  createdAt       DateTime @default(now())
+
+  @@index([inventoryItemId])
+  @@index([warehouseId])
+  @@map("inventory_timeline")
+}
+
+enum OrderType {
+  SALES_ORDER
+  PURCHASE_ORDER
+  SERVICE_ORDER
+  RENTAL_ORDER
+  SUBSCRIPTION_ORDER
+  WORK_ORDER
+  RESERVATION_ORDER
+}
+
+enum UniversalOrderStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  CONFIRMED
+  PROCESSING
+  FULFILLED
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+enum FulfillmentType {
+  PICKUP
+  DELIVERY
+  DINE_IN
+  SHIPMENT
+  DIGITAL_DOWNLOAD
+  SERVICE_DISPATCH
+}
+
+enum FulfillmentStatus {
+  UNFULFILLED
+  PARTIALLY_FULFILLED
+  FULFILLED
+  RETURNED
+}
+
+model transactions_registry {
+  id                String            @id @default(cuid())
+  tenantId          String?
+  orderId           String?
+  businessId        String?
+  customerId        String?
+  transactionNumber String            @unique
+  transactionType   String            @default("ORDER")
+  amount            Float
+  currency          String            @default("USD")
+  status            String            @default("COMPLETED")
+  paymentMethod     String?
+  referenceNumber   String?
+  metadata          Json?
+  createdAt         DateTime          @default(now())
+
+  tenant            Tenant?           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  business          businesses?       @relation(fields: [businessId], references: [id], onDelete: SetNull)
+  customer          customers?        @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  order             universal_orders? @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([orderId])
+  @@index([transactionNumber])
+  @@map("transactions_registry")
+}
+
+model universal_orders {
+  id                     String                        @id @default(cuid())
+  tenantId               String?
+  businessId             String?
+  customerId             String?
+  orderNumber            String                        @unique
+  type                   OrderType                     @default(SALES_ORDER)
+  status                 UniversalOrderStatus          @default(DRAFT)
+  channelCode            String                        @default("WEB")
+  currency               String                        @default("USD")
+  subtotal               Float                         @default(0)
+  discountTotal          Float                         @default(0)
+  taxTotal               Float                         @default(0)
+  grandTotal             Float                         @default(0)
+  fulfillmentType        FulfillmentType               @default(DELIVERY)
+  fulfillmentStatus      FulfillmentStatus             @default(UNFULFILLED)
+  fulfillmentWarehouseId String?
+  metadata               Json?
+  createdAt              DateTime                      @default(now())
+  updatedAt              DateTime                      @updatedAt
+  deletedAt              DateTime?
+
+  tenant                 Tenant?                       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  business               businesses?                   @relation(fields: [businessId], references: [id], onDelete: SetNull)
+  customer               customers?                    @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  items                  universal_order_items[]
+  transactions           transactions_registry[]
+  snapshots              order_calculation_snapshots[]
+  versions               order_versions[]
+  returns                return_authorizations[]
+  refunds                refund_requests[]
+  shipments              order_shipments[]
+  slas                   order_slas[]
+  notes                  order_notes[]
+  tags                   order_tags[]
+  paymentTransactions    payment_transactions[]
+  paymentIntents         payment_intents[]
+  restKitchenTicket      rest_kitchen_tickets?
+
+  @@index([tenantId])
+  @@index([businessId])
+  @@index([customerId])
+  @@index([orderNumber])
+  @@map("universal_orders")
+}
+
+model universal_order_items {
+  id                String                @id @default(cuid())
+  orderId           String
+  productId         String
+  variantId         String?
+  inventoryItemId   String?
+  sku               String
+  name              String
+  quantity          Float
+  fulfilledQuantity Float                 @default(0)
+  unitPrice         Float
+  discountAmount    Float                 @default(0)
+  taxAmount         Float                 @default(0)
+  totalPrice        Float
+  metadata          Json?
+  createdAt         DateTime              @default(now())
+  order             universal_orders      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  returnedGoods     returned_goods[]
+
+  @@index([orderId])
+  @@index([productId])
+  @@map("universal_order_items")
+}
+
+model order_calculation_snapshots {
+  id                String           @id @default(cuid())
+  orderId           String
+  subtotal          Float
+  discountTotal     Float
+  taxTotal          Float
+  grandTotal        Float
+  currency          String
+  exchangeRate      Float            @default(1.0)
+  breakdownSnapshot Json
+  createdAt         DateTime         @default(now())
+  order             universal_orders @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@map("order_calculation_snapshots")
+}
+
+model order_versions {
+  id            String           @id @default(cuid())
+  orderId       String
+  versionNumber Int
+  snapshot      Json
+  status        String           @default("PUBLISHED")
+  createdBy     String?
+  createdAt     DateTime         @default(now())
+  order         universal_orders @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@map("order_versions")
+}
+
+model return_authorizations {
+  id            String           @id @default(cuid())
+  tenantId      String?
+  orderId       String
+  rmaNumber     String           @unique
+  reasonCode    String
+  status        String           @default("PENDING")
+  notes         String?
+  createdAt     DateTime         @default(now())
+  order         universal_orders @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  returnedGoods returned_goods[]
+  refunds       refund_requests[]
+
+  @@index([orderId])
+  @@map("return_authorizations")
+}
+
+model returned_goods {
+  id               String                @id @default(cuid())
+  returnAuthId     String
+  orderItemId      String
+  quantityReturned Float
+  condition        String                @default("GOOD")
+  restocked        Boolean               @default(false)
+  createdAt        DateTime              @default(now())
+  returnAuth       return_authorizations @relation(fields: [returnAuthId], references: [id], onDelete: Cascade)
+  orderItem        universal_order_items @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+
+  @@index([returnAuthId])
+  @@index([orderItemId])
+  @@map("returned_goods")
+}
+
+model refund_requests {
+  id           String                 @id @default(cuid())
+  returnAuthId String?
+  orderId      String
+  refundAmount Float
+  status       String                 @default("PENDING")
+  notes        String?
+  createdAt    DateTime               @default(now())
+  returnAuth   return_authorizations? @relation(fields: [returnAuthId], references: [id], onDelete: SetNull)
+  order        universal_orders       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@map("refund_requests")
+}
+
+model replacement_orders {
+  id                 String   @id @default(cuid())
+  originalOrderId    String
+  replacementOrderId String
+  createdAt          DateTime @default(now())
+
+  @@index([originalOrderId])
+  @@map("replacement_orders")
+}
+
+model order_shipments {
+  id             String                   @id @default(cuid())
+  orderId        String
+  shipmentNumber String                   @unique
+  carrierId      String?
+  carrierCode    String?
+  status         String                   @default("SHIPPED")
+  shippedAt      DateTime?
+  deliveredAt    DateTime?
+  createdAt      DateTime                 @default(now())
+  order          universal_orders         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  packages       order_packages[]
+  trackingEvents order_tracking[]
+  attempts       order_delivery_attempts[]
+
+  @@index([orderId])
+  @@map("order_shipments")
+}
+
+model order_packages {
+  id            String          @id @default(cuid())
+  shipmentId    String
+  packageNumber String
+  weightKg      Float?
+  dimensionsCm  String?
+  createdAt     DateTime        @default(now())
+  shipment      order_shipments @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+
+  @@index([shipmentId])
+  @@map("order_packages")
+}
+
+model order_tracking {
+  id          String          @id @default(cuid())
+  shipmentId  String
+  status      String
+  location    String?
+  eventTime   DateTime        @default(now())
+  description String?
+  createdAt   DateTime        @default(now())
+  shipment    order_shipments @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+
+  @@index([shipmentId])
+  @@map("order_tracking")
+}
+
+model order_delivery_attempts {
+  id            String          @id @default(cuid())
+  shipmentId    String
+  attemptNumber Int
+  status        String
+  attemptedAt   DateTime        @default(now())
+  notes         String?
+  createdAt     DateTime        @default(now())
+  shipment      order_shipments @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+
+  @@index([shipmentId])
+  @@map("order_delivery_attempts")
+}
+
+model order_slas {
+  id                 String           @id @default(cuid())
+  orderId            String
+  dueDate            DateTime?
+  targetCompletionAt DateTime?
+  priority           String           @default("NORMAL")
+  isEscalated        Boolean          @default(false)
+  createdAt          DateTime         @default(now())
+  order              universal_orders @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@map("order_slas")
+}
+
+model smart_routing_rules {
+  id                 String   @id @default(cuid())
+  tenantId           String?
+  ruleName           String
+  priority           Int      @default(1)
+  criteria           Json
+  targetWarehouseId  String?
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+
+  @@index([tenantId])
+  @@map("smart_routing_rules")
+}
+
+model order_notes {
+  id               String           @id @default(cuid())
+  orderId          String
+  authorId         String?
+  isCustomerFacing Boolean          @default(false)
+  noteText         String
+  createdAt        DateTime         @default(now())
+  order            universal_orders @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@map("order_notes")
+}
+
+model order_tags {
+  id        String           @id @default(cuid())
+  orderId   String
+  tag       String
+  createdAt DateTime         @default(now())
+  order     universal_orders @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([tag])
+  @@map("order_tags")
+}
+
+model order_timeline {
+  id            String   @id @default(cuid())
+  orderId       String?
+  transactionId String?
+  actorId       String?
+  eventType     String
+  description   String
+  metadata      Json?
+  createdAt     DateTime @default(now())
+
+  @@index([orderId])
+  @@index([transactionId])
+  @@map("order_timeline")
+}
+
+model payment_intents {
+  id             String   @id @default(cuid())
+  tenantId       String?
+  orderId        String?
+  intentNumber    String   @unique
+  amount         Float
+  currency       String   @default("USD")
+  status         String   @default("PENDING")
+  idempotencyKey String?
+  retryCount     Int      @default(0)
+  expiresAt      DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tenant         Tenant?           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  order          universal_orders? @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([orderId])
+  @@map("payment_intents")
+}
+
+model payment_tokens {
+  id          String    @id @default(cuid())
+  customerId  String
+  token       String    @unique
+  cardBrand   String?
+  lastFour    String?
+  expiryMonth Int?
+  expiryYear  Int?
+  expiresAt   DateTime?
+  rotatedAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  customer    customers @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@map("payment_tokens")
+}
+
+model billing_schedules {
+  id            String   @id @default(cuid())
+  tenantId      String?
+  customerId    String
+  amount        Float
+  currency      String   @default("USD")
+  frequency     String   @default("MONTHLY")
+  nextBillingAt DateTime
+  status        String   @default("ACTIVE")
+  createdAt     DateTime @default(now())
+
+  customer      customers @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([customerId])
+  @@map("billing_schedules")
+}
+
+model payment_disputes {
+  id                   String               @id @default(cuid())
+  paymentTransactionId String
+  disputeNumber        String               @unique
+  reason               String
+  amount               Float
+  status               String               @default("OPEN")
+  evidenceUrls         String[]
+  arbitrationResult    String?
+  createdAt            DateTime             @default(now())
+  transaction          payment_transactions @relation(fields: [paymentTransactionId], references: [id], onDelete: Cascade)
+
+  @@index([paymentTransactionId])
+  @@map("payment_disputes")
+}
+
+model provider_health_metrics {
+  id                 String   @id @default(cuid())
+  providerCode       String   @unique
+  availabilityPercent Float
+  latencyMs          Float
+  failureRatePercent Float
+  successRatePercent Float
+  updatedAt          DateTime @updatedAt
+
+  @@map("provider_health_metrics")
+}
+
+enum PaymentMethodType {
+  CREDIT_CARD
+  DEBIT_CARD
+  CASH
+  BANK_TRANSFER
+  DIGITAL_WALLET
+  GIFT_CARD
+  STORE_CREDIT
+  INSTALLMENT
+  BUY_NOW_PAY_LATER
+}
+
+enum PaymentTransactionStatus {
+  PENDING
+  AUTHORIZED
+  CAPTURED
+  FAILED
+  CANCELLED
+  VOIDED
+  PARTIALLY_REFUNDED
+  REFUNDED
+}
+
+enum SettlementStatus {
+  UNSETTLED
+  SETTLEMENT_PENDING
+  SETTLED
+  DISPUTED
+}
+
+model payment_transactions {
+  id               String                   @id @default(cuid())
+  tenantId         String?
+  orderId          String?
+  businessId       String?
+  customerId       String?
+  paymentNumber    String                   @unique
+  methodType       PaymentMethodType        @default(CREDIT_CARD)
+  providerId       String?
+  gatewayName      String?
+  status           PaymentTransactionStatus @default(PENDING)
+  currency         String                   @default("USD")
+  amount           Float
+  authorizedAmount Float                    @default(0)
+  capturedAmount   Float                    @default(0)
+  refundedAmount   Float                    @default(0)
+  feeAmount        Float                    @default(0)
+  gatewayRef       String?
+  authCode         String?
+  metadata         Json?
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
+  deletedAt        DateTime?
+
+  tenant           Tenant?                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  business         businesses?              @relation(fields: [businessId], references: [id], onDelete: SetNull)
+  customer         customers?               @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  order            universal_orders?        @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  refunds          payment_refunds[]
+  splits           payment_splits[]
+  disputes         payment_disputes[]
+  fraudChecks      fraud_checks[]
+
+  @@index([tenantId])
+  @@index([orderId])
+  @@index([paymentNumber])
+  @@map("payment_transactions")
+}
+
+model payment_providers {
+  id                   String   @id @default(cuid())
+  tenantId             String?
+  providerName         String
+  providerCode         String   @unique
+  credentialsEncrypted Json
+  isActive             Boolean  @default(true)
+  createdAt            DateTime @default(now())
+
+  @@index([tenantId])
+  @@map("payment_providers")
+}
+
+model payment_settlements {
+  id                   String           @id @default(cuid())
+  tenantId             String?
+  businessId           String?
+  settlementBatchNumber String          @unique
+  grossAmount          Float
+  feeAmount            Float
+  netAmount            Float
+  currency             String           @default("USD")
+  status               SettlementStatus @default(UNSETTLED)
+  settledAt            DateTime?
+  createdAt            DateTime         @default(now())
+
+  tenant               Tenant?          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  business             businesses?      @relation(fields: [businessId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([businessId])
+  @@map("payment_settlements")
+}
+
+model payment_refunds {
+  id                   String               @id @default(cuid())
+  paymentTransactionId String
+  refundNumber         String               @unique
+  amount               Float
+  reasonCode           String
+  status               String               @default("COMPLETED")
+  gatewayRefundRef     String?
+  notes                String?
+  createdAt            DateTime             @default(now())
+  transaction          payment_transactions @relation(fields: [paymentTransactionId], references: [id], onDelete: Cascade)
+
+  @@index([paymentTransactionId])
+  @@map("payment_refunds")
+}
+
+model customer_wallets {
+  id         String          @id @default(cuid())
+  customerId String
+  currency   String          @default("USD")
+  balance    Float           @default(0)
+  isActive   Boolean         @default(true)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  customer   customers       @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  ledger     wallet_ledger[]
+
+  @@unique([customerId, currency])
+  @@map("customer_wallets")
+}
+
+model wallet_ledger {
+  id            String           @id @default(cuid())
+  walletId      String
+  type          String
+  amount        Float
+  balanceAfter  Float
+  referenceType String?
+  referenceId   String?
+  createdAt     DateTime         @default(now())
+  wallet        customer_wallets @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@index([walletId])
+  @@map("wallet_ledger")
+}
+
+model gift_cards {
+  id             String    @id @default(cuid())
+  tenantId       String?
+  cardNumber     String    @unique
+  pinEncrypted   String?
+  initialBalance Float
+  currentBalance Float
+  currency       String    @default("USD")
+  expiresAt      DateTime?
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+
+  tenant         Tenant?   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([cardNumber])
+  @@map("gift_cards")
+}
+
+model payment_splits {
+  id                   String               @id @default(cuid())
+  paymentTransactionId String
+  tenderType           String
+  amount               Float
+  referenceId          String?
+  createdAt            DateTime             @default(now())
+  transaction          payment_transactions @relation(fields: [paymentTransactionId], references: [id], onDelete: Cascade)
+
+  @@index([paymentTransactionId])
+  @@map("payment_splits")
+}
+
+model payment_reconciliations {
+  id                 String   @id @default(cuid())
+  tenantId           String?
+  providerCode       String
+  reconciliationDate DateTime @default(now())
+  matchedCount       Int
+  discrepancyCount   Int
+  reportData         Json?
+  createdAt          DateTime @default(now())
+
+  tenant             Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("payment_reconciliations")
+}
+
+model payment_timeline {
+  id                   String   @id @default(cuid())
+  paymentTransactionId String?
+  actorId              String?
+  eventType            String
+  description          String
+  metadata             Json?
+  createdAt            DateTime @default(now())
+
+  @@index([paymentTransactionId])
+  @@map("payment_timeline")
+}
+
+model fraud_checks {
+  id                   String               @id @default(cuid())
+  paymentTransactionId String
+  fraudScore           Float                @default(0)
+  recommendation       String               @default("APPROVE")
+  riskFlags            Json?
+  createdAt            DateTime             @default(now())
+  transaction          payment_transactions @relation(fields: [paymentTransactionId], references: [id], onDelete: Cascade)
+
+  @@index([paymentTransactionId])
+  @@map("fraud_checks")
+}
+
+model workflow_definitions {
+  id             String   @id @default(cuid())
+  tenantId       String?
+  name           String
+  code           String   @unique
+  description    String?
+  version        Int      @default(1)
+  status         String   @default("DRAFT")
+  definitionJson Json
+  canvasMetadata Json?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  tenant         Tenant?              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  instances      workflow_instances[]
+
+  @@index([tenantId])
+  @@map("workflow_definitions")
+}
+
+model workflow_instances {
+  id                   String               @id @default(cuid())
+  tenantId             String?
+  workflowDefinitionId String
+  code                 String               @unique
+  status               String               @default("RUNNING")
+  variables            Json?
+  currentStep          String?
+  startedAt            DateTime             @default(now())
+  completedAt          DateTime?
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+
+  tenant               Tenant?              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  definition           workflow_definitions @relation(fields: [workflowDefinitionId], references: [id], onDelete: Cascade)
+  approvals            workflow_approvals[]
+  tasks                workflow_tasks[]
+  timeline             workflow_timeline[]
+
+  @@index([tenantId])
+  @@index([workflowDefinitionId])
+  @@map("workflow_instances")
+}
+
+model workflow_approvals {
+  id                 String              @id @default(cuid())
+  tenantId           String?
+  workflowInstanceId String?
+  referenceType      String?
+  referenceId        String?
+  stepName           String
+  assignedRoleId     String?
+  assignedUserId     String?
+  status             String              @default("PENDING")
+  comments           String?
+  signedAt           DateTime?
+  createdAt          DateTime            @default(now())
+
+  tenant             Tenant?             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  instance           workflow_instances? @relation(fields: [workflowInstanceId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([workflowInstanceId])
+  @@map("workflow_approvals")
+}
+
+model workflow_tasks {
+  id                 String              @id @default(cuid())
+  tenantId           String?
+  workflowInstanceId String?
+  title              String
+  description        String?
+  status             String              @default("PENDING")
+  assignedTo         String?
+  delegatedTo        String?
+  formId             String?
+  dueDate            DateTime?
+  createdAt          DateTime            @default(now())
+
+  tenant             Tenant?             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  instance           workflow_instances? @relation(fields: [workflowInstanceId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([workflowInstanceId])
+  @@map("workflow_tasks")
+}
+
+model workflow_slas {
+  id                 String    @id @default(cuid())
+  tenantId           String?
+  referenceType      String
+  referenceId        String
+  dueDate            DateTime
+  targetCompletionAt DateTime
+  isEscalated        Boolean   @default(false)
+  escalatedAt        DateTime?
+  createdAt          DateTime  @default(now())
+
+  tenant             Tenant?   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("workflow_slas")
+}
+
+model workflow_webhooks {
+  id           String   @id @default(cuid())
+  tenantId     String?
+  name         String
+  url          String
+  eventPattern String
+  signingKey   String
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  tenant       Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("workflow_webhooks")
+}
+
+model workflow_timeline {
+  id         String              @id @default(cuid())
+  instanceId String?
+  actorId    String?
+  eventType  String
+  description String
+  metadata   Json?
+  createdAt  DateTime            @default(now())
+  instance   workflow_instances? @relation(fields: [instanceId], references: [id], onDelete: SetNull)
+
+  @@index([instanceId])
+  @@map("workflow_timeline")
+}
+
+model crm_leads {
+  id             String               @id @default(cuid())
+  tenantId       String?
+  businessId     String?
+  customerId     String?
+  leadNumber     String               @unique
+  sourceString   String?
+  status         String               @default("NEW")
+  notesString    String?
+  score          Float                @default(0)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  deletedAt      DateTime?
+
+  tenant         Tenant?              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  business       businesses?          @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customer       customers?           @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  opportunities  crm_opportunities[]
+
+  @@index([tenantId])
+  @@index([businessId])
+  @@index([customerId])
+  @@map("crm_leads")
+}
+
+model crm_opportunities {
+  id             String             @id @default(cuid())
+  tenantId       String?
+  leadId         String?
+  customerId     String?
+  title          String
+  stage          String             @default("PROSPECTING")
+  estimatedValue Float              @default(0)
+  probability    Float              @default(0)
+  closedAt       DateTime?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  tenant         Tenant?            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  lead           crm_leads?         @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  customer       customers?         @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([leadId])
+  @@index([customerId])
+  @@map("crm_opportunities")
+}
+
+model crm_cases {
+  id             String             @id @default(cuid())
+  tenantId       String?
+  customerId     String?
+  caseNumber     String             @unique
+  caseType       String             @default("INQUIRY")
+  title          String
+  description    String?
+  status         String             @default("NEW")
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  tenant         Tenant?            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer       customers?         @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([customerId])
+  @@map("crm_cases")
+}
+
+model crm_interactions {
+  id             String             @id @default(cuid())
+  tenantId       String?
+  customerId     String
+  channel        String             @default("NOTE")
+  subject        String?
+  notes          String?
+  createdAt      DateTime           @default(now())
+
+  tenant         Tenant?            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer       customers          @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([customerId])
+  @@map("crm_interactions")
+}
+
+model crm_consents {
+  id             String             @id @default(cuid())
+  customerId     String
+  consentType    String
+  isGranted      Boolean            @default(false)
+  ipAddress      String?
+  createdAt      DateTime           @default(now())
+
+  customer       customers          @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@map("crm_consents")
+}
+
+model crm_loyalty {
+  id             String               @id @default(cuid())
+  tenantId       String?
+  customerId     String               @unique
+  tier           String               @default("BRONZE")
+  pointsTotal    Float                @default(0)
+  isActive       Boolean              @default(true)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  customer       customers            @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  ledger         crm_loyalty_ledger[]
+
+  @@index([tenantId])
+  @@map("crm_loyalty")
+}
+
+model crm_loyalty_ledger {
+  id             String             @id @default(cuid())
+  loyaltyId      String
+  type           String
+  points         Float
+  reasonCode     String
+  createdAt      DateTime           @default(now())
+
+  loyalty        crm_loyalty        @relation(fields: [loyaltyId], references: [id], onDelete: Cascade)
+
+  @@index([loyaltyId])
+  @@map("crm_loyalty_ledger")
+}
+
+model crm_tickets {
+  id             String             @id @default(cuid())
+  tenantId       String?
+  customerId     String?
+  ticketNumber   String             @unique
+  title          String
+  description    String?
+  status         String             @default("NEW")
+  priority       String             @default("NORMAL")
+  assignedTo     String?
+  resolvedAt     DateTime?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  tenant         Tenant?            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer       customers?         @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([customerId])
+  @@map("crm_tickets")
+}
+
+model crm_feedbacks {
+  id             String             @id @default(cuid())
+  tenantId       String?
+  customerId     String?
+  score          Int
+  comments       String?
+  npsCategory    String?
+  createdAt      DateTime           @default(now())
+
+  tenant         Tenant?            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer       customers?         @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([customerId])
+  @@map("crm_feedbacks")
+}
+
+model crm_relationships {
+  id             String             @id @default(cuid())
+  tenantId       String?
+  fromCustomerId String
+  toCustomerId   String
+  relationshipType String
+  createdAt      DateTime           @default(now())
+
+  tenant         Tenant?            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  fromCustomer   customers          @relation("CrmFromCustomer", fields: [fromCustomerId], references: [id], onDelete: Cascade)
+  toCustomer     customers          @relation("CrmToCustomer", fields: [toCustomerId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([fromCustomerId])
+  @@index([toCustomerId])
+  @@map("crm_relationships")
+}
+
+model crm_timeline {
+  id             String             @id @default(cuid())
+  customerId     String
+  actorId        String?
+  eventType      String
+  description    String
+  metadata       Json?
+  createdAt      DateTime           @default(now())
+
+  @@index([customerId])
+  @@map("crm_timeline")
+}
+
+model rest_tables {
+  id              String             @id @default(cuid())
+  tenantId        String?
+  tableNumber     String             @unique
+  seatingCapacity Int
+  zone            String             @default("MAIN_ROOM")
+  status          String             @default("AVAILABLE")
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  tenant          Tenant?            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  reservations    rest_reservations[]
+
+  @@index([tenantId])
+  @@map("rest_tables")
+}
+
+model rest_reservations {
+  id              String             @id @default(cuid())
+  tenantId        String?
+  customerId      String?
+  tableId         String?
+  partySize       Int
+  reservedFor     DateTime
+  durationMinutes Int                @default(120)
+  status          String             @default("CONFIRMED")
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  tenant          Tenant?            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer        customers?         @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  table           rest_tables?       @relation(fields: [tableId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([customerId])
+  @@index([tableId])
+  @@map("rest_reservations")
+}
+
+model rest_kitchen_tickets {
+  id              String             @id @default(cuid())
+  tenantId        String?
+  orderId         String             @unique
+  status          String             @default("PENDING")
+  station         String             @default("GRILL")
+  prepStartedAt   DateTime?
+  prepCompletedAt DateTime?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  tenant          Tenant?            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  order           universal_orders   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([orderId])
+  @@map("rest_kitchen_tickets")
+}
+
+model rest_shifts {
+  id              String             @id @default(cuid())
+  tenantId        String?
+  employeeId      String
+  startTime       DateTime
+  endTime         DateTime
+  role            String
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  tenant          Tenant?            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  employee        employees          @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([employeeId])
+  @@map("rest_shifts")
+}
+
+model platform_packs {
+  id              String                         @id @default(cuid())
+  code            String                         @unique
+  name            String
+  status          String                         @default("DRAFT")
+  licenseKey      String?
+  trustScore      Float                          @default(100.0)
+  createdAt       DateTime                       @default(now())
+  updatedAt       DateTime                       @updatedAt
+
+  versions        platform_pack_versions[]
+  dependencies    platform_pack_dependencies[]
+  configs         platform_pack_configs[]
+  permissions     platform_pack_permissions[]
+  routes          platform_pack_routes[]
+  widgets         platform_pack_widgets[]
+  events          platform_pack_events[]
+  workflows       platform_pack_workflows[]
+  extensions      platform_pack_extensions[]
+  installations   platform_pack_installations[]
+  health          platform_pack_health[]
+  certifications  platform_pack_certifications[]
+
+  @@map("platform_packs")
+}
+
+model platform_pack_versions {
+  id            String         @id @default(cuid())
+  packId        String
+  semverString  String
+  changelogJson Json?
+  createdAt     DateTime       @default(now())
+
+  pack          platform_packs @relation(fields: [packId], references: [id], onDelete: Cascade)
+
+  @@index([packId])
+  @@map("platform_pack_versions")
+}
+
+model platform_pack_dependencies {
+  id             String         @id @default(cuid())
+  packId         String
+  dependencyCode String
+  semverRange    String
+  createdAt      DateTime       @default(now())
+
+  pack           platform_packs @relation(fields: [packId], references: [id], onDelete: Cascade)
+
+  @@index([packId])
+  @@map("platform_pack_dependencies")
+}
+
+model platform_pack_configs {
+  id        String         @id @default(cuid())
+  packId    String
+  tenantId  String?
+  configJson Json
+  isActive  Boolean        @default(true)
+  createdAt DateTime       @default(now())
+
+  pack      platform_packs @relation(fields: [packId], references: [id], onDelete: Cascade)
+  tenant    Tenant?        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([packId])
+  @@index([tenantId])
+  @@map("platform_pack_configs")
+}
+
+model platform_pack_permissions {
+  id        String         @id @default(cuid())
+  packId    String
+  roleCode  String
+  scopeString String
+  createdAt DateTime       @default(now())
+
+  pack      platform_packs @relation(fields: [packId], references: [id], onDelete: Cascade)
+
+  @@index([packId])
+  @@map("platform_pack_permissions")
+}
+
+model platform_pack_routes {
+  id        String         @id @default(cuid())
+  packId    String
+  httpMethod String
+  routePath String
+  createdAt DateTime       @default(now())
+
+  pack      platform_packs @relation(fields: [packId], references: [id], onDelete: Cascade)
+
+  @@index([packId])
+  @@map("platform_pack_routes")
+}
+
+model platform_pack_widgets {
+  id            String         @id @default(cuid())
+  packId        String
+  widgetCode    String
+  layoutMetadata Json
+  createdAt     DateTime       @default(now())
+
+  pack          platform_packs @relation(fields: [packId], references: [id], onDelete: Cascade)
+
+  @@index([packId])
+  @@map("platform_pack_widgets")
+}
+
+model platform_pack_events {
+  id            String         @id @default(cuid())
+  packId        String
+  eventName     String
+  payloadSchema Json
+  createdAt     DateTime       @default(now())
+
+  pack          platform_packs @relation(fields: [packId], references: [id], onDelete: Cascade)
+
+  @@index([packId])
+  @@map("platform_pack_events")
+}
+
+model platform_pack_workflows {
+  id                   String         @id @default(cuid())
+  packId               String
+  workflowDefinitionId String
+  createdAt            DateTime       @default(now())
+
+  pack                 platform_packs @relation(fields: [packId], references: [id], onDelete: Cascade)
+
+  @@index([packId])
+  @@map("platform_pack_workflows")
+}
+
+model platform_pack_extensions {
+  id                String         @id @default(cuid())
+  packId            String
+  extensionPointCode String
+  priority          Int            @default(100)
+  handlerEndpoint   String
+  createdAt         DateTime       @default(now())
+
+  pack              platform_packs @relation(fields: [packId], references: [id], onDelete: Cascade)
+
+  @@index([packId])
+  @@map("platform_pack_extensions")
+}
+
+model platform_pack_installations {
+  id         String         @id @default(cuid())
+  packId     String
+  tenantId   String?
+  installedAt DateTime       @default(now())
+  status     String
+  createdAt  DateTime       @default(now())
+
+  pack       platform_packs @relation(fields: [packId], references: [id], onDelete: Cascade)
+  tenant     Tenant?        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([packId])
+  @@index([tenantId])
+  @@map("platform_pack_installations")
+}
+
+model platform_pack_health {
+  id          String         @id @default(cuid())
+  packId      String
+  healthScore Float          @default(100.0)
+  errorsJson  Json?
+  createdAt   DateTime       @default(now())
+
+  pack        platform_packs @relation(fields: [packId], references: [id], onDelete: Cascade)
+
+  @@index([packId])
+  @@map("platform_pack_health")
+}
+model platform_pack_certifications {
+  id            String         @id @default(cuid())
+  packId        String
+  versionString String
+  resultsJson   Json
+  passedAt      DateTime       @default(now())
+  createdAt     DateTime       @default(now())
+
+  pack          platform_packs @relation(fields: [packId], references: [id], onDelete: Cascade)
+
+  @@index([packId])
+  @@map("platform_pack_certifications")
+}
+
+model cust_favorites {
+  id         String   @id @default(cuid())
+  tenantId   String?
+  customerId String
+  targetType String
+  targetId   String
+  createdAt  DateTime @default(now())
+
+  tenant     Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer   customers @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([customerId])
+  @@map("cust_favorites")
+}
+
+model cust_reviews {
+  id         String   @id @default(cuid())
+  tenantId   String?
+  customerId String
+  targetType String
+  targetId   String
+  rating     Int
+  comment    String?
+  createdAt  DateTime @default(now())
+
+  tenant     Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer   customers @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([customerId])
+  @@map("cust_reviews")
+}
+
+model cust_devices {
+  id          String   @id @default(cuid())
+  customerId  String
+  deviceToken String
+  platform    String
+  createdAt   DateTime @default(now())
+
+  customer    customers @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@map("cust_devices")
+}
+
+model cust_carts {
+  id         String   @id @default(cuid())
+  tenantId   String?
+  customerId String
+  businessId String
+  itemsJson  Json
+  createdAt  DateTime @default(now())
+
+  tenant     Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer   customers @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([customerId])
+  @@map("cust_carts")
+}
+
+model cust_consent_settings {
+  id               String   @id @default(cuid())
+  customerId       String   @unique
+  marketingConsent Boolean  @default(true)
+  gdprOptOut       Boolean  @default(false)
+  createdAt        DateTime @default(now())
+
+  customer         customers @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@map("cust_consent_settings")
+}
+
+model cust_wallet_ledger {
+  id         String   @id @default(cuid())
+  customerId String   @unique
+  balance    Float    @default(0)
+  createdAt  DateTime @default(now())
+
+  customer   customers @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@map("cust_wallet_ledger")
+}
+
+model console_dashboards {
+  id         String   @id @default(cuid())
+  tenantId   String?
+  userId     String
+  name       String
+  layoutJson Json
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  tenant     Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("console_dashboards")
+}
+
+model console_widgets {
+  id           String   @id @default(cuid())
+  tenantId     String?
+  packId       String?
+  code         String   @unique
+  title        String
+  type         String
+  configSchema Json
+  createdAt    DateTime @default(now())
+
+  tenant       Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("console_widgets")
+}
+
+model console_pinned_nav {
+  id         String   @id @default(cuid())
+  tenantId   String?
+  userId     String
+  menuItemId String
+  sortOrder  Int
+  createdAt  DateTime @default(now())
+
+  tenant     Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("console_pinned_nav")
+}
+
+model console_saved_views {
+  id          String   @id @default(cuid())
+  tenantId    String?
+  userId      String
+  pageCode    String
+  filtersJson Json
+  createdAt   DateTime @default(now())
+
+  tenant      Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("console_saved_views")
+}
+
+model console_workspaces {
+  id           String   @id @default(cuid())
+  tenantId     String?
+  code         String   @unique
+  name         String
+  settingsJson Json
+  createdAt    DateTime @default(now())
+
+  tenant       Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("console_workspaces")
+}
+
+model console_commands {
+  id             String   @id @default(cuid())
+  packId         String?
+  triggerPhrase  String
+  actionEndpoint String
+  createdAt      DateTime @default(now())
+
+  @@map("console_commands")
+}
+
+model ai_models {
+  id              String             @id @default(cuid())
+  provider        String
+  name            String
+  isActive        Boolean            @default(true)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  usageMetrics    ai_usage_metrics[]
+
+  @@map("ai_models")
+}
+
+model ai_prompts {
+  id              String             @id @default(cuid())
+  tenantId        String?
+  code            String             @unique
+  name            String
+  description     String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  tenant          Tenant?            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  versions        ai_prompt_versions[]
+
+  @@index([tenantId])
+  @@map("ai_prompts")
+}
+
+model ai_prompt_versions {
+  id            String     @id @default(cuid())
+  promptId      String
+  versionString String
+  templateText  String
+  createdAt     DateTime   @default(now())
+
+  prompt        ai_prompts @relation(fields: [promptId], references: [id], onDelete: Cascade)
+
+  @@index([promptId])
+  @@map("ai_prompt_versions")
+}
+
+model ai_agents {
+  id           String          @id @default(cuid())
+  tenantId     String?
+  name         String
+  systemPrompt String
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  tenant       Tenant?         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  runs         ai_agent_runs[]
+
+  @@index([tenantId])
+  @@map("ai_agents")
+}
+
+model ai_agent_runs {
+  id         String    @id @default(cuid())
+  agentId    String
+  tenantId   String?
+  status     String    @default("PENDING")
+  tokensUsed Int       @default(0)
+  createdAt  DateTime  @default(now())
+
+  agent      ai_agents @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  tenant     Tenant?   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([agentId])
+  @@index([tenantId])
+  @@map("ai_agent_runs")
+}
+
+model ai_memories {
+  id         String     @id @default(cuid())
+  tenantId   String?
+  customerId String?
+  memoryText String
+  createdAt  DateTime   @default(now())
+
+  tenant     Tenant?    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer   customers? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([customerId])
+  @@map("ai_memories")
+}
+
+model ai_conversations {
+  id           String   @id @default(cuid())
+  tenantId     String?
+  userId       String
+  messagesJson Json
+  createdAt    DateTime @default(now())
+
+  tenant       Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("ai_conversations")
+}
+
+model ai_usage_metrics {
+  id               String    @id @default(cuid())
+  tenantId         String?
+  modelId          String
+  promptTokens     Int
+  completionTokens Int
+  latencyMs        Int
+  createdAt        DateTime  @default(now())
+
+  tenant           Tenant?   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  model            ai_models @relation(fields: [modelId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([modelId])
+  @@map("ai_usage_metrics")
+}
+
+model ai_guardrails {
+  id          String   @id @default(cuid())
+  tenantId    String?
+  type        String
+  rulePattern String
+  createdAt   DateTime @default(now())
+
+  tenant      Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("ai_guardrails")
+}
+
+model ai_skills {
+  id         String   @id @default(cuid())
+  tenantId   String?
+  code       String   @unique
+  name       String
+  configJson Json
+  createdAt  DateTime @default(now())
+
+  tenant     Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("ai_skills")
+}
+
+model ai_tools {
+  id         String   @id @default(cuid())
+  tenantId   String?
+  code       String   @unique
+  name       String
+  schemaJson Json
+  createdAt  DateTime @default(now())
+
+  tenant     Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("ai_tools")
+}
+
+model hotel_properties {
+  id          String   @id @default(cuid())
+  tenantId    String?
+  name        String
+  address     String?
+  starRating  Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant      Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  rooms       hotel_rooms[]
+  roomTypes   hotel_room_types[]
+  bookings    hotel_bookings[]
+
+  @@index([tenantId])
+  @@map("hotel_properties")
+}
+
+model hotel_room_types {
+  id           String   @id @default(cuid())
+  tenantId     String?
+  propertyId   String
+  name         String
+  basePrice    Float    @default(0)
+  maxOccupants Int      @default(2)
+  amenities    Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenant       Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  property     hotel_properties @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  rooms        hotel_rooms[]
+
+  @@index([tenantId])
+  @@index([propertyId])
+  @@map("hotel_room_types")
+}
+
+model hotel_rooms {
+  id           String   @id @default(cuid())
+  tenantId     String?
+  propertyId   String
+  roomNumber   String
+  roomTypeId   String
+  status       String   @default("CLEAN") // CLEAN, DIRTY, INSPECTION, MAINTENANCE
+  isOccupied   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenant       Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  property     hotel_properties @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  roomType     hotel_room_types @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
+  bookings     hotel_bookings[]
+  housekeepingTasks hotel_housekeeping_tasks[]
+  maintenanceRecords hotel_maintenance_records[]
+
+  @@index([tenantId])
+  @@index([propertyId])
+  @@index([roomTypeId])
+  @@map("hotel_rooms")
+}
+
+model hotel_bookings {
+  id               String   @id @default(cuid())
+  tenantId         String?
+  propertyId       String
+  roomId           String
+  customerId       String?
+  checkInDateTime  DateTime
+  checkOutDateTime DateTime
+  status           String   @default("CONFIRMED") // CONFIRMED, CHECKED_IN, CHECKED_OUT, CANCELLED
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  tenant           Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  property         hotel_properties @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  room             hotel_rooms @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  customer         customers? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  digitalKeys      hotel_digital_keys[]
+
+  @@index([tenantId])
+  @@index([propertyId])
+  @@index([roomId])
+  @@index([customerId])
+  @@map("hotel_bookings")
+}
+
+model hotel_housekeeping_tasks {
+  id                 String   @id @default(cuid())
+  roomId             String
+  assignedEmployeeId String?
+  status             String   @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED
+  notes              String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  room               hotel_rooms @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  employee           employees?  @relation(fields: [assignedEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([roomId])
+  @@index([assignedEmployeeId])
+  @@map("hotel_housekeeping_tasks")
+}
+
+model hotel_maintenance_records {
+  id               String   @id @default(cuid())
+  roomId           String
+  issueDescription String
+  status           String   @default("OPEN") // OPEN, IN_PROGRESS, RESOLVED
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  room             hotel_rooms @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@index([roomId])
+  @@map("hotel_maintenance_records")
+}
+
+model hotel_digital_keys {
+  id         String   @id @default(cuid())
+  bookingId  String
+  keyToken   String
+  status     String   @default("ACTIVE") // ACTIVE, EXPIRED
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  booking    hotel_bookings @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+  @@map("hotel_digital_keys")
+}
+
+model retail_stores {
+  id        String   @id @default(cuid())
+  tenantId  String?
+  name      String
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant    Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  registers retail_registers[]
+
+  @@index([tenantId])
+  @@map("retail_stores")
+}
+
+model retail_registers {
+  id        String   @id @default(cuid())
+  storeId   String
+  code      String   @unique
+  status    String   @default("OPEN") // OPEN, CLOSED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  store     retail_stores @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@index([storeId])
+  @@map("retail_registers")
+}
+
+model retail_product_variants {
+  id             String   @id @default(cuid())
+  productId      String
+  sku            String   @unique
+  attributesJson Json
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  product        products @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@map("retail_product_variants")
+}
+
+model retail_stock_batches {
+  id          String    @id @default(cuid())
+  tenantId    String?
+  productId   String
+  batchNumber String
+  expiryDate  DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  employee    employees @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-
-  @@unique([employeeId, date])
-  @@index([employeeId])
-  @@index([date])
-}
-
-model employee_shifts {
-  id           String    @id @default(cuid())
-  employeeId   String
-  dayOfWeek    Int       // 0=Sunday, 1=Monday ... 6=Saturday
-  startTime    String    // e.g. "09:00"
-  endTime      String    // e.g. "17:00"
-  notes        String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-
-  employee     employees @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-
-  @@unique([employeeId, dayOfWeek])
-  @@index([employeeId])
-}
-
-model employee_leaves {
-  id           String    @id @default(cuid())
-  employeeId   String
-  leaveType    String    // CASUAL, SICK, UNPAID, ANNUAL
-  startDate    DateTime
-  endDate      DateTime
-  reason       String?
-  status       String    @default("PENDING") // PENDING, APPROVED, REJECTED
-  approvedById String?
-  approvedBy   users?    @relation(fields: [approvedById], references: [id])
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-
-  employee     employees @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-
-  @@index([employeeId])
-  @@index([approvedById])
-}
-
-model employee_documents {
-  id           String    @id @default(cuid())
-  employeeId   String
-  name         String    // Passport, Contract, ID, Resume...
-  fileUrl      String
-  expiryDate   DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-
-  employee     employees @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-
-  @@index([employeeId])
-}
-
-
-model pos_register_sessions {
-  id              String                    @id @default(cuid())
-  tenantId        String
-  cashierId       String
-  openingTime     DateTime                  @default(now())
-  closingTime     DateTime?
-  openingBalance  Decimal                   @db.Decimal(10, 2)
-  closingBalance  Decimal?                  @db.Decimal(10, 2) // Declared cash
-  expectedBalance Decimal?                  @db.Decimal(10, 2) // Starting + cash payments + pay-ins - pay-outs
-  status          String                    @default("OPEN") // OPEN, CLOSED
-  notes           String?
-  createdAt       DateTime                  @default(now())
-  updatedAt       DateTime                  @updatedAt
-
-  cashier         users                     @relation(fields: [cashierId], references: [id], onDelete: Cascade)
-  payments        order_payments[]
-  cashLogs        pos_register_cash_logs[]
+  tenant      Tenant?   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  product     products  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([tenantId])
-  @@index([cashierId])
+  @@index([productId])
+  @@map("retail_stock_batches")
 }
 
-model pos_register_cash_logs {
-  id           String                @id @default(cuid())
-  sessionId    String
-  amount       Decimal               @db.Decimal(10, 2)
-  type         String                // CASH_IN, CASH_OUT
+model retail_promotions {
+  id              String   @id @default(cuid())
+  tenantId        String?
+  code            String   @unique
+  name            String
+  discountPercent Float    @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tenant          Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("retail_promotions")
+}
+
+model retail_purchase_orders {
+  id         String   @id @default(cuid())
+  tenantId   String?
+  supplierId String
+  status     String   @default("PENDING") // PENDING, RECEIVED
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  tenant     Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  supplier   retail_suppliers @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([supplierId])
+  @@map("retail_purchase_orders")
+}
+
+model retail_suppliers {
+  id             String   @id @default(cuid())
+  tenantId       String?
+  name           String
+  contactEmail   String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tenant         Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  purchaseOrders retail_purchase_orders[]
+
+  @@index([tenantId])
+  @@map("retail_suppliers")
+}
+
+model retail_returns {
+  id           String   @id @default(cuid())
+  tenantId     String?
+  orderId      String
   reason       String
-  createdAt    DateTime              @default(now())
+  refundAmount Float
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  session      pos_register_sessions @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  tenant       Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  order        orders   @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
-  @@index([sessionId])
+  @@index([tenantId])
+  @@index([orderId])
+  @@map("retail_returns")
 }
+
+model hc_facilities {
+  id        String   @id @default(cuid())
+  tenantId  String?
+  name      String
+  type      String   @default("CLINIC") // HOSPITAL, CLINIC, LAB
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant    Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  rooms     hc_rooms[]
+  departments hc_departments[]
+
+  @@index([tenantId])
+  @@map("hc_facilities")
+}
+
+model hc_departments {
+  id         String   @id @default(cuid())
+  facilityId String
+  name       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  facility   hc_facilities @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  rooms      hc_rooms[]
+
+  @@index([facilityId])
+  @@map("hc_departments")
+}
+
+model hc_rooms {
+  id           String   @id @default(cuid())
+  facilityId   String
+  departmentId String
+  roomCode     String
+  type         String   @default("WARD") // WARD, ICU, OPERATING
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  facility     hc_facilities @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  department   hc_departments @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  beds         hc_beds[]
+
+  @@index([facilityId])
+  @@index([departmentId])
+  @@map("hc_rooms")
+}
+
+model hc_beds {
+  id        String   @id @default(cuid())
+  roomId    String
+  bedCode   String
+  status    String   @default("AVAILABLE") // AVAILABLE, OCCUPIED, CLEANING
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  room      hc_rooms @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@index([roomId])
+  @@map("hc_beds")
+}
+
+model hc_patient_profiles {
+  id           String   @id @default(cuid())
+  tenantId     String?
+  customerId   String   @unique
+  bloodGroup   String?
+  allergiesJson Json
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenant       Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer     customers @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  appointments hc_appointments[]
+
+  @@index([tenantId])
+  @@map("hc_patient_profiles")
+}
+
+model hc_appointments {
+  id               String   @id @default(cuid())
+  tenantId         String?
+  patientProfileId String
+  doctorEmployeeId String
+  dateTime         DateTime
+  status           String   @default("SCHEDULED") // SCHEDULED, IN_CONSULTATION, COMPLETED, CANCELLED
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  tenant           Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient          hc_patient_profiles @relation(fields: [patientProfileId], references: [id], onDelete: Cascade)
+  employee         employees @relation(fields: [doctorEmployeeId], references: [id], onDelete: Cascade)
+  emr              hc_emrs?
+  labOrders        hc_lab_orders[]
+  claims           hc_insurance_claims[]
+
+  @@index([tenantId])
+  @@index([patientProfileId])
+  @@index([doctorEmployeeId])
+  @@map("hc_appointments")
+}
+
+model hc_emrs {
+  id            String   @id @default(cuid())
+  appointmentId String   @unique
+  clinicalNotes String
+  diagnosesJson Json
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  appointment   hc_appointments @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  prescriptions hc_prescriptions[]
+
+  @@map("hc_emrs")
+}
+
+model hc_prescriptions {
+  id              String   @id @default(cuid())
+  emrId           String
+  medicationsJson Json
+  status          String   @default("PENDING") // PENDING, DISPENSED
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  emr             hc_emrs  @relation(fields: [emrId], references: [id], onDelete: Cascade)
+
+  @@index([emrId])
+  @@map("hc_prescriptions")
+}
+
+model hc_lab_orders {
+  id             String   @id @default(cuid())
+  appointmentId  String
+  testName       String
+  status         String   @default("ORDERED") // ORDERED, SAMPLED, COMPLETED
+  resultDataJson Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  appointment    hc_appointments @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  @@index([appointmentId])
+  @@map("hc_lab_orders")
+}
+
+model hc_insurance_claims {
+  id            String   @id @default(cuid())
+  appointmentId String
+  policyNumber  String
+  providerName  String
+  status        String   @default("SUBMITTED") // SUBMITTED, APPROVED, DENIED
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  appointment   hc_appointments @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  @@index([appointmentId])
+  @@map("hc_insurance_claims")
+}
+
+model logistics_hubs {
+  id        String   @id @default(cuid())
+  tenantId  String?
+  name      String
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant    Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  shipmentsOrigin logistics_shipments[] @relation("OriginHub")
+  shipmentsDest   logistics_shipments[] @relation("DestHub")
+
+  @@index([tenantId])
+  @@map("logistics_hubs")
+}
+
+model logistics_vehicles {
+  id           String   @id @default(cuid())
+  tenantId     String?
+  licensePlate String   @unique
+  makeModel    String
+  capacityKg   Float    @default(0)
+  status       String   @default("ACTIVE") // ACTIVE, MAINTENANCE
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenant       Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  driverAssignments logistics_driver_assignments[]
+  routes       logistics_routes[]
+  maintenanceRecords logistics_maintenance_records[]
+
+  @@index([tenantId])
+  @@map("logistics_vehicles")
+}
+
+model logistics_driver_assignments {
+  id               String   @id @default(cuid())
+  vehicleId        String
+  driverEmployeeId String
+  assignedAt       DateTime @default(now())
+  releasedAt       DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  vehicle          logistics_vehicles @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  driver           employees @relation(fields: [driverEmployeeId], references: [id], onDelete: Cascade)
+
+  @@index([vehicleId])
+  @@index([driverEmployeeId])
+  @@map("logistics_driver_assignments")
+}
+
+model logistics_shipments {
+  id               String   @id @default(cuid())
+  tenantId         String?
+  orderId          String
+  originHubId      String?
+  destinationHubId String?
+  status           String   @default("CREATED") 
+  // CREATED, PICKUP_SCHEDULED, PICKED_UP, AT_ORIGIN_HUB, IN_TRANSIT, AT_DESTINATION_HUB, OUT_FOR_DELIVERY, DELIVERED
+  // FAILED_DELIVERY, DELIVERY_RESCHEDULED, RETURN_INITIATED, RETURN_IN_TRANSIT, RETURNED, CANCELLED, LOST, DAMAGED
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  tenant           Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  order            orders   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  originHub        logistics_hubs? @relation("OriginHub", fields: [originHubId], references: [id], onDelete: SetNull)
+  destinationHub   logistics_hubs? @relation("DestHub", fields: [destinationHubId], references: [id], onDelete: SetNull)
+  packages         logistics_packages[]
+  dispatches       logistics_dispatches[]
+  routeStops       logistics_route_stops[]
+  trackingEvents   logistics_tracking_events[]
+  proofOfDeliveries logistics_proof_of_delivery[]
+  codCollections   logistics_cod_collections[]
+  returns          logistics_returns[]
+
+  @@index([tenantId])
+  @@index([orderId])
+  @@index([originHubId])
+  @@index([destinationHubId])
+  @@map("logistics_shipments")
+}
+
+model logistics_packages {
+  id          String   @id @default(cuid())
+  shipmentId  String
+  weightKg    Float
+  lengthCm    Float
+  widthCm     Float
+  heightCm    Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  shipment    logistics_shipments @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+
+  @@index([shipmentId])
+  @@map("logistics_packages")
+}
+
+model logistics_dispatches {
+  id               String   @id @default(cuid())
+  shipmentId       String
+  driverEmployeeId String?
+  vehicleId        String?
+  status           String   @default("PENDING") // PENDING, DISPATCHED, CANCELLED
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  shipment         logistics_shipments @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+
+  @@index([shipmentId])
+  @@map("logistics_dispatches")
+}
+
+model logistics_routes {
+  id               String   @id @default(cuid())
+  tenantId         String?
+  vehicleId        String
+  driverEmployeeId String
+  status           String   @default("PLANNED") // PLANNED, STARTED, COMPLETED
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  tenant           Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  vehicle          logistics_vehicles @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  driver           employees @relation(fields: [driverEmployeeId], references: [id], onDelete: Cascade)
+  routeStops       logistics_route_stops[]
+  trackingEvents   logistics_tracking_events[]
+
+  @@index([tenantId])
+  @@index([vehicleId])
+  @@index([driverEmployeeId])
+  @@map("logistics_routes")
+}
+
+model logistics_route_stops {
+  id          String   @id @default(cuid())
+  routeId     String
+  shipmentId  String
+  stopOrder   Int
+  status      String   @default("PENDING") // PENDING, VISITED, SKIPPED
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  route       logistics_routes @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  shipment    logistics_shipments @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+
+  @@index([routeId])
+  @@index([shipmentId])
+  @@map("logistics_route_stops")
+}
+
+model logistics_tracking_events {
+  id            String   @id @default(cuid())
+  shipmentId    String
+  routeId       String?
+  eventType     String
+  status        String
+  locationStr   String?
+  occurredAt    DateTime @default(now())
+  source        String   @default("SYSTEM")
+  correlationId String?
+  metadataJson  Json?
+  createdAt     DateTime @default(now())
+
+  shipment      logistics_shipments @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  route         logistics_routes? @relation(fields: [routeId], references: [id], onDelete: SetNull)
+
+  @@index([shipmentId])
+  @@index([routeId])
+  @@map("logistics_tracking_events")
+}
+
+model logistics_proof_of_delivery {
+  id               String   @id @default(cuid())
+  shipmentId       String
+  recipientName    String
+  signatureRef     String?
+  photoRef         String?
+  otpCode          String?
+  latitude         Float?
+  longitude        Float?
+  driverEmployeeId String
+  occurredAt       DateTime @default(now())
+  createdAt        DateTime @default(now())
+
+  shipment         logistics_shipments @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+
+  @@index([shipmentId])
+  @@map("logistics_proof_of_delivery")
+}
+
+model logistics_cod_collections {
+  id                   String   @id @default(cuid())
+  shipmentId           String
+  expectedAmount       Float
+  driverCollectedAmount Float    @default(0)
+  settlementStatus     String   @default("PENDING") // PENDING, RECONCILED, FAILED
+  paymentTxRef         String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  shipment             logistics_shipments @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+
+  @@index([shipmentId])
+  @@map("logistics_cod_collections")
+}
+
+model logistics_returns {
+  id          String   @id @default(cuid())
+  tenantId    String?
+  shipmentId  String
+  orderId     String
+  status      String   @default("RETURN_REQUESTED") // RETURN_REQUESTED, RETURN_PICKUP_SCHEDULED, RETURN_PICKED_UP, RETURNED, RETURN_COMPLETED
+  reason      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant      Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  shipment    logistics_shipments @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  order       orders @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([shipmentId])
+  @@index([orderId])
+  @@map("logistics_returns")
+}
+
+model logistics_maintenance_records {
+  id               String   @id @default(cuid())
+  vehicleId        String
+  description      String
+  cost             Float
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  vehicle          logistics_vehicles @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@index([vehicleId])
+  @@map("logistics_maintenance_records")
+}
+
+model security_key_metadata {
+  id           String   @id @default(cuid())
+  tenantId     String?
+  keyId        String   @unique
+  wrappedDek   String
+  keyVersion   Int      @default(1)
+  algorithm    String   @default("AES-256-GCM")
+  status       String   @default("ACTIVE") // ACTIVE, REVOKED
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenant       Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("security_key_metadata")
+}
+
+model security_access_events {
+  id           String   @id @default(cuid())
+  tenantId     String?
+  userId       String?
+  resourceType String
+  resourceId   String?
+  action       String   // security.data.viewed, security.data.decrypted, etc.
+  purpose      String?
+  requestId    String?
+  sessionId    String?
+  createdAt    DateTime @default(now())
+
+  tenant       Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([userId])
+  @@map("security_access_events")
+}
+
+model security_mfa_challenges {
+  id           String   @id @default(cuid())
+  userId       String
+  challengeId  String   @unique
+  codeHash     String
+  purpose      String
+  expiresAt    DateTime
+  verifiedAt   DateTime?
+  attempts     Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  @@index([userId])
+  @@map("security_mfa_challenges")
+}
+
+
+
+
+
+
+
+
+
+
+
+

@@ -6,14 +6,14 @@ export type JwtPayload = {
   sub: string;
   email: string;
   role: string;
-  restaurantId?: string | null;
+  tenantId?: string | null;
 };
 
 export type JwtUser = {
   id: string;
   email: string;
   role: string;
-  restaurantId?: string;
+  tenantId?: string;
 };
 
 @Injectable()
@@ -22,7 +22,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: 'super-secret',
+      secretOrKey: (() => {
+        const jwtSecret = process.env.JWT_SECRET;
+        if (!jwtSecret) {
+          throw new Error('JWT_SECRET is required');
+        }
+        return jwtSecret;
+      })(),
     });
   }
 
@@ -31,7 +37,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       id: payload.sub,
       email: payload.email,
       role: payload.role,
-      restaurantId: payload.restaurantId ?? undefined,
+      tenantId: payload.tenantId ?? undefined,
     };
   }
 }

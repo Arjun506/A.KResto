@@ -121,12 +121,14 @@ export default function WaiterPanel() {
     avatar: 'RV'
   };
 
+  const isOwner = user?.role === 'OWNER' || user?.role === 'RESTAURANT_OWNER' || user?.role === 'SUPER_ADMIN' || user?.role === 'MANAGER';
+
   // Mock Active Assigned Tables
   useEffect(() => {
-    if (!isLoading && (!user || user.role !== 'WAITER')) {
+    if (!isLoading && (!user || (user.role !== 'WAITER' && !isOwner))) {
       router.push('/login');
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading, isOwner, router]);
 
   const [tables, setTables] = useState<TableState[]>([
     { id: 't-1', name: 'Table 1', status: 'Occupied', customerName: 'Rohit Sharma', activeBill: 1240, capacity: 4, allergies: 'Peanut Allergy', preferences: 'Prefers window seating' },
@@ -949,3 +951,4 @@ export default function WaiterPanel() {
     </div>
   );
 }
+

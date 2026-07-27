@@ -31,7 +31,7 @@ export interface RegisterBusinessResponse {
     name: string;
     email: string;
     role: string;
-    restaurantId: string;
+    tenantId: string;
   };
   tenant: {
     id: string;
@@ -168,3 +168,4 @@ export const getBranchAnalytics = async (
     };
   }
 };
+

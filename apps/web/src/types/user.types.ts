@@ -4,6 +4,7 @@ export type UserSession = {
   sub: string;
   email: string;
   role: UserRole;
-  restaurantId: string | null;
+  tenantId: string | null;
 };
+
 

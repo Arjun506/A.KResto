@@ -195,8 +195,8 @@ export class BusinessService {
           name: dto.ownerName,
           email: dto.ownerEmail,
           passwordHash: hashedPassword,
-          role: UserRole.RESTAURANT_OWNER,
-          restaurantId: tenant.id,
+          role: UserRole.OWNER,
+          tenantId: tenant.id,
         },
       });
 
@@ -206,7 +206,7 @@ export class BusinessService {
 
       const subscription = await tx.subscriptions.create({
         data: {
-          restaurantId: tenant.id,
+          tenantId: tenant.id,
           planName: dto.selectedPlan ?? PlanTier.TRIAL,
           status: 'TRIALING',
           billingEmail: dto.ownerEmail,
@@ -217,7 +217,7 @@ export class BusinessService {
 
       await tx.audit_logs.create({
         data: {
-          restaurantId: tenant.id,
+          tenantId: tenant.id,
           userId: owner.id,
           entity: 'Tenant',
           entityId: tenant.id,
@@ -245,7 +245,7 @@ export class BusinessService {
       sub: result.owner.id,
       email: result.owner.email,
       role: result.owner.role,
-      restaurantId: result.tenant.id,
+      tenantId: result.tenant.id,
     } as const;
 
     const access_token = await this.jwtService.signAsync(payload);
@@ -268,7 +268,7 @@ export class BusinessService {
         name: result.owner.name,
         email: result.owner.email,
         role: result.owner.role,
-        restaurantId: result.tenant.id,
+        tenantId: result.tenant.id,
       },
       branch: {
         id: result.branch.id,
@@ -398,7 +398,7 @@ export class BusinessService {
 
   async getSubscription(tenantId: string) {
     const subscription = await this.prisma.subscriptions.findFirst({
-      where: { restaurantId: tenantId },
+      where: { tenantId: tenantId },
       orderBy: { createdAt: 'desc' },
     });
     if (!subscription) {
@@ -526,30 +526,46 @@ export class BusinessService {
       throw new NotFoundException('Business workspace not found');
     }
 
-    const [categoryCount, menuItemCount, tableWithQrCount, orderCount] = await Promise.all([
-      this.prisma.categories.count({ where: { restaurantId: tenantId } }),
-      this.prisma.menu_items.count({ where: { restaurantId: tenantId } }),
-      this.prisma.tables.count({ where: { restaurantId: tenantId, qrCode: { not: null } } }),
-      this.prisma.orders.count({ where: { restaurantId: tenantId } }),
-    ]);
+    const [categoryCount, menuItemCount, tableWithQrCount, orderCount] =
+      await Promise.all([
+        this.prisma.categories.count({ where: { tenantId: tenantId } }),
+        this.prisma.menu_items.count({ where: { tenantId: tenantId } }),
+        this.prisma.tables.count({
+          where: { tenantId: tenantId, qrCode: { not: null } },
+        }),
+        this.prisma.orders.count({ where: { tenantId: tenantId } }),
+      ]);
 
     const settingsObj = (tenant.settings || {}) as Record<string, any>;
     const themeObj = (settingsObj.theme || {}) as Record<string, any>;
-    const operationalObj = (settingsObj.operational || {}) as Record<string, any>;
+    const operationalObj = (settingsObj.operational || {}) as Record<
+      string,
+      any
+    >;
 
     const hasProfile = !!(tenant.phone && tenant.address && tenant.email);
     const hasLogo = !!tenant.logo;
-    const hasCover = !!(settingsObj.coverImage || themeObj.cover || themeObj.coverImage);
+    const hasCover = !!(
+      settingsObj.coverImage ||
+      themeObj.cover ||
+      themeObj.coverImage
+    );
     const hasBranch = tenant.branches.length > 0;
     const hasMenu = categoryCount > 0;
     const hasProducts = menuItemCount > 0;
     const hasQr = tableWithQrCount > 0;
-    
-    const isPaymentConfigured = !!(settingsObj.paymentConfigured === true || settingsObj.paymentGateway);
-    const isWebsitePublished = !!(settingsObj.websitePublished === true || settingsObj.websiteUrl);
+
+    const isPaymentConfigured = !!(
+      settingsObj.paymentConfigured === true || settingsObj.paymentGateway
+    );
+    const isWebsitePublished = !!(
+      settingsObj.websitePublished === true || settingsObj.websiteUrl
+    );
     const isAkConnectEnabled = !!(
-      settingsObj.akConnectEnabled === true || 
-      tenant.tenant_features.some(f => f.featureKey === 'connect' && f.isEnabled)
+      settingsObj.akConnectEnabled === true ||
+      tenant.tenant_features.some(
+        (f) => f.featureKey === 'connect' && f.isEnabled,
+      )
     );
     const hasOrders = orderCount > 0;
 
@@ -557,7 +573,8 @@ export class BusinessService {
       {
         key: 'workspace_created',
         label: 'Workspace Created',
-        description: 'Your business cloud workspace is successfully provisioned and active.',
+        description:
+          'Your business cloud workspace is successfully provisioned and active.',
         completed: true,
         actionText: 'Completed',
         href: '/dashboard',
@@ -573,7 +590,8 @@ export class BusinessService {
       {
         key: 'business_profile_completed',
         label: 'Business Profile Completed',
-        description: 'Provide phone number, address, and email to complete your profile.',
+        description:
+          'Provide phone number, address, and email to complete your profile.',
         completed: hasProfile,
         actionText: 'Update Profile',
         href: '/dashboard/pos',
@@ -621,7 +639,8 @@ export class BusinessService {
       {
         key: 'qr_generated',
         label: 'QR Codes Generated',
-        description: 'Configure tables and generate digital QR codes for ordering.',
+        description:
+          'Configure tables and generate digital QR codes for ordering.',
         completed: hasQr,
         actionText: 'Generate QRs',
         href: '/dashboard/qr-tables',
@@ -629,7 +648,8 @@ export class BusinessService {
       {
         key: 'payment_configured',
         label: 'Payment Gateway Configured',
-        description: 'Enable payment integrations for automated cashier checkout.',
+        description:
+          'Enable payment integrations for automated cashier checkout.',
         completed: isPaymentConfigured,
         actionText: 'Configure Payments',
         href: '/dashboard/pos',
@@ -637,7 +657,8 @@ export class BusinessService {
       {
         key: 'website_published',
         label: 'Website Published',
-        description: 'Publish your consumer-facing digital ordering storefront website.',
+        description:
+          'Publish your consumer-facing digital ordering storefront website.',
         completed: isWebsitePublished,
         actionText: 'Publish Storefront',
         href: '/dashboard/pos',
@@ -645,7 +666,8 @@ export class BusinessService {
       {
         key: 'ak_connect_enabled',
         label: 'AK Connect Enabled',
-        description: 'Enable delivery aggregates and SMS/WhatsApp notifications.',
+        description:
+          'Enable delivery aggregates and SMS/WhatsApp notifications.',
         completed: isAkConnectEnabled,
         actionText: 'Enable AK Connect',
         href: '/dashboard/pos',
@@ -653,14 +675,15 @@ export class BusinessService {
       {
         key: 'first_order_completed',
         label: 'First Order Completed',
-        description: 'Process your first sale order through the POS billing terminal.',
+        description:
+          'Process your first sale order through the POS billing terminal.',
         completed: hasOrders,
         actionText: 'Open POS Terminal',
         href: '/dashboard/pos',
       },
     ];
 
-    const completedCount = checklist.filter(x => x.completed).length;
+    const completedCount = checklist.filter((x) => x.completed).length;
     const totalCount = checklist.length;
     const percentage = Math.round((completedCount / totalCount) * 100);
 
@@ -676,9 +699,12 @@ export class BusinessService {
     if (!isWebsitePublished) missingConfig.push('Storefront Website');
     if (!isAkConnectEnabled) missingConfig.push('AK Connect Integration');
 
-    const healthScore = Math.min(100, 40 + Math.round((completedCount / totalCount) * 60));
+    const healthScore = Math.min(
+      100,
+      40 + Math.round((completedCount / totalCount) * 60),
+    );
 
-    const nextRecommendedStep = checklist.find(x => !x.completed) || null;
+    const nextRecommendedStep = checklist.find((x) => !x.completed) || null;
 
     return {
       percentage,
@@ -691,4 +717,3 @@ export class BusinessService {
     };
   }
 }
-

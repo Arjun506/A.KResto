@@ -197,7 +197,7 @@ export class ModulePlatformService {
 
   private async assertCanEnableModule(tenantId: string, moduleDef: any) {
     const activeSub = await this.prisma.subscriptions.findFirst({
-      where: { restaurantId: tenantId, status: 'ACTIVE' },
+      where: { tenantId: tenantId, status: 'ACTIVE' },
     });
     const currentTier = activeSub?.planName ?? 'TRIAL';
 

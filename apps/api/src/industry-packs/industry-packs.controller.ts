@@ -1,25 +1,100 @@
-import { Controller, Get, Post, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Query,
+  Param,
+  Body,
+  UseGuards,
+} from '@nestjs/common';
 import { IndustryPacksService } from './industry-packs.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { TenantGuard } from '../tenant/tenant.guard';
+import { apiSuccess } from '../common/responses/api-response';
 
 @Controller('industry-packs')
+@UseGuards(JwtAuthGuard, TenantGuard)
 export class IndustryPacksController {
   constructor(private readonly service: IndustryPacksService) {}
 
   @Get('installed')
-  installed(@Query('tenantId') tenantId: string) {
-    return this.service.listInstalledPacks(tenantId);
+  async installed(@Query('tenantId') tenantId: string) {
+    const res = await this.service.listInstalledPacks(tenantId);
+    return apiSuccess(res);
   }
 
-  // Scaffolds: install/uninstall will be implemented in a later milestone.
-
   @Post(':industryKey/install')
-  install() {
-    return { ok: false, message: 'Not implemented yet (scaffold)' };
+  async install(
+    @Query('tenantId') tenantId: string,
+    @Param('industryKey') industryKey: string,
+  ) {
+    const res = await this.service.installPack(
+      tenantId,
+      industryKey.toUpperCase(),
+    );
+    return apiSuccess(
+      res,
+      `Industry Pack ${industryKey} installed successfully`,
+    );
   }
 
   @Post(':industryKey/uninstall')
-  uninstall() {
-    return { ok: false, message: 'Not implemented yet (scaffold)' };
+  async uninstall(
+    @Query('tenantId') tenantId: string,
+    @Param('industryKey') industryKey: string,
+  ) {
+    const res = await this.service.uninstallPack(
+      tenantId,
+      industryKey.toUpperCase(),
+    );
+    return apiSuccess(
+      res,
+      `Industry Pack ${industryKey} uninstalled successfully`,
+    );
+  }
+
+  @Post(':industryKey/enable')
+  async enable(
+    @Query('tenantId') tenantId: string,
+    @Param('industryKey') industryKey: string,
+  ) {
+    const res = await this.service.enablePack(
+      tenantId,
+      industryKey.toUpperCase(),
+    );
+    return apiSuccess(res, `Industry Pack ${industryKey} enabled successfully`);
+  }
+
+  @Post(':industryKey/disable')
+  async disable(
+    @Query('tenantId') tenantId: string,
+    @Param('industryKey') industryKey: string,
+  ) {
+    const res = await this.service.disablePack(
+      tenantId,
+      industryKey.toUpperCase(),
+    );
+    return apiSuccess(
+      res,
+      `Industry Pack ${industryKey} disabled successfully`,
+    );
+  }
+
+  @Post(':industryKey/update')
+  async update(
+    @Query('tenantId') tenantId: string,
+    @Param('industryKey') industryKey: string,
+    @Body() body: { version: string },
+  ) {
+    const res = await this.service.updatePack(
+      tenantId,
+      industryKey.toUpperCase(),
+      body.version,
+    );
+    return apiSuccess(
+      res,
+      `Industry Pack ${industryKey} updated to version ${body.version}`,
+    );
   }
 
   @Get('sidebar')

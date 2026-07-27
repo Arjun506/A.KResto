@@ -4,37 +4,47 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Observable } from 'rxjs';
+import { Reflector } from '@nestjs/core';
+import { IS_PUBLIC_TENANT_KEY } from './public-tenant.decorator';
 
 type TenantRequest = {
   user?: {
     role?: string;
-    restaurantId?: string;
+    tenantId?: string;
   };
+  headers?: Record<string, string>;
   tenantId?: string;
 };
 
 @Injectable()
 export class TenantGuard implements CanActivate {
-  canActivate(
-    context: ExecutionContext,
-  ): boolean | Promise<boolean> | Observable<boolean> {
-    const req = context.switchToHttp().getRequest<TenantRequest>();
+  constructor(private readonly reflector: Reflector) {}
 
-    const restaurantId = req.user?.restaurantId;
-    if (req.user?.role === 'SUPER_ADMIN' && !restaurantId) {
+  canActivate(context: ExecutionContext): boolean {
+    const isPublicTenant = this.reflector.getAllAndOverride<boolean>(
+      IS_PUBLIC_TENANT_KEY,
+      [context.getHandler(), context.getClass()],
+    );
+
+    if (isPublicTenant) {
       return true;
     }
 
-    if (!restaurantId) {
+    const req = context.switchToHttp().getRequest<TenantRequest>();
+    const tenantId = req.user?.tenantId || req.headers?.['x-tenant-id'];
+
+    if (req.user?.role === 'SUPER_ADMIN') {
+      if (tenantId) req.tenantId = tenantId;
+      return true;
+    }
+
+    if (!tenantId) {
       throw new UnauthorizedException(
-        'Missing tenant context (restaurantId) in JWT',
+        'Missing tenant context (x-tenant-id header or authenticated tenant context)',
       );
     }
 
-    // Business OS Migration: Alias mapping restaurantId from legacy restaurant tables 
-    // to generic tenantId token context used across shared platform capability modules.
-    req.tenantId = restaurantId;
+    req.tenantId = tenantId;
     return true;
   }
 }

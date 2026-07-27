@@ -55,3 +55,4 @@ export const updateNotificationPreferences = async (
 ): Promise<any> => {
   return unwrap<any>(api.put('/notifications/preferences', { category, channels }));
 };
+

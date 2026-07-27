@@ -12,5 +12,5 @@ export class RegisterDto {
 
   @IsOptional()
   @IsString()
-  restaurantId?: string;
+  tenantId?: string;
 }

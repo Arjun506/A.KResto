@@ -54,7 +54,7 @@ export class PublicService {
 
     return this.prisma.menu_items.findMany({
       where: {
-        restaurantId: restaurant.id,
+        tenantId: restaurant.id,
         isAvailable: true,
       },
       orderBy: { name: 'asc' },
@@ -71,7 +71,7 @@ export class PublicService {
 
     return this.prisma.categories.findMany({
       where: {
-        restaurantId: restaurant.id,
+        tenantId: restaurant.id,
         isActive: true,
       },
       orderBy: { sortOrder: 'asc' },
@@ -87,7 +87,7 @@ export class PublicService {
     }
 
     const table = await this.prisma.tables.findFirst({
-      where: { id: dto.tableId, restaurantId: restaurant.id },
+      where: { id: dto.tableId, tenantId: restaurant.id },
     });
     if (!table || !table.isActive) {
       throw new NotFoundException('Table is invalid or inactive');
@@ -101,7 +101,7 @@ export class PublicService {
     const menuItems = await this.prisma.menu_items.findMany({
       where: {
         id: { in: dto.items.map((i) => i.menuItemId) },
-        restaurantId: restaurant.id,
+        tenantId: restaurant.id,
         isAvailable: true,
       },
     });
@@ -131,7 +131,7 @@ export class PublicService {
           customerPhone: dto.phone ?? null,
           status: 'PENDING',
           totalAmount: total,
-          restaurantId: restaurant.id,
+          tenantId: restaurant.id,
           tableId: table.id,
           updatedAt: now,
           order_items: {
@@ -150,7 +150,7 @@ export class PublicService {
 
       await tx.audit_logs.create({
         data: {
-          restaurantId: restaurant.id,
+          tenantId: restaurant.id,
           userId: null,
           entity: 'Order',
           entityId: order.id,
@@ -220,7 +220,7 @@ export class PublicService {
     }
 
     const table = await this.prisma.tables.findFirst({
-      where: { id: dto.tableId, restaurantId: restaurant.id },
+      where: { id: dto.tableId, tenantId: restaurant.id },
     });
     if (!table || !table.isActive) {
       throw new NotFoundException('Table is invalid or inactive');
@@ -254,7 +254,7 @@ export class PublicService {
       customerPhone: order.customerPhone,
       status: mapPrismaStatusToEnterpriseStatus(order.status),
       totalAmount: String(order.totalAmount),
-      restaurantId: order.restaurantId,
+      tenantId: order.tenantId,
       tableId: order.tableId,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
@@ -278,7 +278,7 @@ export class PublicService {
     }
 
     return this.prisma.tables.findMany({
-      where: { restaurantId: restaurant.id, isActive: true },
+      where: { tenantId: restaurant.id, isActive: true },
       orderBy: { name: 'asc' },
     });
   }
@@ -348,7 +348,7 @@ export class PublicService {
     }
 
     const table = await this.prisma.tables.findFirst({
-      where: { id: dto.tableId, restaurantId: restaurant.id, isActive: true },
+      where: { id: dto.tableId, tenantId: restaurant.id, isActive: true },
     });
     if (!table) {
       throw new NotFoundException('Table is invalid or inactive');
@@ -361,7 +361,7 @@ export class PublicService {
     const existing = await this.prisma.reservations.findMany({
       where: {
         tableId: dto.tableId,
-        restaurantId: restaurant.id,
+        tenantId: restaurant.id,
         status: { in: ['PENDING', 'CONFIRMED', 'SEATED'] },
       },
     });
@@ -381,7 +381,7 @@ export class PublicService {
 
     return this.prisma.reservations.create({
       data: {
-        restaurantId: restaurant.id,
+        tenantId: restaurant.id,
         tableId: dto.tableId,
         customerName: dto.customerName,
         customerPhone: dto.customerPhone ?? null,

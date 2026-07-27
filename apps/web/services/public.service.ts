@@ -62,7 +62,7 @@ export interface CreatePublicReservationPayload {
 
 export interface Table {
   id: string;
-  restaurantId: string;
+  tenantId: string;
   name: string;
   code: string;
   capacity: number;
@@ -94,3 +94,4 @@ export const getTableActiveBooking = async (tableId: string, time?: string): Pro
 export const createPublicReservation = async (data: CreatePublicReservationPayload): Promise<any> => {
   return unwrap<any>(api.post('/public/reservations', data));
 };
+

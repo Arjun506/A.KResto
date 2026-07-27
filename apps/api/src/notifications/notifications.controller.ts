@@ -1,192 +1,1 @@
-import {
-
-  Body,
-
-  Controller,
-
-  Delete,
-
-  Get,
-
-  Param,
-
-  Patch,
-
-  Post,
-
-  Put,
-
-  Query,
-
-  Req,
-
-  UseGuards,
-
-} from '@nestjs/common';
-
-import { NotificationsService } from './notifications.service';
-
-import { CreateTemplateDto } from './dto/create-template.dto';
-
-import { UpdatePreferencesDto } from './dto/update-preferences.dto';
-
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-
-import { RequirePermission } from '../auth/require-permission.decorator';
-
-import type { AuthenticatedRequest } from '../common/types/authenticated-request.interface';
-
-import type { JwtUser } from '../common/types/jwt-user.interface';
-
-import { apiSuccess } from '../common/responses/api-response';
-
-
-
-@Controller('notifications')
-
-@UseGuards(JwtAuthGuard)
-
-export class NotificationsController {
-
-  constructor(private readonly service: NotificationsService) {}
-
-
-
-  @Get()
-
-  async getNotifications(
-
-    @Req() req: any,
-
-    @Query('read') readString?: string,
-
-    @Query('category') category?: string,
-
-    @Query('page') pageString?: string,
-
-    @Query('limit') limitString?: string,
-
-  ) {
-
-    const read = readString === 'true' ? true : readString === 'false' ? false : undefined;
-
-    const page = pageString ? parseInt(pageString, 10) : undefined;
-
-    const limit = limitString ? parseInt(limitString, 10) : undefined;
-
-
-
-    const data = await this.service.getNotifications(req.user as JwtUser, { read, category, page, limit });
-
-    return apiSuccess(data, 'Notifications retrieved successfully');
-
-  }
-
-
-
-  @Patch('read-all')
-
-  async markAllRead(@Req() req: any) {
-
-    await this.service.markAllRead(req.user as JwtUser);
-
-    return apiSuccess(null, 'All notifications marked as read');
-
-  }
-
-
-
-  @Patch(':id/read')
-
-  async markAsRead(@Req() req: any, @Param('id') id: string) {
-
-    await this.service.markAsRead(req.user as JwtUser, id);
-
-    return apiSuccess(null, 'Notification marked as read');
-
-  }
-
-
-
-  @Patch(':id/archive')
-
-  async archiveNotification(@Req() req: any, @Param('id') id: string) {
-
-    await this.service.archiveNotification(req.user as JwtUser, id);
-
-    return apiSuccess(null, 'Notification archived successfully');
-
-  }
-
-
-
-  @Delete(':id')
-
-  async deleteNotification(@Req() req: any, @Param('id') id: string) {
-
-    await this.service.deleteNotification(req.user as JwtUser, id);
-
-    return apiSuccess(null, 'Notification deleted successfully');
-
-  }
-
-
-
-  @Get('preferences')
-
-  async getPreferences(@Req() req: any) {
-
-    const data = await this.service.getPreferences(req.user as JwtUser);
-
-    return apiSuccess(data, 'Notification preferences retrieved successfully');
-
-  }
-
-
-
-  @Put('preferences')
-
-  async updatePreferences(
-
-    @Req() req: any,
-
-    @Body() dto: UpdatePreferencesDto,
-
-  ) {
-
-    const data = await this.service.updatePreferences(req.user as JwtUser, dto);
-
-    return apiSuccess(data, 'Notification preferences updated successfully');
-
-  }
-
-
-
-  @Get('templates')
-
-  @RequirePermission('notifications:templates:read')
-
-  async getTemplates() {
-
-    const data = await this.service.getTemplates();
-
-    return apiSuccess(data, 'Notification templates retrieved successfully');
-
-  }
-
-
-
-  @Post('templates')
-
-  @RequirePermission('notifications:templates:write')
-
-  async upsertTemplate(@Body() dto: CreateTemplateDto) {
-
-    const data = await this.service.upsertTemplate(dto);
-
-    return apiSuccess(data, 'Notification template configured successfully');
-
-  }
-
-}
-
+import {  Body,  Controller,  Delete,  Get,  Param,  Patch,  Post,  Put,  Query,  Req,  UseGuards,} from '@nestjs/common';import { NotificationsService } from './notifications.service';import { CreateTemplateDto } from './dto/create-template.dto';import { UpdatePreferencesDto } from './dto/update-preferences.dto';import { JwtAuthGuard } from '../auth/jwt-auth.guard';import { RequirePermission } from '../auth/require-permission.decorator';import type { AuthenticatedRequest } from '../common/types/authenticated-request.interface';import type { JwtUser } from '../common/types/jwt-user.interface';import { apiSuccess } from '../common/responses/api-response';@Controller('notifications')@UseGuards(JwtAuthGuard)export class NotificationsController {  constructor(private readonly service: NotificationsService) {}  @Get()  async getNotifications(    @Req() req: any,    @Query('read') readString?: string,    @Query('category') category?: string,    @Query('page') pageString?: string,    @Query('limit') limitString?: string,  ) {    const read =      readString === 'true' ? true : readString === 'false' ? false : undefined;    const page = pageString ? parseInt(pageString, 10) : undefined;    const limit = limitString ? parseInt(limitString, 10) : undefined;    const data = await this.service.getNotifications(req.user as JwtUser, {      read,      category,      page,      limit,    });    return apiSuccess(data, 'Notifications retrieved successfully');  }  @Patch('read-all')  async markAllRead(@Req() req: any) {    await this.service.markAllRead(req.user as JwtUser);    return apiSuccess(null, 'All notifications marked as read');  }  @Patch(':id/read')  async markAsRead(@Req() req: any, @Param('id') id: string) {    await this.service.markAsRead(req.user as JwtUser, id);    return apiSuccess(null, 'Notification marked as read');  }  @Patch(':id/archive')  async archiveNotification(@Req() req: any, @Param('id') id: string) {    await this.service.archiveNotification(req.user as JwtUser, id);    return apiSuccess(null, 'Notification archived successfully');  }  @Delete(':id')  async deleteNotification(@Req() req: any, @Param('id') id: string) {    await this.service.deleteNotification(req.user as JwtUser, id);    return apiSuccess(null, 'Notification deleted successfully');  }  @Get('preferences')  async getPreferences(@Req() req: any) {    const data = await this.service.getPreferences(req.user as JwtUser);    return apiSuccess(data, 'Notification preferences retrieved successfully');  }  @Put('preferences')  async updatePreferences(    @Req() req: any,    @Body() dto: UpdatePreferencesDto,  ) {    const data = await this.service.updatePreferences(req.user as JwtUser, dto);    return apiSuccess(data, 'Notification preferences updated successfully');  }  @Get('templates')  @RequirePermission('notifications:templates:read')  async getTemplates() {    const data = await this.service.getTemplates();    return apiSuccess(data, 'Notification templates retrieved successfully');  }  @Post('templates')  @RequirePermission('notifications:templates:write')  async upsertTemplate(@Body() dto: CreateTemplateDto) {    const data = await this.service.upsertTemplate(dto);    return apiSuccess(data, 'Notification template configured successfully');  }}

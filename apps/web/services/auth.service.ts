@@ -18,9 +18,9 @@ const unwrap = async <T,>(
 export async function loginUser(
   email: string,
   password: string,
-): Promise<AuthAccessTokenResponse> {
+): Promise<any> {
   const payload: AuthLoginRequest = { email, password };
-  return unwrap<AuthAccessTokenResponse>(
+  return unwrap<any>(
     api.post('/auth/login', payload),
   );
 }
@@ -29,12 +29,75 @@ export async function registerUser(
   name: string,
   email: string,
   password: string,
-  restaurantId?: string,
+  tenantId?: string,
 ): Promise<any> {
-  const payload = { name, email, password, restaurantId };
+  const payload = { name, email, password, tenantId };
   return unwrap<any>(
     api.post('/auth/register', payload),
   );
 }
 
+export async function refreshTokens(
+  refreshToken: string,
+): Promise<any> {
+  return unwrap<any>(
+    api.post('/auth/refresh', { refreshToken }),
+  );
+}
+
+export async function logoutUser(
+  refreshToken: string,
+): Promise<any> {
+  return unwrap<any>(
+    api.post('/auth/logout', { refreshToken }),
+  );
+}
+
+export async function requestForgotPassword(
+  email: string,
+): Promise<any> {
+  return unwrap<any>(
+    api.post('/auth/forgot-password/request', { email }),
+  );
+}
+
+export async function verifyForgotPasswordOtp(
+  email: string,
+  code: string,
+): Promise<any> {
+  return unwrap<any>(
+    api.post('/auth/forgot-password/verify', { email, code }),
+  );
+}
+
+export async function resetPassword(
+  resetToken: string,
+  newPassword: string,
+): Promise<any> {
+  return unwrap<any>(
+    api.post('/auth/forgot-password/reset', { resetToken, newPassword }),
+  );
+}
+
+export async function requestEmailVerification(): Promise<any> {
+  return unwrap<any>(
+    api.post('/auth/verify-email/request'),
+  );
+}
+
+export async function confirmEmailVerification(
+  token: string,
+): Promise<any> {
+  return unwrap<any>(
+    api.post('/auth/verify-email/confirm', { token }),
+  );
+}
+
+export async function verify2faOtp(
+  code: string,
+): Promise<any> {
+  return unwrap<any>(
+    api.post('/auth/2fa/verify', { code }),
+  );
+}
 

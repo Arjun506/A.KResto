@@ -18,6 +18,7 @@ export function useRoleBasedRedirect() {
 
     // Redirect based on role
     const dashboardMap: Record<string, string> = {
+      RESTAURANT_OWNER: '/dashboard',
       OWNER: '/dashboard',
       CASHIER: '/dashboard/billing',
       CHEF: '/dashboard/kitchen',
@@ -30,7 +31,9 @@ export function useRoleBasedRedirect() {
 
     // Only redirect if not already on a dashboard page
     if (currentPath === '/dashboard' || currentPath === '/') {
-      router.replace(targetDashboard);
+      if (currentPath !== targetDashboard) {
+        router.replace(targetDashboard);
+      }
     }
   }, [user, isLoading, router]);
 
@@ -39,6 +42,7 @@ export function useRoleBasedRedirect() {
 
 export function getRoleDashboard(role: string): string {
   const map: Record<string, string> = {
+    RESTAURANT_OWNER: '/dashboard',
     OWNER: '/dashboard',
     CASHIER: '/dashboard/billing',
     CHEF: '/dashboard/kitchen',
@@ -47,3 +51,4 @@ export function getRoleDashboard(role: string): string {
   };
   return map[role] || '/dashboard';
 }
+

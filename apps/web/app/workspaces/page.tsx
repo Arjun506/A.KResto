@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import AuthBackground from '@/components/auth/AuthBackground';
+import AuthLayout from '@/components/auth/AuthLayout';
 import Link from 'next/link';
-import { Store, Briefcase, Sparkles, Plus, Loader2, ArrowRight, LogOut, CheckCircle } from 'lucide-react';
+import { Store, Briefcase, Sparkles, Plus, Loader2, LogOut, CheckCircle } from 'lucide-react';
 
 const mockWorkspaces = [
   { id: 'ws-1', name: 'A.K Resto Indiranagar', location: 'Bengaluru, KA', industry: 'Restaurant', lastVisited: '10 mins ago', active: true, icon: Store, color: 'from-orange-500 to-amber-500' },
@@ -31,19 +31,14 @@ export default function WorkspacesPage() {
   };
 
   return (
-    <main className="min-h-screen relative w-full overflow-hidden flex items-center justify-center p-6 sm:p-12">
-      {/* 3D Aurora Mesh Backdrop */}
-      <AuthBackground />
-
-      {/* Glass Card Container */}
-      <div className="relative z-10 w-full max-w-[620px] glass-premium rounded-3xl p-8 sm:p-10 border border-slate-200/50 dark:border-white/5 shadow-2xl text-left backdrop-blur-xl">
-        
+    <AuthLayout>
+      <div className="space-y-6">
         {/* Header bar */}
-        <div className="flex items-center justify-between border-b border-slate-200/30 dark:border-white/5 pb-5 mb-8">
+        <div className="flex items-center justify-between border-b border-slate-200/35 dark:border-white/5 pb-4 mb-4">
           <div>
             <h2 className="text-2xl font-black text-slate-950 dark:text-white leading-tight">Select Workspace</h2>
             <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
-              Select an active corporate tenant workspace environment to launch your console.
+              Select a tenant workspace environment to launch your console.
             </p>
           </div>
           <Link href="/login" className="grid h-9 w-9 place-items-center rounded-xl border border-slate-200/50 dark:border-white/5 bg-white/20 text-slate-650 hover:bg-slate-100/50 dark:bg-slate-900/10 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition" aria-label="Sign out">
@@ -53,7 +48,6 @@ export default function WorkspacesPage() {
 
         {/* Workspaces List Grid */}
         <div className="grid gap-4 sm:grid-cols-2">
-          
           {mockWorkspaces.map((ws) => {
             const WsIcon = ws.icon;
             const isConnecting = connectingId === ws.id;
@@ -63,7 +57,7 @@ export default function WorkspacesPage() {
                 type="button"
                 onClick={() => handleSelectWorkspace(ws.id, ws.name)}
                 disabled={connectingId !== null}
-                className={`group p-5 rounded-2xl border text-left flex flex-col justify-between h-[135px] transition-all duration-300 relative overflow-hidden ${
+                className={`group p-4 rounded-2xl border text-left flex flex-col justify-between h-[135px] transition-all duration-300 relative overflow-hidden ${
                   isConnecting
                     ? 'bg-blue-600/10 border-blue-500/40 dark:bg-cyan-500/15 dark:border-cyan-500/40 shadow-lg'
                     : 'border-slate-200/50 bg-white/30 hover:bg-slate-100/50 hover:border-slate-300 dark:border-white/5 dark:bg-slate-900/20 dark:hover:bg-slate-900/40 dark:hover:border-white/10 hover:-translate-y-1'
@@ -77,7 +71,7 @@ export default function WorkspacesPage() {
                     <WsIcon size={14} />
                   </span>
                   {ws.lastVisited && (
-                    <span className="text-[8px] font-black uppercase tracking-wider bg-slate-200/60 dark:bg-white/10 px-2 py-0.5 rounded text-slate-600 dark:text-slate-350">
+                    <span className="text-[8px] font-black uppercase tracking-wider bg-slate-200/60 dark:bg-white/10 px-2 py-0.5 rounded text-slate-650 dark:text-slate-350">
                       {ws.lastVisited}
                     </span>
                   )}
@@ -102,7 +96,7 @@ export default function WorkspacesPage() {
           {/* Create Workspace Button Card */}
           <Link
             href="/onboarding"
-            className="group p-5 rounded-2xl border border-dashed border-slate-300 hover:border-blue-500 bg-white/15 dark:border-white/10 dark:hover:border-cyan-500 hover:bg-white/30 dark:hover:bg-slate-900/10 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-cyan-400 flex flex-col justify-center items-center h-[135px] text-center transition-all duration-300 hover:-translate-y-1 shadow-sm"
+            className="group p-4 rounded-2xl border border-dashed border-slate-300 hover:border-blue-500 bg-white/15 dark:border-white/10 dark:hover:border-cyan-500 hover:bg-white/30 dark:hover:bg-slate-900/10 text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-cyan-400 flex flex-col justify-center items-center h-[135px] text-center transition-all duration-300 hover:-translate-y-1 shadow-sm"
           >
             <span className="grid h-8 w-8 place-items-center rounded-full bg-slate-200/50 group-hover:bg-blue-500/10 dark:bg-white/5 dark:group-hover:bg-cyan-500/10 mb-3 transition">
               <Plus size={16} />
@@ -110,9 +104,7 @@ export default function WorkspacesPage() {
             <span className="block text-xs font-black uppercase tracking-wider">Create Workspace</span>
             <span className="mt-0.5 block text-[8px] font-bold text-slate-450 dark:text-slate-500">Deploy another database sandbox</span>
           </Link>
-
         </div>
-
       </div>
 
       {/* Toast Alert */}
@@ -122,6 +114,7 @@ export default function WorkspacesPage() {
           {toastMessage}
         </div>
       )}
-    </main>
+    </AuthLayout>
   );
 }
+

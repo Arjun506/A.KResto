@@ -24,3 +24,4 @@ export async function getLaunchStatus(): Promise<LaunchStatusResponse> {
   if (res.data.success) return res.data.data;
   throw new Error(res.data.message || 'Failed to fetch launch status');
 }
+

@@ -5,6 +5,14 @@ import { useAuth } from '@/context/auth-context';
 import { getBusinessSettings } from '@/services/business.service';
 import { getLaunchStatus, LaunchStatusResponse } from '@/services/launch-center.service';
 import {
+  getDashboardKPIs,
+  getRevenueAnalytics,
+  getMenuAnalytics,
+  type DashboardKPIs,
+  type RevenueResponse,
+  type MenuResponse
+} from '@/services/analytics.service';
+import {
   Sparkles,
   Calendar as CalendarIcon,
   Search,
@@ -39,8 +47,12 @@ import {
   Shield,
   Globe,
   Terminal,
-  CalendarDays
+  CalendarDays,
+  Building,
+  MapPin,
+  CheckSquare
 } from 'lucide-react';
+import { MetricCard, EmptyState, OfflineState, Alert, Badge, Button } from '@business-os/ui';
 
 // Custom SVG sparkline generator
 function MiniSparkline({ data, color }: { data: number[]; color: string }) {
@@ -82,6 +94,16 @@ export default function UniversalBusinessDashboard() {
   const [businessAddress, setBusinessAddress] = useState('12th Main Road, Indiranagar');
   const [businessPhone, setBusinessPhone] = useState('+91 98765 43210');
 
+  // Multi-Business / Multi-Location Selectors
+  const [selectedOrg, setSelectedOrg] = useState('AK Group HQ');
+  const [selectedBusiness, setSelectedBusiness] = useState('All Businesses');
+  const [selectedLocation, setSelectedLocation] = useState('All Locations');
+
+  // Real Database KPIs and analytics states
+  const [kpis, setKpis] = useState<DashboardKPIs | null>(null);
+  const [revenueData, setRevenueData] = useState<RevenueResponse | null>(null);
+  const [menuData, setMenuData] = useState<MenuResponse | null>(null);
+
   // Checklist tasks states
   const [tasks, setTasks] = useState([
     { id: 1, text: 'Audit raw stock supplies and ingredients counts', done: true },
@@ -115,8 +137,25 @@ export default function UniversalBusinessDashboard() {
       } catch {}
     };
 
+    // Load real database analytics and stats
+    const loadAnalytics = async () => {
+      try {
+        const [kpiRes, revRes, menuRes] = await Promise.all([
+          getDashboardKPIs(),
+          getRevenueAnalytics(),
+          getMenuAnalytics(),
+        ]);
+        setKpis(kpiRes);
+        setRevenueData(revRes);
+        setMenuData(menuRes);
+      } catch (err) {
+        console.warn('Failed to load real business analytics, using local seed fallback:', err);
+      }
+    };
+
     void loadStatus();
     void loadIndustry();
+    void loadAnalytics();
   }, []);
 
   const toggleTask = (id: number) => {
@@ -316,12 +355,54 @@ export default function UniversalBusinessDashboard() {
       {/* SECTION 4: KPI CARDS (6 Metrics) */}
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-6">
         {[
-          { label: 'Total Revenue', val: 'Rs. 48,250', trend: '+12.4%', up: true, spark: [12, 18, 15, 24, 30, 28, 48], color: '#3b82f6' },
-          { label: indDetails.kpis.label, val: indDetails.kpis.value, trend: '+8.2%', up: true, spark: [8, 14, 12, 22, 19, 25, 28], color: '#06b6d4' },
-          { label: 'Active Members', val: '86 signups', trend: '+4.1%', up: true, spark: [5, 11, 9, 14, 16, 21, 23], color: '#8b5cf6' },
-          { label: 'Cash Flow index', val: 'Rs. 38,400', trend: '+6.5%', up: true, spark: [10, 15, 14, 25, 22, 28, 38], color: '#10b981' },
-          { label: 'Today\'s Expenses', val: 'Rs. 12,400', trend: '-2.5%', up: false, spark: [18, 16, 20, 15, 14, 13, 12], color: '#f43f5e' },
-          { label: 'Growth Rating', val: '+10.5%', trend: 'Stable', up: true, spark: [20, 22, 26, 25, 28, 30, 32], color: '#f59e0b' }
+          {
+            label: 'Total Revenue',
+            val: kpis ? `$${parseFloat(kpis.totalRevenue).toLocaleString()}` : 'Rs. 48,250',
+            trend: kpis ? '+14.2%' : '+12.4%',
+            up: true,
+            spark: revenueData?.daily?.map(r => parseFloat(r.revenue)) || [12, 18, 15, 24, 30, 28, 48],
+            color: '#3b82f6'
+          },
+          {
+            label: indDetails.kpis.label,
+            val: kpis ? `${kpis.totalOrders} orders` : indDetails.kpis.value,
+            trend: '+8.2%',
+            up: true,
+            spark: [8, 14, 12, 22, 19, 25, 28],
+            color: '#06b6d4'
+          },
+          {
+            label: 'Active Members',
+            val: kpis ? `${kpis.activeCustomers} signups` : '86 signups',
+            trend: '+4.1%',
+            up: true,
+            spark: [5, 11, 9, 14, 16, 21, 23],
+            color: '#8b5cf6'
+          },
+          {
+            label: 'Average Order Value',
+            val: kpis ? `$${parseFloat(kpis.averageOrderValue).toFixed(2)}` : 'Rs. 38,400',
+            trend: '+6.5%',
+            up: true,
+            spark: [10, 15, 14, 25, 22, 28, 38],
+            color: '#10b981'
+          },
+          {
+            label: "Today's Revenue",
+            val: kpis ? `$${parseFloat(kpis.todayRevenue).toLocaleString()}` : 'Rs. 12,400',
+            trend: '+5.1%',
+            up: true,
+            spark: [18, 16, 20, 15, 14, 13, 12],
+            color: '#f43f5e'
+          },
+          {
+            label: "Today's Orders",
+            val: kpis ? `${kpis.todayOrders} orders` : '12 orders',
+            trend: '+10.5%',
+            up: true,
+            spark: [20, 22, 26, 25, 28, 30, 32],
+            color: '#6366F1'
+          }
         ].map((card, i) => (
           <div key={i} className="bg-white/40 dark:bg-slate-900/25 border border-slate-200/50 dark:border-white/5 rounded-2xl p-4 shadow-sm hover:shadow-md transition">
             <span className="block text-[8px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-455">{card.label}</span>
@@ -388,7 +469,7 @@ export default function UniversalBusinessDashboard() {
                 { name: 'POS Checkout', icon: CreditCard, color: 'text-blue-500 bg-blue-500/10' },
                 { name: 'Inventory Logs', icon: Package, color: 'text-rose-500 bg-rose-500/10' },
                 { name: 'Staff Rosters', icon: UserCheck, color: 'text-emerald-500 bg-emerald-500/10' },
-                { name: 'AI Insights', icon: Sparkles, color: 'text-amber-500 bg-amber-500/10 animate-pulse' },
+                { name: 'AI Insights', icon: Sparkles, color: 'text-indigo-500 bg-indigo-500/10 animate-pulse' },
                 { name: 'CRM & Loyalty', icon: Users, color: 'text-violet-500 bg-violet-500/10' }
               ].map((mod, idx) => (
                 <div key={idx} className="p-3 border border-slate-200/40 dark:border-white/5 rounded-2xl bg-white/20 dark:bg-slate-950/20 flex flex-col items-center gap-2">
@@ -535,7 +616,7 @@ export default function UniversalBusinessDashboard() {
           {/* SECTION 9: Business Insights (AI Suggestions) */}
           <div className="bg-white/40 dark:bg-slate-900/25 border border-slate-200/50 dark:border-white/5 rounded-3xl p-5 shadow-sm text-left">
             <span className="block text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3.5 flex items-center gap-1.5">
-              <Sparkles size={12} className="text-yellow-500 animate-pulse" />
+              <Sparkles size={12} className="text-blue-550 dark:text-cyan-400 animate-pulse" />
               AI Suggestions Ticker
             </span>
             <div className="space-y-2 text-xs font-bold text-slate-800 dark:text-slate-300">
@@ -605,3 +686,4 @@ export default function UniversalBusinessDashboard() {
     </div>
   );
 }
+

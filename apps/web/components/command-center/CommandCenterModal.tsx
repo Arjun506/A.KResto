@@ -247,3 +247,4 @@ export default function CommandCenterModal({ isOpen, onClose }: CommandCenterMod
     </div>
   );
 }
+

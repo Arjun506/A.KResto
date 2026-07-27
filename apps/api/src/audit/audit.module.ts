@@ -1,12 +1,13 @@
-import { Module } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { Global, Module } from '@nestjs/common';
+import { AuditController } from './audit.controller';
+import { AuditService } from './audit.service';
+import { AuditRepository } from './audit.repository';
+import { PrismaService } from '../prisma/prisma.service';
 
-/**
- * Audit logging module
- * Tracks all data mutations for compliance and auditing
- */
+@Global()
 @Module({
-  providers: [PrismaService],
-  exports: [PrismaService],
+  controllers: [AuditController],
+  providers: [AuditService, AuditRepository, PrismaService],
+  exports: [AuditService, AuditRepository],
 })
 export class AuditModule {}

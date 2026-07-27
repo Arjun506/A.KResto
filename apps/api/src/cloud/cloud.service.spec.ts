@@ -8,7 +8,11 @@ import { StorageAdapter } from './storage/storage.adapter';
 describe('CloudService (unit)', () => {
   let service: CloudService;
   let mockStorage: jest.Mocked<StorageAdapter>;
-  const registryPath = path.join(process.cwd(), 'uploads', 'metadata-registry.json');
+  const registryPath = path.join(
+    process.cwd(),
+    'uploads',
+    'metadata-registry.json',
+  );
 
   beforeEach(async () => {
     // Reset/cleanup metadata file if exists
@@ -79,9 +83,9 @@ describe('CloudService (unit)', () => {
   });
 
   it('throws NotFoundException when file metadata is missing or scopes conflict', async () => {
-    await expect(service.getFileMetadata('t1', 'nonexistent_id')).rejects.toThrow(
-      NotFoundException,
-    );
+    await expect(
+      service.getFileMetadata('t1', 'nonexistent_id'),
+    ).rejects.toThrow(NotFoundException);
   });
 
   it('deletes file asset from disk and metadata index logs', async () => {
@@ -95,7 +99,13 @@ describe('CloudService (unit)', () => {
       size: 2000,
     };
 
-    const uploaded = await service.uploadFile('t1', 'u1', file, 'backup', false);
+    const uploaded = await service.uploadFile(
+      't1',
+      'u1',
+      file,
+      'backup',
+      false,
+    );
 
     await service.deleteFile('t1', uploaded.id);
 

@@ -8,7 +8,7 @@ export type ReservationStatus =
 
 export type Reservation = {
   id: string;
-  restaurantId: string;
+  tenantId: string;
   tableId: string;
   customerName: string;
   customerPhone?: string | null;
@@ -34,3 +34,4 @@ export type CreateReservationRequest = {
   reservationAt: string;
   notes?: string;
 };
+

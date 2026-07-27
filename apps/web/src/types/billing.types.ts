@@ -15,3 +15,4 @@ export type Invoice = {
   status: string;
   issuedAt: string;
 };
+

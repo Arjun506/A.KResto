@@ -15,7 +15,13 @@ import { PermissionsGuard } from './permissions.guard';
     }),
 
     JwtModule.register({
-      secret: 'super-secret',
+      secret: (() => {
+        const jwtSecret = process.env.JWT_SECRET;
+        if (!jwtSecret) {
+          throw new Error('JWT_SECRET is required');
+        }
+        return jwtSecret;
+      })(),
       signOptions: {
         expiresIn: '7d',
       },

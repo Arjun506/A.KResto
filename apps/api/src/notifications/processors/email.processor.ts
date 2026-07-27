@@ -1,42 +1,1 @@
-import { Process, Processor } from '@nestjs/bull';
-import type { Job } from 'bull';
-import { Logger } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-
-@Processor('email')
-export class EmailProcessor {
-  private readonly logger = new Logger(EmailProcessor.name);
-
-  constructor(private readonly prisma: PrismaService) {}
-
-  @Process('sendEmail')
-  async handleSendEmail(job: Job<any>) {
-    const { historyId, user } = job.data;
-    this.logger.log(`Processing background Email job ${job.id} to: ${user.email}`);
-
-    try {
-      // Mock provider delay
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // Update history status
-      await this.prisma.notification_history.update({
-        where: { id: historyId },
-        data: {
-          status: 'SUCCESS',
-          sentAt: new Date(),
-        },
-      });
-
-      this.logger.log(`Email successfully dispatched via provider to ${user.email}`);
-    } catch (err: any) {
-      this.logger.error(`Failed to deliver email to ${user.email}`, err);
-      await this.prisma.notification_history.update({
-        where: { id: historyId },
-        data: {
-          status: 'FAILED',
-          errorMessage: err.message || 'Unknown provider error',
-        },
-      });
-    }
-  }
-}
+import { Process, Processor } from '@nestjs/bull';import type { Job } from 'bull';import { Logger } from '@nestjs/common';import { PrismaService } from '../../prisma/prisma.service';@Processor('email')export class EmailProcessor {  private readonly logger = new Logger(EmailProcessor.name);  constructor(private readonly prisma: PrismaService) {}  @Process('sendEmail')  async handleSendEmail(job: Job<any>) {    const { historyId, user } = job.data;    this.logger.log(      `Processing background Email job ${job.id} to: ${user.email}`,    );    try {      // Mock provider delay      await new Promise((resolve) => setTimeout(resolve, 500));      // Update history status      await this.prisma.notification_history.update({        where: { id: historyId },        data: {          status: 'SUCCESS',          sentAt: new Date(),        },      });      this.logger.log(        `Email successfully dispatched via provider to ${user.email}`,      );    } catch (err: any) {      this.logger.error(`Failed to deliver email to ${user.email}`, err);      await this.prisma.notification_history.update({        where: { id: historyId },        data: {          status: 'FAILED',          errorMessage: err.message || 'Unknown provider error',        },      });    }  }}

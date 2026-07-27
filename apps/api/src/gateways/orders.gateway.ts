@@ -15,7 +15,7 @@ import type { OrderResponseDto } from '../orders/dto/order-response.dto';
 
 type SocketData = {
   user?: JwtUser;
-  restaurantId?: string;
+  tenantId?: string;
 };
 
 type AuthenticatedSocket = Socket & {
@@ -26,12 +26,15 @@ type JwtPayload = {
   sub: string;
   email: string;
   role: string;
-  restaurantId?: string | null;
+  tenantId?: string | null;
 };
 
 @WebSocketGateway({
   cors: {
-    origin: '*',
+    origin: process.env.ALLOWED_ORIGINS
+      ? process.env.ALLOWED_ORIGINS.split(',').map((s) => s.trim())
+      : '*',
+    credentials: true,
   },
 })
 export class OrdersGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -46,15 +49,8 @@ export class OrdersGateway implements OnGatewayConnection, OnGatewayDisconnect {
     try {
       const token = this.extractToken(client);
       if (!token) {
-        const restaurantId = client.handshake.query?.restaurantId;
-        if (typeof restaurantId === 'string' && restaurantId) {
-          const clientData = this.getSocketData(client);
-          clientData.restaurantId = restaurantId;
-          this.socketTenants.set(client.id, restaurantId);
-          await client.join(this.roomName(restaurantId));
-          return;
-        }
-        client.disconnect(true);
+        // Disallow joining tenant rooms for unauthenticated users
+        // Guests can still connect to track specific orders via joinOrder, but they cannot join the restaurant-wide sync room.
         return;
       }
 
@@ -63,10 +59,10 @@ export class OrdersGateway implements OnGatewayConnection, OnGatewayDisconnect {
         id: payload.sub,
         email: payload.email,
         role: payload.role,
-        restaurantId: payload.restaurantId ?? undefined,
+        tenantId: payload.tenantId ?? undefined,
       };
 
-      if (!user.restaurantId && user.role !== 'SUPER_ADMIN') {
+      if (!user.tenantId && user.role !== 'SUPER_ADMIN') {
         client.disconnect(true);
         return;
       }
@@ -74,10 +70,18 @@ export class OrdersGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const clientData = this.getSocketData(client);
       clientData.user = user;
 
-      if (user.restaurantId) {
-        clientData.restaurantId = user.restaurantId;
-        this.socketTenants.set(client.id, user.restaurantId);
-        await client.join(this.roomName(user.restaurantId));
+      const allowedRoles = [
+        'SUPER_ADMIN',
+        'RESTAURANT_OWNER',
+        'MANAGER',
+        'CASHIER',
+        'WAITER',
+        'CHEF',
+      ];
+      if (user.tenantId && allowedRoles.includes(user.role)) {
+        clientData.tenantId = user.tenantId;
+        this.socketTenants.set(client.id, user.tenantId);
+        await client.join(this.roomName(user.tenantId));
       }
     } catch {
       client.disconnect(true);
@@ -85,15 +89,15 @@ export class OrdersGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   handleDisconnect(client: AuthenticatedSocket) {
-    const restaurantId = this.socketTenants.get(client.id);
-    if (restaurantId) {
-      void client.leave(this.roomName(restaurantId));
+    const tenantId = this.socketTenants.get(client.id);
+    if (tenantId) {
+      void client.leave(this.roomName(tenantId));
     }
 
     this.socketTenants.delete(client.id);
     const clientData = this.getSocketData(client);
     delete clientData.user;
-    delete clientData.restaurantId;
+    delete clientData.tenantId;
   }
 
   @SubscribeMessage('joinOrder')
@@ -113,69 +117,69 @@ export class OrdersGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() data: unknown,
   ) {
-    const restaurantId = this.getSocketData(client).restaurantId;
-    if (!restaurantId) {
+    const tenantId = this.getSocketData(client).tenantId;
+    if (!tenantId) {
       return { success: false, message: 'Missing tenant room' };
     }
 
-    this.emitToTenant(restaurantId, 'orderCreated', data);
+    this.emitToTenant(tenantId, 'orderCreated', data);
     return { success: true };
   }
 
   emitOrderCreated(order: OrderResponseDto) {
-    this.emitToTenant(order.restaurantId, 'orderCreated', order);
-    this.emitKitchenSync(order.restaurantId, order);
-    this.emitWaiterSync(order.restaurantId, order);
+    this.emitToTenant(order.tenantId, 'orderCreated', order);
+    this.emitKitchenSync(order.tenantId, order);
+    this.emitWaiterSync(order.tenantId, order);
   }
 
   emitOrderUpdated(order: OrderResponseDto) {
-    this.emitToTenant(order.restaurantId, 'orderUpdated', order);
+    this.emitToTenant(order.tenantId, 'orderUpdated', order);
     this.server.to(`order:${order.id}`).emit('orderUpdated', order);
-    this.emitKitchenSync(order.restaurantId, order);
-    this.emitWaiterSync(order.restaurantId, order);
+    this.emitKitchenSync(order.tenantId, order);
+    this.emitWaiterSync(order.tenantId, order);
   }
 
-  emitOrderDeleted(restaurantId: string, payload: { id: string }) {
-    this.emitToTenant(restaurantId, 'orderDeleted', payload);
-    this.emitToTenant(restaurantId, 'waiterOrderSync', payload);
+  emitOrderDeleted(tenantId: string, payload: { id: string }) {
+    this.emitToTenant(tenantId, 'orderDeleted', payload);
+    this.emitToTenant(tenantId, 'waiterOrderSync', payload);
   }
 
   emitOrderStatusChanged(order: OrderResponseDto) {
-    this.emitToTenant(order.restaurantId, 'orderStatusChanged', order);
+    this.emitToTenant(order.tenantId, 'orderStatusChanged', order);
     this.server.to(`order:${order.id}`).emit('orderStatusChanged', order);
     this.emitOrderUpdated(order);
   }
 
-  emitTableAssigned(restaurantId: string, payload: unknown) {
-    this.emitToTenant(restaurantId, 'tableAssigned', payload);
-    this.emitToTenant(restaurantId, 'waiterNotification', payload);
+  emitTableAssigned(tenantId: string, payload: unknown) {
+    this.emitToTenant(tenantId, 'tableAssigned', payload);
+    this.emitToTenant(tenantId, 'waiterNotification', payload);
   }
 
-  private emitKitchenSync(restaurantId: string, order: OrderResponseDto) {
+  private emitKitchenSync(tenantId: string, order: OrderResponseDto) {
     const status = String(order.status);
 
-    this.emitToTenant(restaurantId, 'kitchenOrderSync', order);
+    this.emitToTenant(tenantId, 'kitchenOrderSync', order);
 
     if (status === 'PREPARING') {
-      this.emitToTenant(restaurantId, 'kitchenOrderPreparing', order);
+      this.emitToTenant(tenantId, 'kitchenOrderPreparing', order);
     }
 
     if (status === 'READY') {
-      this.emitToTenant(restaurantId, 'kitchenOrderReady', order);
+      this.emitToTenant(tenantId, 'kitchenOrderReady', order);
     }
 
     if (status === 'COMPLETED') {
-      this.emitToTenant(restaurantId, 'kitchenOrderCompleted', order);
+      this.emitToTenant(tenantId, 'kitchenOrderCompleted', order);
     }
   }
 
-  private emitWaiterSync(restaurantId: string, order: OrderResponseDto) {
+  private emitWaiterSync(tenantId: string, order: OrderResponseDto) {
     const status = String(order.status);
 
-    this.emitToTenant(restaurantId, 'waiterOrderSync', order);
+    this.emitToTenant(tenantId, 'waiterOrderSync', order);
 
     if (status === 'READY') {
-      this.emitToTenant(restaurantId, 'waiterNotification', {
+      this.emitToTenant(tenantId, 'waiterNotification', {
         type: 'ORDER_READY',
         orderId: order.id,
         tableId: order.tableId,
@@ -184,15 +188,15 @@ export class OrdersGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   private emitToTenant<TPayload>(
-    restaurantId: string,
+    tenantId: string,
     event: string,
     payload: TPayload,
   ) {
-    this.server.to(this.roomName(restaurantId)).emit(event, payload);
+    this.server.to(this.roomName(tenantId)).emit(event, payload);
   }
 
-  private roomName(restaurantId: string) {
-    return `restaurant:${restaurantId}`;
+  private roomName(tenantId: string) {
+    return `restaurant:${tenantId}`;
   }
 
   private getSocketData(client: Socket): SocketData {

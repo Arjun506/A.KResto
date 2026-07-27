@@ -9,14 +9,20 @@ export class R2StorageAdapter implements StorageAdapter {
 
   async save(key: string, buffer: Buffer, mimeType: string): Promise<string> {
     console.log(`[R2StorageAdapter] Mock saving key: ${key}`);
-    throw new NotImplementedException('Cloudflare R2 Storage Engine integration is slated for future release.');
+    throw new NotImplementedException(
+      'Cloudflare R2 Storage Engine integration is slated for future release.',
+    );
   }
 
   async get(key: string): Promise<Buffer> {
-    throw new NotImplementedException('Cloudflare R2 Storage Engine integration is slated for future release.');
+    throw new NotImplementedException(
+      'Cloudflare R2 Storage Engine integration is slated for future release.',
+    );
   }
 
   async delete(key: string): Promise<void> {
-    throw new NotImplementedException('Cloudflare R2 Storage Engine integration is slated for future release.');
+    throw new NotImplementedException(
+      'Cloudflare R2 Storage Engine integration is slated for future release.',
+    );
   }
 }

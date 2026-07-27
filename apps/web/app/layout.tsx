@@ -5,6 +5,7 @@ import './globals.css';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 
 import { AuthProvider } from '@/context/auth-context';
+import { EntitlementProvider } from '@/context/entitlement-context';
 import { NotificationProvider } from '@/context/notification-context';
 import { LandingStateProvider } from '@/context/landing-state';
 
@@ -63,11 +64,13 @@ export default function RootLayout({
         <ThemeProvider>
 
           <AuthProvider>
-            <NotificationProvider>
-              <LandingStateProvider>
-                {children}
-              </LandingStateProvider>
-            </NotificationProvider>
+            <EntitlementProvider>
+              <NotificationProvider>
+                <LandingStateProvider>
+                  {children}
+                </LandingStateProvider>
+              </NotificationProvider>
+            </EntitlementProvider>
           </AuthProvider>
 
         </ThemeProvider>
@@ -77,3 +80,4 @@ export default function RootLayout({
     </html>
   );
 }
+

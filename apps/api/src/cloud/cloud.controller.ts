@@ -33,7 +33,14 @@ export class CloudController {
    */
   @Post('upload')
   @UseGuards(JwtAuthGuard, TenantGuard, RolesGuard)
-  @Roles('OWNER', 'RESTAURANT_OWNER', 'MANAGER', 'SUPER_ADMIN', 'CASHIER', 'CHEF')
+  @Roles(
+    'OWNER',
+    'RESTAURANT_OWNER',
+    'MANAGER',
+    'SUPER_ADMIN',
+    'CASHIER',
+    'CHEF',
+  )
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
     @Req() req: AuthenticatedRequest,
@@ -42,13 +49,13 @@ export class CloudController {
     @Query('isPublic') isPublicQuery = 'false',
   ) {
     const user = req.user;
-    if (!user || !user.restaurantId) {
+    if (!user || !user.tenantId) {
       throw new UnauthorizedException('Missing tenant context');
     }
 
     const isPublic = isPublicQuery === 'true';
     const metadata = await this.cloudService.uploadFile(
-      user.restaurantId,
+      user.tenantId,
       user.id,
       file,
       category,
@@ -68,11 +75,11 @@ export class CloudController {
     @Query('category') category?: string,
   ) {
     const user = req.user;
-    if (!user || !user.restaurantId) {
+    if (!user || !user.tenantId) {
       throw new UnauthorizedException('Missing tenant context');
     }
 
-    const files = await this.cloudService.listFiles(user.restaurantId, category);
+    const files = await this.cloudService.listFiles(user.tenantId, category);
     return apiSuccess(files, 'Files list retrieved');
   }
 
@@ -84,11 +91,11 @@ export class CloudController {
   @Roles('OWNER', 'RESTAURANT_OWNER', 'MANAGER', 'SUPER_ADMIN')
   async getMetadata(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
     const user = req.user;
-    if (!user || !user.restaurantId) {
+    if (!user || !user.tenantId) {
       throw new UnauthorizedException('Missing tenant context');
     }
 
-    const file = await this.cloudService.getFileMetadata(user.restaurantId, id);
+    const file = await this.cloudService.getFileMetadata(user.tenantId, id);
     return apiSuccess(file, 'File metadata retrieved');
   }
 
@@ -101,11 +108,11 @@ export class CloudController {
   @Roles('OWNER', 'RESTAURANT_OWNER', 'SUPER_ADMIN')
   async deleteFile(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
     const user = req.user;
-    if (!user || !user.restaurantId) {
+    if (!user || !user.tenantId) {
       throw new UnauthorizedException('Missing tenant context');
     }
 
-    await this.cloudService.deleteFile(user.restaurantId, id);
+    await this.cloudService.deleteFile(user.tenantId, id);
     return apiSuccess(null, 'File permanently deleted from AK Cloud');
   }
 
@@ -114,19 +121,26 @@ export class CloudController {
    */
   @Get('secure/:id')
   @UseGuards(JwtAuthGuard, TenantGuard, RolesGuard)
-  @Roles('OWNER', 'RESTAURANT_OWNER', 'MANAGER', 'SUPER_ADMIN', 'CASHIER', 'CHEF')
+  @Roles(
+    'OWNER',
+    'RESTAURANT_OWNER',
+    'MANAGER',
+    'SUPER_ADMIN',
+    'CASHIER',
+    'CHEF',
+  )
   async streamSecureFile(
     @Req() req: AuthenticatedRequest,
     @Param('id') id: string,
     @Res() res: any,
   ) {
     const user = req.user;
-    if (!user || !user.restaurantId) {
+    if (!user || !user.tenantId) {
       throw new UnauthorizedException('Missing tenant context');
     }
 
     const { buffer, metadata } = await this.cloudService.getFileBuffer(
-      user.restaurantId,
+      user.tenantId,
       id,
     );
 

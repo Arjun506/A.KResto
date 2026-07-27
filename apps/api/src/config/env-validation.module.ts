@@ -19,6 +19,8 @@ import * as Joi from 'joi';
         LOG_LEVEL: Joi.string()
           .valid('error', 'warn', 'info', 'debug')
           .default('info'),
+        THROTTLE_TTL: Joi.number().default(60000),
+        THROTTLE_LIMIT: Joi.number().default(10),
 
         // Database
         DATABASE_URL: Joi.string().required(),
@@ -28,7 +30,8 @@ import * as Joi from 'joi';
         // Redis
         REDIS_HOST: Joi.string().default('localhost'),
         REDIS_PORT: Joi.number().default(6379),
-        REDIS_PASSWORD: Joi.string().optional(),
+        REDIS_PASSWORD: Joi.string().optional().allow(''),
+        REDIS_TLS: Joi.string().valid('true', 'false').default('false'),
 
         // JWT
         JWT_SECRET: Joi.string().required(),
@@ -50,6 +53,10 @@ import * as Joi from 'joi';
         // Stripe
         STRIPE_SECRET_KEY: Joi.string().optional(),
         STRIPE_WEBHOOK_SECRET: Joi.string().optional(),
+
+        // Razorpay
+        RAZORPAY_SECRET_KEY: Joi.string().optional(),
+        RAZORPAY_WEBHOOK_SECRET: Joi.string().optional(),
 
         // Sentry
         SENTRY_DSN: Joi.string().optional(),

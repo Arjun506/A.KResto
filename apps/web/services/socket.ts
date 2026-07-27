@@ -9,7 +9,7 @@ const getApiBaseUrl = () => {
   );
 };
 
-export const getSocket = (restaurantId?: string) => {
+export const getSocket = (tenantId?: string) => {
   const token = typeof window !== 'undefined'
     ? window.localStorage.getItem('token')
     : null;
@@ -18,8 +18,8 @@ export const getSocket = (restaurantId?: string) => {
     if (token) {
       socket.auth = { token };
     }
-    if (restaurantId) {
-      socket.io.opts.query = { restaurantId };
+    if (tenantId) {
+      socket.io.opts.query = { tenantId };
     }
     if (socket.disconnected) {
       socket.connect();
@@ -29,7 +29,7 @@ export const getSocket = (restaurantId?: string) => {
 
   socket = io(getApiBaseUrl(), {
     auth: token ? { token } : undefined,
-    query: restaurantId ? { restaurantId } : undefined,
+    query: tenantId ? { tenantId } : undefined,
     autoConnect: true,
     transports: ['websocket'],
   });
@@ -40,3 +40,4 @@ export const getSocket = (restaurantId?: string) => {
 // Backward-compatible default export (only initialize on client to avoid build hangs)
 const defaultSocket = typeof window !== 'undefined' ? getSocket() : null;
 export default defaultSocket;
+

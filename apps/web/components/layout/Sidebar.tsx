@@ -22,7 +22,7 @@ import {
   Star,
   Bell,
   Settings,
-  Crown,
+  Shield,
   X,
   LogOut,
   ChefHat,
@@ -34,6 +34,7 @@ import {
   ShoppingBag
 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
+import { useEntitlement } from '@/context/entitlement-context';
 import type { DashboardLanguageCode } from '@/components/layout/dashboard-language';
 import { getDashboardCopy } from '@/components/layout/dashboard-language';
 import { getBusinessSettings } from '@/services/business.service';
@@ -51,7 +52,8 @@ export default function Sidebar({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, logout, hasPermission } = useAuth();
+  const { hasPack } = useEntitlement();
   const copy = getDashboardCopy(language);
 
   const [restaurantName, setRestaurantName] = useState('Spice Corner');
@@ -109,7 +111,7 @@ export default function Sidebar({
           { name: 'Menu Management', href: '/dashboard/menu', icon: UtensilsCrossed },
           { name: 'Table Management', href: '/dashboard/qr-tables', icon: Layers },
           { name: 'QR Code', href: '/dashboard/qr-tables', icon: QrCode },
-          { name: 'Customers', href: '/dashboard/staff', icon: Users },
+          { name: 'Customers', href: '/dashboard/customers', icon: Users },
           { name: 'Reservations', href: '/dashboard/reservations', icon: Calendar },
           { name: 'Payments', href: '/dashboard/payments', icon: CreditCard },
           { name: 'Inventory / Stock', href: '/dashboard/inventory', icon: Package },
@@ -119,7 +121,7 @@ export default function Sidebar({
           { name: 'Staff Management', href: '/dashboard/staff', icon: UserCheck },
           { name: 'Ops Center', href: '/dashboard/restaurant-operations', icon: ChefHat },
           { name: 'App Store', href: '/dashboard/app-store', icon: ShoppingBag },
-          { name: 'Settings', href: '/dashboard/pos', icon: Settings },
+          { name: 'Settings', href: '/dashboard/settings', icon: Settings },
           { name: 'Subscription', href: '/dashboard/billing', icon: CreditCard }
         ];
 
@@ -162,7 +164,7 @@ export default function Sidebar({
           { type: 'header', name: 'Other' },
           { type: 'link', name: 'Tips / Earnings', href: '/dashboard/waiter', icon: TrendingUp },
           { type: 'link', name: 'Notifications', href: '/dashboard/notifications', icon: Bell, badge: 4 },
-          { type: 'link', name: 'Settings', href: '/dashboard/pos', icon: Settings },
+          { type: 'link', name: 'Settings', href: '/dashboard/settings', icon: Settings },
           { type: 'link', name: 'Log Out', href: '#logout', icon: LogOut, action: handleLogoutClick }
         ];
       case 'CASHIER':
@@ -179,13 +181,13 @@ export default function Sidebar({
           { type: 'link', name: 'Order History', href: '/dashboard/orders', icon: ClipboardList, feature: 'pos' },
           { type: 'header', name: 'Manage' },
           { type: 'link', name: 'Menu', href: '/dashboard/menu', icon: UtensilsCrossed, feature: 'pos' },
-          { type: 'link', name: 'Customers', href: '/dashboard/staff', icon: Users, feature: 'crm' },
+          { type: 'link', name: 'Customers', href: '/dashboard/customers', icon: Users, feature: 'crm' },
           { type: 'header', name: 'Others' },
           { type: 'link', name: 'Reports', href: '/dashboard/analytics', icon: BarChart3, feature: 'analytics' },
           { type: 'link', name: 'Kitchen Display', href: '/dashboard/kitchen', icon: ChefHat, feature: 'pos' },
           { type: 'link', name: 'Notifications', href: '/dashboard/notifications', icon: Bell },
           { type: 'header', name: 'Settings' },
-          { type: 'link', name: 'Settings', href: '/dashboard/pos', icon: Settings }
+          { type: 'link', name: 'Settings', href: '/dashboard/settings', icon: Settings }
         ];
       case 'CHEF':
         return [
@@ -203,29 +205,58 @@ export default function Sidebar({
           { type: 'header', name: 'Manage' },
           { type: 'link', name: 'Reports', href: '/dashboard/analytics', icon: BarChart3, feature: 'analytics' },
           { type: 'link', name: 'Staff Management', href: '/dashboard/staff', icon: UserCheck, feature: 'staff' },
-          { type: 'link', name: 'Kitchen Settings', href: '/dashboard/pos', icon: Settings }
+          { type: 'link', name: 'Kitchen Settings', href: '/dashboard/settings', icon: Settings }
         ];
       case 'OWNER':
       case 'SUPER_ADMIN':
       default:
-        return [
+        const ownerItems: SidebarMenuItem[] = [
           { type: 'link', name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
           { type: 'link', name: 'Launch Center', href: '/dashboard/launch-center', icon: Award },
           { type: 'link', name: 'Orders', href: '/dashboard/orders', icon: ShoppingCart, feature: 'pos' },
           { type: 'link', name: 'Menu Management', href: '/dashboard/menu', icon: UtensilsCrossed, feature: 'pos' },
           { type: 'link', name: 'Table Management', href: '/dashboard/qr-tables', icon: Layers, feature: 'pos' },
-          { type: 'link', name: 'Customers', href: '/dashboard/staff', icon: Users, feature: 'crm' },
+          { type: 'link', name: 'Customers', href: '/dashboard/customers', icon: Users, feature: 'crm' },
           { type: 'link', name: 'Reservations', href: '/dashboard/reservations', icon: Calendar, feature: 'crm' },
           { type: 'link', name: 'Payments & Refunds', href: '/dashboard/payments', icon: CreditCard, feature: 'pos' },
           { type: 'link', name: 'Finance Center', href: '/dashboard/finance', icon: DollarSign, feature: 'pos' },
           { type: 'link', name: 'Inventory / Stock', href: '/dashboard/inventory', icon: Package, feature: 'inventory' },
-          { type: 'link', name: 'Expenses', href: '/dashboard/pos', icon: TrendingUp, feature: 'pos' },
+          { type: 'link', name: 'Expenses', href: '/dashboard/finance', icon: TrendingUp, feature: 'pos' },
           { type: 'link', name: 'Staff Management', href: '/dashboard/staff', icon: UserCheck, feature: 'staff' },
           { type: 'link', name: 'Reports & Analytics', href: '/dashboard/analytics', icon: BarChart3, feature: 'ai' },
           { type: 'link', name: 'App Store', href: '/dashboard/app-store', icon: ShoppingBag },
-          { type: 'link', name: 'Settings', href: '/dashboard/pos', icon: Settings },
+          { type: 'link', name: 'Settings', href: '/dashboard/settings', icon: Settings },
           { type: 'link', name: 'Subscription', href: '/dashboard/billing', icon: CreditCard }
         ];
+
+        // Dynamically append Hotel module links if active
+        if (hasPack('HOTEL')) {
+          ownerItems.push(
+            { type: 'header', name: 'Hotel Management' },
+            { type: 'link', name: 'Hotel Dashboard', href: '/dashboard/hotel', icon: Layers },
+            { type: 'link', name: 'Room Reservations', href: '/dashboard/hotel/bookings', icon: Calendar }
+          );
+        }
+
+        // Dynamically append Healthcare module links if active
+        if (hasPack('HEALTHCARE')) {
+          ownerItems.push(
+            { type: 'header', name: 'Healthcare Operations' },
+            { type: 'link', name: 'Clinical EMRs', href: '/dashboard/healthcare/emr', icon: Shield },
+            { type: 'link', name: 'Patient Schedules', href: '/dashboard/healthcare/appointments', icon: Calendar }
+          );
+        }
+
+        // Dynamically append Logistics module links if active
+        if (hasPack('LOGISTICS')) {
+          ownerItems.push(
+            { type: 'header', name: 'Logistics & Fleet' },
+            { type: 'link', name: 'Dispatch Board', href: '/dashboard/logistics', icon: ClipboardList },
+            { type: 'link', name: 'Vehicles & Routes', href: '/dashboard/logistics/routes', icon: LayoutDashboard }
+          );
+        }
+
+        return ownerItems;
     }
   })();
 
@@ -251,30 +282,44 @@ export default function Sidebar({
     }
   })();
 
-  // Filter dynamic list based on enabled branch features list
+  // Filter dynamic list based on enabled branch features list and permission controls
   const filteredMenuItems = menuItems.filter(item => {
-    if (item.type !== 'link' || !item.feature) return true;
-    return enabledFeatures.includes(item.feature);
+    if (item.type !== 'link') return true;
+
+    // Feature toggles check
+    if (item.feature && !enabledFeatures.includes(item.feature)) {
+      return false;
+    }
+
+    // Permission checks
+    if (item.name === 'Orders' && !hasPermission('orders:read')) return false;
+    if (item.name === 'Menu Management' && !hasPermission('kitchen:read')) return false;
+    if (item.name === 'Table Management' && !hasPermission('tables:read')) return false;
+    if (item.name === 'Inventory / Stock' && !hasPermission('inventory:read')) return false;
+    if (item.name === 'Payments & Refunds' && !hasPermission('payments:read')) return false;
+    if (item.name === 'Finance Center' && !hasPermission('payments:read')) return false;
+
+    return true;
   });
 
   return (
-    <aside className="w-60 border-r border-slate-200/50 dark:border-white/5 bg-slate-900/90 dark:bg-slate-950/70 text-slate-200 min-h-screen p-4 flex flex-col justify-between flex-shrink-0 select-none backdrop-blur-lg">
-      <div className="flex flex-col">
+    <aside className="w-60 border-r border-[#E7ECF5] dark:border-border bg-[#FCFCFD] dark:bg-sidebar-bg text-[#475569] dark:text-text-secondary h-full p-4 flex flex-col justify-between flex-shrink-0 select-none backdrop-blur-lg">
+      <div className="flex flex-col flex-1 min-h-0">
         
         {/* LOGO & BRAND */}
-        <div className="flex items-center justify-between gap-3 mb-6 px-1 py-2 border-b border-white/10">
+        <div className="flex items-center justify-between gap-3 mb-6 px-1 py-2 border-b border-[#E7ECF5] dark:border-border">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-650 flex items-center justify-center text-white text-md flex-shrink-0 shadow-md">
+            <div className="w-9 h-9 rounded-xl bg-[#4F46E5] dark:bg-primary flex items-center justify-center text-white text-md flex-shrink-0 shadow-md">
               🏢
             </div>
             <div className="min-w-0 text-left">
-              <h1 className="text-sm font-black tracking-tight leading-none text-white truncate">{restaurantName}</h1>
-              <span className="text-[9px] text-blue-400 font-bold uppercase tracking-wider mt-1 block">{subtext}</span>
+              <h1 className="text-sm font-black tracking-tight leading-none text-[#111827] dark:text-foreground truncate">{restaurantName}</h1>
+              <span className="text-[9px] text-[#4F46E5] dark:text-primary font-bold uppercase tracking-wider mt-1 block">{subtext}</span>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 transition active:scale-95 lg:hidden"
+            className="p-1.5 rounded-lg bg-[#F3F7FC] dark:bg-hover-bg border border-[#E7ECF5] dark:border-border text-slate-500 dark:text-text-secondary hover:text-[#111827] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-active-bg transition active:scale-95 lg:hidden"
             title="Hide sidebar"
           >
             <X size={14} />
@@ -282,10 +327,10 @@ export default function Sidebar({
         </div>
 
         {/* NAVIGATION LINKS */}
-        <nav className="space-y-1 max-h-[64vh] overflow-y-auto pr-1 scrollbar-none text-left">
+        <nav className="flex-1 overflow-y-auto pr-1 scrollbar-none text-left min-h-0 space-y-1">
           {favorites.length > 0 && (
             <div className="space-y-1 mb-4">
-              <div className="px-2.5 pt-2 pb-1 text-[8px] font-black uppercase tracking-widest text-slate-500">
+              <div className="px-2.5 pt-2 pb-1 text-[8px] font-black uppercase tracking-widest text-[#64748B] dark:text-text-muted">
                 Favorites
               </div>
               {favorites.map((item, idx) => {
@@ -297,12 +342,12 @@ export default function Sidebar({
                     href={item.href}
                     className={`flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition-all duration-150 ${
                       isActive
-                        ? 'bg-blue-600/20 text-blue-400 border border-blue-500/20 shadow-sm'
-                        : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'
+                        ? 'bg-[#EEF5FF] border-[#E7ECF5] text-[#4F46E5] dark:bg-selected-bg dark:border-primary/30 dark:text-primary shadow-sm'
+                        : 'text-[#475569] dark:text-text-secondary hover:text-[#111827] dark:hover:text-white hover:bg-[#F3F7FC] dark:hover:bg-hover-bg border border-transparent'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
-                      <Icon size={14} className={isActive ? 'text-blue-400' : 'text-slate-500'} />
+                      <Icon size={14} className={isActive ? 'text-[#4F46E5] dark:text-primary' : 'text-[#64748B] dark:text-text-muted'} />
                       <span>{item.name}</span>
                     </div>
                   </Link>
@@ -313,14 +358,14 @@ export default function Sidebar({
 
           <div className="space-y-1">
             {favorites.length > 0 && (
-              <div className="px-2.5 pt-2 pb-1 text-[8px] font-black uppercase tracking-widest text-slate-500">
+              <div className="px-2.5 pt-2 pb-1 text-[8px] font-black uppercase tracking-widest text-[#64748B] dark:text-text-muted">
                 Core Console
               </div>
             )}
             {filteredMenuItems.map((item, index) => {
               if (item.type === 'header') {
                 return (
-                  <div key={index} className="px-2.5 pt-3.5 pb-1 text-[8px] font-black uppercase tracking-widest text-slate-500">
+                  <div key={index} className="px-2.5 pt-3.5 pb-1 text-[8px] font-black uppercase tracking-widest text-[#64748B] dark:text-text-muted">
                     {item.name}
                   </div>
                 );
@@ -334,10 +379,10 @@ export default function Sidebar({
                   <button
                     key={index}
                     onClick={item.action}
-                    className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 transition border border-transparent text-left"
+                    className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold text-[#475569] dark:text-text-secondary hover:text-[#111827] dark:hover:text-white hover:bg-[#F3F7FC] dark:hover:bg-hover-bg transition border border-transparent text-left"
                   >
                     <div className="flex items-center gap-2.5">
-                      <Icon size={14} className="text-slate-500" />
+                      <Icon size={14} className="text-[#64748B] dark:text-text-muted" />
                       <span>{item.name}</span>
                     </div>
                   </button>
@@ -350,16 +395,16 @@ export default function Sidebar({
                   href={item.href}
                   className={`flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold transition duration-150 border ${
                     isActive
-                      ? 'bg-blue-600/10 border-blue-500/30 text-blue-400 shadow-sm'
-                      : 'border-transparent text-slate-405 hover:text-white hover:bg-white/5'
+                      ? 'bg-[#EEF5FF] border-[#E7ECF5] text-[#4F46E5] dark:bg-selected-bg dark:border-primary/30 dark:text-primary shadow-sm'
+                      : 'border-transparent text-[#475569] dark:text-text-secondary hover:text-[#111827] dark:hover:text-white hover:bg-[#F3F7FC] dark:hover:bg-hover-bg'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <Icon size={14} className={isActive ? 'text-blue-400' : 'text-slate-500'} />
+                    <Icon size={14} className={isActive ? 'text-[#4F46E5] dark:text-primary' : 'text-[#64748B] dark:text-text-muted'} />
                     <span>{item.name}</span>
                   </div>
                   {item.badge && (
-                    <span className="bg-rose-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full">
+                    <span className="bg-[#EF4444] text-white text-[8px] font-black px-1.5 py-0.5 rounded-full">
                       {item.badge}
                     </span>
                   )}
@@ -376,19 +421,19 @@ export default function Sidebar({
         
         {/* LICENSE LEVEL CARD */}
         {(role === 'OWNER' || role === 'SUPER_ADMIN') && (
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-3 text-left">
+          <div className="bg-[#F8FAFC] dark:bg-surface border border-[#E7ECF5] dark:border-border rounded-2xl p-3 text-left">
             <div className="flex items-center gap-2.5 mb-2.5">
-              <span className="grid h-7 w-7 place-items-center rounded-lg bg-yellow-500/15 text-yellow-500">
-                <Crown size={14} />
+              <span className="grid h-7 w-7 place-items-center rounded-lg bg-blue-500/10 text-blue-600 dark:bg-accent-cyan/15 dark:text-accent-cyan">
+                <Shield size={14} />
               </span>
               <div>
-                <h3 className="font-black text-[10px] text-white uppercase tracking-wider">{restaurantPlan}</h3>
-                <p className="text-[8px] text-slate-500 font-bold mt-0.5">Sandbox Active</p>
+                <h3 className="font-black text-[10px] text-[#111827] dark:text-foreground uppercase tracking-wider">{restaurantPlan}</h3>
+                <p className="text-[8px] text-[#64748B] dark:text-text-muted font-bold mt-0.5">Sandbox Active</p>
               </div>
             </div>
             <button 
               onClick={() => router.push('/dashboard/billing')}
-              className="w-full py-1.5 rounded-lg bg-blue-600 text-white text-[9px] font-black uppercase tracking-wider hover:opacity-95 transition"
+              className="w-full py-1.5 rounded-lg bg-[#4F46E5] hover:bg-[#4338CA] dark:bg-primary dark:hover:bg-primary/95 text-white text-[9px] font-black uppercase tracking-wider hover:opacity-95 transition shadow-sm"
             >
               Upgrade Plan
             </button>
@@ -396,21 +441,21 @@ export default function Sidebar({
         )}
 
         {/* PROFILE CARD */}
-        <div className="border-t border-white/10 pt-3 flex items-center justify-between text-left">
+        <div className="border-t border-[#E7ECF5] dark:border-border pt-3 flex items-center justify-between text-left">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-rose-400 to-indigo-500 flex items-center justify-center text-white text-[10px] font-black relative flex-shrink-0">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-blue-500 flex items-center justify-center text-white text-[10px] font-black relative flex-shrink-0">
               {profileInfo.name.split(' ').map(n => n[0]).join('')}
-              <span className="absolute bottom-0 right-0 w-2 h-2 bg-emerald-500 border border-slate-900 rounded-full animate-pulse" />
+              <span className="absolute bottom-0 right-0 w-2 h-2 bg-emerald-500 border border-white dark:border-sidebar-bg rounded-full animate-pulse" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-black text-white truncate leading-none">{profileInfo.name}</p>
-              <span className="text-[9px] text-slate-500 font-semibold mt-1 block leading-none">{profileInfo.role}</span>
+              <p className="text-xs font-black text-[#111827] dark:text-foreground truncate leading-none">{profileInfo.name}</p>
+              <span className="text-[9px] text-[#64748B] dark:text-text-muted font-semibold mt-1 block leading-none">{profileInfo.role}</span>
             </div>
           </div>
           
           <button
             onClick={handleLogoutClick}
-            className="p-1.5 rounded-lg text-slate-500 hover:text-rose-500 hover:bg-white/5 transition"
+            className="p-1.5 rounded-lg text-[#64748B] hover:text-[#EF4444] dark:text-text-muted dark:hover:text-accent-danger hover:bg-slate-100 dark:hover:bg-hover-bg transition"
             title="Log Out"
           >
             <LogOut size={13} />
@@ -422,3 +467,4 @@ export default function Sidebar({
     </aside>
   );
 }
+

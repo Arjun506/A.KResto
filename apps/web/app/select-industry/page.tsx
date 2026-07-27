@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import AuthBackground from '@/components/auth/AuthBackground';
+import AuthLayout from '@/components/auth/AuthLayout';
 import Link from 'next/link';
 import {
   Store,
@@ -61,29 +61,24 @@ export default function SelectIndustryPage() {
   const activeIndustryInfo = mockIndustries.find(m => m.id === selectedId) || mockIndustries[0];
 
   return (
-    <main className="min-h-screen relative w-full overflow-hidden flex items-center justify-center p-6 sm:p-12">
-      {/* 3D Aurora Mesh Backdrop */}
-      <AuthBackground />
-
-      {/* Glass Card Container */}
-      <div className="relative z-10 w-full max-w-[800px] glass-premium rounded-3xl p-8 sm:p-10 border border-slate-200/50 dark:border-white/5 shadow-2xl text-left backdrop-blur-xl flex flex-col justify-between min-h-[580px]">
-        
+    <AuthLayout>
+      <div className="space-y-6">
         {/* Header bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200/30 dark:border-white/5 pb-5 mb-6 gap-3">
-          <div>
-            <h2 className="text-2xl font-black text-slate-950 dark:text-white leading-tight">Activate Business Module</h2>
-            <p className="mt-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
-              Customize POS billing templates and data structures by selecting your primary industry vertical.
-            </p>
+        <div className="flex flex-col border-b border-slate-200/30 dark:border-white/5 pb-4 mb-4 gap-2">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-black text-slate-955 dark:text-white leading-tight">Industry Pack</h2>
+            <Link href="/workspaces" className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200/50 dark:border-white/5 bg-white/20 text-[10px] font-bold text-slate-650 hover:bg-slate-100/50 dark:bg-slate-900/10 dark:text-slate-350 hover:text-slate-900 dark:hover:text-white transition">
+              <ArrowLeft size={10} />
+              Workspaces
+            </Link>
           </div>
-          <Link href="/workspaces" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200/50 dark:border-white/5 bg-white/20 text-xs font-bold text-slate-650 hover:bg-slate-100/50 dark:bg-slate-900/10 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition shrink-0 w-fit">
-            <ArrowLeft size={12} />
-            Workspaces
-          </Link>
+          <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+            Customize POS layouts by selecting your primary industry vertical.
+          </p>
         </div>
 
         {/* 8 Columns Industry Grid */}
-        <div className="grid gap-3.5 sm:grid-cols-2 md:grid-cols-4 flex-1 mb-8">
+        <div className="grid gap-2.5 grid-cols-2 max-h-[300px] overflow-y-auto pr-1">
           {mockIndustries.map((ind) => {
             const IndIcon = ind.icon;
             const isSelected = selectedId === ind.id;
@@ -92,29 +87,26 @@ export default function SelectIndustryPage() {
                 key={ind.id}
                 type="button"
                 onClick={() => setSelectedId(ind.id)}
-                className={`group p-4.5 rounded-2xl border text-left flex flex-col justify-between h-[150px] transition-all duration-300 relative overflow-hidden ${
+                className={`group p-3 rounded-xl border text-left flex flex-col justify-between h-[120px] transition-all duration-300 relative overflow-hidden ${
                   isSelected
-                    ? 'bg-blue-600/10 border-blue-500/40 dark:bg-cyan-500/15 dark:border-cyan-500/40 shadow-lg'
-                    : 'border-slate-200/50 bg-white/30 hover:bg-slate-100/50 hover:border-slate-350 dark:border-white/5 dark:bg-slate-900/20 dark:hover:bg-slate-900/40 dark:hover:border-white/10 hover:-translate-y-1'
+                    ? 'bg-blue-600/10 border-blue-500/40 dark:bg-cyan-500/15 dark:border-cyan-500/40 shadow-md'
+                    : 'border-slate-200/50 bg-white/30 hover:bg-slate-100/50 hover:border-slate-300 dark:border-white/5 dark:bg-slate-900/20 dark:hover:bg-slate-900/40 dark:hover:border-white/10'
                 }`}
-                style={{
-                  boxShadow: isSelected ? `0 10px 25px -5px ${ind.glowColor}` : undefined
-                }}
               >
                 {/* Active Indicator Icon */}
                 {isSelected && (
-                  <span className="absolute top-3.5 right-3.5 text-blue-600 dark:text-cyan-400">
-                    <CheckCircle size={14} className="fill-current text-white dark:text-slate-900" />
+                  <span className="absolute top-2.5 right-2.5 text-blue-600 dark:text-cyan-400">
+                    <CheckCircle size={12} className="fill-current text-white dark:text-slate-900" />
                   </span>
                 )}
 
-                <span className={`grid h-8 w-8 place-items-center rounded-xl ${ind.iconColor} shadow-sm group-hover:scale-105 transition duration-300`}>
-                  <IndIcon size={14} />
+                <span className={`grid h-7 w-7 place-items-center rounded-lg ${ind.iconColor} shadow-sm group-hover:scale-105 transition`}>
+                  <IndIcon size={12} />
                 </span>
 
-                <div className="mt-4">
-                  <span className="block text-xs font-black text-slate-950 dark:text-white">{ind.label}</span>
-                  <span className="mt-1 block text-[9px] font-bold leading-3.5 text-slate-500 dark:text-slate-400 line-clamp-3">
+                <div className="mt-2">
+                  <span className="block text-[11px] font-black text-slate-950 dark:text-white">{ind.label}</span>
+                  <span className="mt-0.5 block text-[8px] font-bold leading-3 text-slate-500 dark:text-slate-450 line-clamp-2">
                     {ind.desc}
                   </span>
                 </div>
@@ -124,17 +116,17 @@ export default function SelectIndustryPage() {
         </div>
 
         {/* Footer Activation Banner */}
-        <div className="border-t border-slate-200/30 dark:border-white/5 pt-5 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
-          <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-blue-600/10 text-blue-600 dark:bg-cyan-500/15 dark:text-cyan-400">
-              <Zap size={16} />
+        <div className="border-t border-slate-200/35 dark:border-white/5 pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="grid h-8 w-8 place-items-center rounded-lg bg-blue-600/10 text-blue-600 dark:bg-cyan-500/15 dark:text-cyan-400">
+              <Zap size={14} />
             </span>
             <div>
-              <span className="block text-xs font-black text-slate-950 dark:text-white">
+              <span className="block text-[11px] font-black text-slate-950 dark:text-white">
                 Selected: {activeIndustryInfo.label} Pack
               </span>
-              <span className="block text-[9px] font-bold text-slate-500 dark:text-slate-400">
-                Loads specialized business schemas and custom widgets.
+              <span className="block text-[8px] font-bold text-slate-500 dark:text-slate-450">
+                Loads specialized business schemas.
               </span>
             </div>
           </div>
@@ -142,22 +134,21 @@ export default function SelectIndustryPage() {
           <button
             onClick={handleActivatePack}
             disabled={activating}
-            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-650 text-white text-xs font-black uppercase tracking-[0.14em] shadow-lg shadow-blue-500/20 hover:opacity-95 transition disabled:opacity-50 flex items-center justify-center gap-2"
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-650 text-white text-xs font-black uppercase tracking-[0.12em] shadow-lg shadow-blue-500/20 hover:opacity-95 transition disabled:opacity-50 flex items-center justify-center gap-1.5"
           >
             {activating ? (
               <>
-                <Loader2 size={13} className="animate-spin" />
+                <Loader2 size={11} className="animate-spin" />
                 Activating...
               </>
             ) : (
               <>
-                Activate Industry Pack
-                <ArrowRight size={13} />
+                Activate Pack
+                <ArrowRight size={11} />
               </>
             )}
           </button>
         </div>
-
       </div>
 
       {/* Toast Alert */}
@@ -167,6 +158,7 @@ export default function SelectIndustryPage() {
           {toastMessage}
         </div>
       )}
-    </main>
+    </AuthLayout>
   );
 }
+

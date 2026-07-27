@@ -1,25 +1,40 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Controller, Get, ServiceUnavailableException } from '@nestjs/common';
+import { PrismaService } from './prisma/prisma.service';
 
 @Controller()
 export class AppController {
+  constructor(private readonly prisma: PrismaService) {}
+
   @Get()
   getHello(): string {
     return 'Hello World!';
   }
 
-  @Post('login')
-  login(@Body() body: { email: string; password: string }) {
-    const { email, password } = body;
-
-    if (email === 'admin@a3resto.com' && password === '123456') {
-      return {
-        success: true,
-        token: 'a3resto-token',
-      };
-    }
-
+  @Get('health')
+  health() {
     return {
-      success: false,
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
     };
+  }
+
+  @Get('ready')
+  async ready() {
+    try {
+      await this.prisma.$queryRaw`SELECT 1`;
+      return {
+        status: 'ready',
+        database: 'UP',
+        timestamp: new Date().toISOString(),
+      };
+    } catch (error) {
+      throw new ServiceUnavailableException({
+        status: 'not_ready',
+        database: 'DOWN',
+        error: error.message,
+        timestamp: new Date().toISOString(),
+      });
+    }
   }
 }

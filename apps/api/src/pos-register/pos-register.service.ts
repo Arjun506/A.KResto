@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { OpenSessionDto } from './dto/open-session.dto';
 import { CloseSessionDto } from './dto/close-session.dto';
@@ -45,7 +49,8 @@ export class PosRegisterService {
       .filter((l) => l.type === 'CASH_OUT')
       .reduce((sum, l) => sum + Number(l.amount), 0);
 
-    const expectedBalance = Number(session.openingBalance) + cashPayments + cashIn - cashOut;
+    const expectedBalance =
+      Number(session.openingBalance) + cashPayments + cashIn - cashOut;
 
     return {
       ...session,
@@ -63,7 +68,9 @@ export class PosRegisterService {
     });
 
     if (active) {
-      throw new BadRequestException('A cash register session is already open for this cashier.');
+      throw new BadRequestException(
+        'A cash register session is already open for this cashier.',
+      );
     }
 
     return this.prisma.$transaction(async (tx) => {
@@ -78,7 +85,7 @@ export class PosRegisterService {
 
       await tx.audit_logs.create({
         data: {
-          restaurantId: tenantId,
+          tenantId: tenantId,
           userId: cashierId,
           entity: 'PosRegisterSession',
           entityId: session.id,
@@ -95,7 +102,11 @@ export class PosRegisterService {
     });
   }
 
-  async closeSession(tenantId: string, cashierId: string, dto: CloseSessionDto) {
+  async closeSession(
+    tenantId: string,
+    cashierId: string,
+    dto: CloseSessionDto,
+  ) {
     const session = await this.prisma.pos_register_sessions.findFirst({
       where: {
         tenantId,
@@ -127,7 +138,8 @@ export class PosRegisterService {
       .filter((l) => l.type === 'CASH_OUT')
       .reduce((sum, l) => sum + Number(l.amount), 0);
 
-    const expectedBalance = Number(session.openingBalance) + cashPayments + cashIn - cashOut;
+    const expectedBalance =
+      Number(session.openingBalance) + cashPayments + cashIn - cashOut;
 
     return this.prisma.$transaction(async (tx) => {
       const closed = await tx.pos_register_sessions.update({
@@ -143,7 +155,7 @@ export class PosRegisterService {
 
       await tx.audit_logs.create({
         data: {
-          restaurantId: tenantId,
+          tenantId: tenantId,
           userId: cashierId,
           entity: 'PosRegisterSession',
           entityId: closed.id,
@@ -193,7 +205,7 @@ export class PosRegisterService {
 
       await tx.audit_logs.create({
         data: {
-          restaurantId: tenantId,
+          tenantId: tenantId,
           userId: cashierId,
           entity: 'PosRegisterCashLog',
           entityId: log.id,

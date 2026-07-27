@@ -4,7 +4,7 @@ export type Order = {
   customerName?: string | null;
   customerPhone?: string | null;
   tableId: string;
-  restaurantId: string;
+  tenantId: string;
   totalAmount: string;
   status: string;
   createdAt: string;
@@ -33,4 +33,5 @@ export type CreateOrderRequest = {
     notes?: string;
   }>;
 };
+
 

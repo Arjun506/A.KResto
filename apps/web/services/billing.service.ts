@@ -18,5 +18,22 @@ export const openStripeBillingPortal = async () => {
 };
 
 export const getInvoiceHistory = async () => {
-  return unwrap(api.get('/billing/invoices'));
+  return unwrap<any>(api.get('/billing/invoices'));
 };
+
+export const getSubscriptionStatus = async () => {
+  return unwrap<any>(api.get('/subscription/status'));
+};
+
+export const simulatePaymentSuccess = async (planId: string, gateway: string) => {
+  return unwrap<{ ok: boolean; plan: string }>(
+    api.post('/billing/simulate-success', { planId, gateway }),
+  );
+};
+
+export const activateLicenseKey = async (licenseKey: string) => {
+  return unwrap<any>(
+    api.post('/subscription/license/activate', { licenseKey }),
+  );
+};
+

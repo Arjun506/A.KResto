@@ -651,3 +651,4 @@ export default function RestaurantConfigurationCenter() {
 function AlertCircle(props: any) {
   return <HelpCircle {...props} className="stroke-current text-white" />;
 }
+

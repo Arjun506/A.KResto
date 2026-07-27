@@ -19,8 +19,8 @@ export class OwnerCreator {
         name: dto.ownerName,
         email: dto.ownerEmail,
         passwordHash: hashedPassword,
-        role: UserRole.RESTAURANT_OWNER,
-        restaurantId: tenantId,
+        role: UserRole.OWNER,
+        tenantId: tenantId,
       },
     });
   }

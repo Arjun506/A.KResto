@@ -1,6 +1,6 @@
 export type MenuCategory = {
   id: string;
-  restaurantId: string;
+  tenantId: string;
   name: string;
   sortOrder: number;
   isActive: boolean;
@@ -22,7 +22,7 @@ export type MenuAddon = {
 
 export type MenuItem = {
   id: string;
-  restaurantId: string;
+  tenantId: string;
   categoryId?: string | null;
   name: string;
   description?: string | null;
@@ -50,3 +50,4 @@ export type CreateMenuItemRequest = {
     price: number;
   }>;
 };
+

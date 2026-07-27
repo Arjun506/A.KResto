@@ -1,6 +1,6 @@
 export type Subscription = {
   id: string;
-  restaurantId: string;
+  tenantId: string;
   planName: string;
   status: string;
   billingEmail: string | null;
@@ -39,3 +39,4 @@ export type UpdateRestaurantRequest = {
   planName?: string;
   expiresAt?: string;
 };
+

@@ -35,12 +35,12 @@ type OrderWithItems = Prisma.ordersGetPayload<{
 }>;
 
 type TenantWhere = {
-  restaurantId?: string;
+  tenantId?: string;
 };
 
 type DeleteOrderResult = {
   id: string;
-  restaurantId: string;
+  tenantId: string;
 };
 
 type PrismaWriteClient = Prisma.TransactionClient | PrismaService;
@@ -87,37 +87,37 @@ export class OrdersService {
     return user?.role === 'SUPER_ADMIN';
   }
 
-  private getRestaurantIdFromUser(user: JwtUser | undefined): string {
-    if (!user?.restaurantId) {
-      throw new ForbiddenException('Missing restaurantId for tenant access');
+  private gettenantIdFromUser(user: JwtUser | undefined): string {
+    if (!user?.tenantId) {
+      throw new ForbiddenException('Missing tenantId for tenant access');
     }
 
-    return user.restaurantId;
+    return user.tenantId;
   }
 
   private getTenantWhere(user: JwtUser | undefined): TenantWhere {
-    if (this.isSuperAdmin(user) && !user?.restaurantId) {
+    if (this.isSuperAdmin(user) && !user?.tenantId) {
       return {};
     }
 
-    return { restaurantId: this.getRestaurantIdFromUser(user) };
+    return { tenantId: this.gettenantIdFromUser(user) };
   }
 
   async createOrder(
     user: JwtUser | undefined,
     dto: CreateOrderDto,
   ): Promise<OrderResponseDto> {
-    const restaurantId = this.getRestaurantIdFromUser(user);
+    const tenantId = this.gettenantIdFromUser(user);
 
     const [table, menuItems] = await Promise.all([
       this.prisma.tables.findFirst({
-        where: { id: dto.tableId, restaurantId, isActive: true },
+        where: { id: dto.tableId, tenantId, isActive: true },
         select: { id: true },
       }),
       this.prisma.menu_items.findMany({
         where: {
           id: { in: dto.items.map((i) => i.menuItemId) },
-          restaurantId,
+          tenantId,
           isAvailable: true,
         },
         select: { id: true, price: true },
@@ -156,7 +156,7 @@ export class OrdersService {
           customerPhone: dto.customerPhone ?? null,
           status: 'PENDING',
           totalAmount: total,
-          restaurantId,
+          tenantId,
           tableId: dto.tableId,
           updatedAt: now,
           order_items: {
@@ -186,7 +186,7 @@ export class OrdersService {
       });
 
       await this.writeAuditLog(tx, {
-        restaurantId,
+        tenantId,
         userId: user?.id,
         entity: 'Order',
         entityId: order.id,
@@ -243,7 +243,7 @@ export class OrdersService {
     id: string,
     dto: CheckoutOrderDto,
   ): Promise<CheckoutOrderResult> {
-    const restaurantId = this.getRestaurantIdFromUser(user);
+    const tenantId = this.gettenantIdFromUser(user);
     const userId = user?.id;
     if (!userId) {
       throw new ForbiddenException('Missing user context for checkout');
@@ -251,7 +251,7 @@ export class OrdersService {
 
     const checkout = await this.prisma.$transaction(async (tx) => {
       const order = await tx.orders.findFirst({
-        where: { id, restaurantId },
+        where: { id, tenantId },
         include: {
           order_items: {
             include: {
@@ -290,7 +290,10 @@ export class OrdersService {
       }
 
       const paidTotal = this.roundMoney(
-        order.payments.reduce((sum, payment) => sum + Number(payment.amount), 0),
+        order.payments.reduce(
+          (sum, payment) => sum + Number(payment.amount),
+          0,
+        ),
       );
 
       if (paidTotal > 0) {
@@ -299,7 +302,7 @@ export class OrdersService {
 
       const registerSession = await tx.pos_register_sessions.findFirst({
         where: {
-          tenantId: restaurantId,
+          tenantId: tenantId,
           cashierId: userId,
           status: 'OPEN',
         },
@@ -312,15 +315,18 @@ export class OrdersService {
         );
       }
 
-      const inventoryConsumed = await this.inventoryService.consumeForOrder(tx, {
-        restaurantId,
-        orderId: order.id,
-        items: order.order_items.map((item) => ({
-          id: item.id,
-          menuItemId: item.menuItemId,
-          quantity: item.quantity,
-        })),
-      });
+      const inventoryConsumed = await this.inventoryService.consumeForOrder(
+        tx,
+        {
+          tenantId,
+          orderId: order.id,
+          items: order.order_items.map((item) => ({
+            id: item.id,
+            menuItemId: item.menuItemId,
+            quantity: item.quantity,
+          })),
+        },
+      );
 
       const invoice = await tx.invoices.upsert({
         where: { orderId: order.id },
@@ -354,7 +360,7 @@ export class OrdersService {
       });
 
       await this.writeAuditLog(tx, {
-        restaurantId,
+        tenantId,
         userId,
         entity: 'Invoice',
         entityId: invoice.id,
@@ -376,7 +382,7 @@ export class OrdersService {
       });
 
       await this.writeAuditLog(tx, {
-        restaurantId,
+        tenantId,
         userId,
         entity: 'OrderPayment',
         entityId: payment.id,
@@ -396,7 +402,7 @@ export class OrdersService {
       });
 
       await this.writeAuditLog(tx, {
-        restaurantId,
+        tenantId,
         userId,
         entity: 'Order',
         entityId: order.id,
@@ -416,7 +422,7 @@ export class OrdersService {
 
       if (inventoryConsumed.length > 0) {
         await this.writeAuditLog(tx, {
-          restaurantId,
+          tenantId,
           userId,
           entity: 'Order',
           entityId: order.id,
@@ -438,7 +444,7 @@ export class OrdersService {
       });
 
       const updated = await tx.orders.findFirst({
-        where: { id: order.id, restaurantId },
+        where: { id: order.id, tenantId },
         include: ORDER_ITEMS_INCLUDE,
       });
 
@@ -536,7 +542,7 @@ export class OrdersService {
     }
 
     await this.writeAuditLog(this.prisma, {
-      restaurantId: updated.restaurantId,
+      tenantId: updated.tenantId,
       userId: user?.id,
       entity: 'Order',
       entityId: updated.id,
@@ -560,7 +566,7 @@ export class OrdersService {
   ): Promise<DeleteOrderResult> {
     const existing = await this.prisma.orders.findFirst({
       where: { id, ...this.getTenantWhere(user) },
-      select: { id: true, restaurantId: true },
+      select: { id: true, tenantId: true },
     });
 
     if (!existing) {
@@ -571,8 +577,8 @@ export class OrdersService {
       where: { id, ...this.getTenantWhere(user) },
     });
 
-    const result = { id: existing.id, restaurantId: existing.restaurantId };
-    this.ordersGateway.emitOrderDeleted(existing.restaurantId, {
+    const result = { id: existing.id, tenantId: existing.tenantId };
+    this.ordersGateway.emitOrderDeleted(existing.tenantId, {
       id: existing.id,
     });
     return result;
@@ -586,7 +592,7 @@ export class OrdersService {
       customerPhone: order.customerPhone,
       status: mapPrismaStatusToEnterpriseStatus(order.status),
       totalAmount: String(order.totalAmount),
-      restaurantId: order.restaurantId,
+      tenantId: order.tenantId,
       tableId: order.tableId,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
@@ -625,7 +631,7 @@ export class OrdersService {
   private async writeAuditLog(
     client: PrismaWriteClient,
     data: {
-      restaurantId: string;
+      tenantId: string;
       userId?: string | null;
       entity: string;
       entityId: string;
@@ -637,7 +643,7 @@ export class OrdersService {
   ) {
     await client.audit_logs.create({
       data: {
-        restaurantId: data.restaurantId,
+        tenantId: data.tenantId,
         userId: data.userId ?? null,
         entity: data.entity,
         entityId: data.entityId,

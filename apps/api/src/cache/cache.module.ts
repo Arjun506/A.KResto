@@ -18,6 +18,8 @@ type RedisStoreFactory = Record<string, unknown>;
           store,
           host: configService.get<string>('REDIS_HOST', 'localhost'),
           port: configService.get<number>('REDIS_PORT', 6379),
+          password: configService.get<string>('REDIS_PASSWORD'),
+          ...(configService.get('REDIS_TLS') === 'true' ? { tls: {} } : {}),
           ttl: 3600,
           max: 10000,
           isGlobal: true,

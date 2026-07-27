@@ -7,12 +7,10 @@ import {
 import type { Request } from 'express';
 import { Observable, from } from 'rxjs';
 import { tap, switchMap } from 'rxjs/operators';
-
-import { CacheService, CACHE_CONFIG } from './cache.service';
+import { CacheService, KERNEL_CACHE_CONFIG } from './cache.service';
 
 type CacheableResponse = { success: boolean } & Record<string, unknown>;
-
-type EntityKey = keyof typeof CACHE_CONFIG;
+type EntityKey = keyof typeof KERNEL_CACHE_CONFIG;
 
 type CacheGetRequest = Request & {
   params: { [key: string]: string | undefined };
@@ -35,7 +33,6 @@ export class CacheInterceptor implements NestInterceptor {
     }
 
     const pathParts = request.path.split('/').filter(Boolean);
-    // Example paths (based on existing mapping): /restaurants/:id
     const entity = pathParts[pathParts.length - 2];
     const id = request.params?.id;
 
@@ -44,8 +41,8 @@ export class CacheInterceptor implements NestInterceptor {
       return next.handle();
     }
 
-    const config = CACHE_CONFIG[entityKey];
-    const cacheKey = `${config.key}${id}`;
+    const config = KERNEL_CACHE_CONFIG[entityKey];
+    const cacheKey = `${config.prefix}${id}`;
 
     return from(this.cacheService.get<CacheableResponse>(cacheKey)).pipe(
       switchMap((cached) => {
@@ -55,7 +52,6 @@ export class CacheInterceptor implements NestInterceptor {
 
         return next.handle().pipe(
           tap((response: unknown) => {
-            // Cache only successful responses.
             if (
               typeof response === 'object' &&
               response !== null &&
@@ -78,12 +74,12 @@ export class CacheInterceptor implements NestInterceptor {
     if (!entity) return null;
 
     const mapping: Record<string, EntityKey> = {
-      restaurants: 'RESTAURANTS',
-      'menu-items': 'MENU_ITEMS',
-      inventory: 'INVENTORY',
-      users: 'USERS',
-      orders: 'ORDERS',
-      analytics: 'ANALYTICS',
+      organizations: 'ORGANIZATION',
+      tenants: 'TENANT',
+      users: 'USER',
+      roles: 'ROLE',
+      permissions: 'PERMISSIONS',
+      settings: 'SETTINGS',
     };
 
     return mapping[entity] ?? null;

@@ -80,3 +80,4 @@ export const checkoutOrder = async (
     api.post(`/orders/${id}/checkout`, data),
   );
 };
+

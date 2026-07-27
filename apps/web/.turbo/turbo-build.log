@@ -5,15 +5,43 @@
 ▲ Next.js 16.2.6 (Turbopack)
 
   Creating an optimized production build ...
-✓ Compiled successfully in 43s
+✓ Compiled successfully in 14.9s
   Skipping validation of types
-  Finished TypeScript config validation in 28ms ...
+  Finished TypeScript config validation in 16ms ...
   Collecting page data using 7 workers ...
-  Generating static pages using 7 workers (0/48) ...
-  Generating static pages using 7 workers (12/48) 
-  Generating static pages using 7 workers (24/48) 
-  Generating static pages using 7 workers (36/48) 
-✓ Generating static pages using 7 workers (48/48) in 9.1s
+  Generating static pages using 7 workers (0/58) ...
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+  Generating static pages using 7 workers (14/58) 
+  Generating static pages using 7 workers (28/58) 
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+  Generating static pages using 7 workers (43/58) 
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+✓ Generating static pages using 7 workers (58/58) in 3.6s
   Finalizing page optimization ...
 
 Route (app)
@@ -22,6 +50,7 @@ Route (app)
 ├ ○ /ak-connect
 ├ ○ /book-table
 ├ ○ /checkout
+├ ƒ /customer/[[...slug]]
 ├ ○ /dashboard
 ├ ○ /dashboard/ai-insights
 ├ ○ /dashboard/analytics
@@ -30,22 +59,31 @@ Route (app)
 ├ ○ /dashboard/customers
 ├ ○ /dashboard/finance
 ├ ○ /dashboard/growth
+├ ○ /dashboard/healthcare/appointments
+├ ○ /dashboard/healthcare/emr
+├ ○ /dashboard/hotel
+├ ○ /dashboard/hotel/bookings
 ├ ○ /dashboard/inventory
 ├ ○ /dashboard/invoice
 ├ ○ /dashboard/kitchen
 ├ ○ /dashboard/launch-center
+├ ○ /dashboard/logistics
+├ ○ /dashboard/logistics/routes
 ├ ○ /dashboard/menu
 ├ ○ /dashboard/notifications
 ├ ○ /dashboard/orders
 ├ ○ /dashboard/payments
 ├ ○ /dashboard/pos
+├ ○ /dashboard/profile
 ├ ○ /dashboard/qr-tables
+├ ○ /dashboard/reports
 ├ ○ /dashboard/reservations
 ├ ○ /dashboard/restaurant-operations
 ├ ○ /dashboard/restaurants
 ├ ○ /dashboard/settings
 ├ ○ /dashboard/shop
 ├ ○ /dashboard/staff
+├ ○ /dashboard/table-management
 ├ ○ /dashboard/waiter
 ├ ○ /delivery-partner/dashboard
 ├ ○ /delivery-partner/signup
@@ -62,6 +100,7 @@ Route (app)
 ├ ○ /signup
 ├ ○ /super-admin
 ├ ○ /super-admin/login
+├ ○ /super-admin/pilots
 ├ ○ /verify-email
 ├ ○ /verify-otp
 └ ○ /workspaces

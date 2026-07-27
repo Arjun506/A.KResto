@@ -14,12 +14,12 @@ import { AttachImageDto, CreateCloudinarySignatureDto } from './dto/upload.dto';
 export class UploadsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private restaurantId(user: JwtUser | undefined) {
-    if (!user?.restaurantId) {
-      throw new ForbiddenException('Missing restaurantId for tenant access');
+  private tenantId(user: JwtUser | undefined) {
+    if (!user?.tenantId) {
+      throw new ForbiddenException('Missing tenantId for tenant access');
     }
 
-    return user.restaurantId;
+    return user.tenantId;
   }
 
   createCloudinarySignature(dto: CreateCloudinarySignatureDto) {
@@ -47,15 +47,15 @@ export class UploadsService {
   }
 
   async attachImage(user: JwtUser | undefined, dto: AttachImageDto) {
-    const restaurantId = this.restaurantId(user);
+    const tenantId = this.tenantId(user);
 
     if (dto.target === 'restaurantLogo') {
-      if (dto.targetId !== restaurantId) {
+      if (dto.targetId !== tenantId) {
         throw new ForbiddenException('Not allowed');
       }
 
       const updated = await this.prisma.tenant.updateMany({
-        where: { id: restaurantId },
+        where: { id: tenantId },
         data: { logo: dto.imageUrl },
       });
       if (!updated.count) throw new NotFoundException('Restaurant not found');
@@ -64,7 +64,7 @@ export class UploadsService {
 
     if (dto.target === 'menuImage') {
       const updated = await this.prisma.menu_items.updateMany({
-        where: { id: dto.targetId, restaurantId },
+        where: { id: dto.targetId, tenantId },
         data: { imageUrl: dto.imageUrl },
       });
       if (!updated.count) throw new NotFoundException('Menu item not found');
@@ -72,7 +72,7 @@ export class UploadsService {
     }
 
     const updated = await this.prisma.users.updateMany({
-      where: { id: dto.targetId, restaurantId },
+      where: { id: dto.targetId, tenantId },
       data: { profileImageUrl: dto.imageUrl },
     });
     if (!updated.count) throw new NotFoundException('User not found');

@@ -32,3 +32,4 @@ export const getTableAvailability = async (
     api.get('/reservations/availability', { params: { reservationAt } }),
   );
 };
+

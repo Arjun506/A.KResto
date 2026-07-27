@@ -1,7 +1,7 @@
 "use client";
 
 import { type ReactNode, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   CalendarDays,
   Check,
@@ -27,7 +27,14 @@ import {
   UserRound,
   UtensilsCrossed,
   WalletCards,
+  Car,
+  Hotel,
+  Scissors,
+  Stethoscope,
+  Wrench,
+  Compass
 } from "lucide-react";
+import { EmptyState, OfflineState, Alert, Badge, Button } from "@business-os/ui";
 import {
   createPublicOrder,
   createPublicReservation,
@@ -260,6 +267,7 @@ const fromRestaurant = (restaurant: Restaurant): Place => ({
 
 export default function UnifiedOrderingExperience() {
   const query = useSearchParams();
+  const pathname = usePathname();
   const slug = query.get("restaurant") || query.get("slug") || "";
   const tableId = query.get("table") || "";
   const qrToken = query.get("token") || undefined;
@@ -270,7 +278,16 @@ export default function UnifiedOrderingExperience() {
   const [items, setItems] = useState<Item[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [cart, setCart] = useState<CartLine[]>([]);
-  const [tab, setTab] = useState<Tab>("menu");
+  
+  const initialTab = useMemo<Tab>(() => {
+    if (!pathname) return "menu";
+    if (pathname.includes("/track") || pathname.includes("/order")) return "track";
+    if (pathname.includes("/table") || pathname.includes("/reservation")) return "table";
+    if (pathname.includes("/event")) return "event";
+    return "menu";
+  }, [pathname]);
+
+  const [tab, setTab] = useState<Tab>(initialTab);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [vegOnly, setVegOnly] = useState(false);
@@ -584,7 +601,7 @@ export default function UnifiedOrderingExperience() {
         setOrderStatus(result.status);
       } else {
         const result = await createOrder({
-          restaurantId: place.id,
+          tenantId: place.id,
           items: cart.map((item) => ({
             menuItemId: item.id,
             quantity: item.quantity,
@@ -651,7 +668,7 @@ export default function UnifiedOrderingExperience() {
         });
       } else {
         await bookTable({
-          restaurantId: place.id,
+          tenantId: place.id,
           customerName: booking.name,
           customerPhone: booking.phone,
           guestCount: booking.guests,
@@ -675,7 +692,7 @@ export default function UnifiedOrderingExperience() {
     }
     try {
       await bookEvent({
-        restaurantId: place.id,
+        tenantId: place.id,
         eventType: event.type as EventBooking["eventType"],
         eventDate: event.date,
         guestCount: event.guests,
@@ -1647,3 +1664,4 @@ function Primary({
     </button>
   );
 }
+

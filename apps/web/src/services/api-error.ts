@@ -14,3 +14,4 @@ export function formatApiErrorMessage(message?: string): string {
   return message?.trim() ? message : 'Request failed';
 }
 
+

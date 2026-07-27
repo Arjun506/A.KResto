@@ -146,7 +146,7 @@ function CheckoutPageContent() {
       };
 
       const order = await createOrder({
-        restaurantId: restaurantSlug || '',
+        tenantId: restaurantSlug || '',
         items: cart,
         deliveryAddress,
         paymentMethod: formData.paymentMethod,
@@ -430,3 +430,4 @@ export default function CheckoutPage() {
     </Suspense>
   );
 }
+

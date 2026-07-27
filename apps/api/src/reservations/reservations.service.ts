@@ -21,24 +21,24 @@ export class ReservationsService {
     return user?.role === 'SUPER_ADMIN';
   }
 
-  private restaurantId(user: JwtUser | undefined) {
-    if (!user?.restaurantId) {
-      throw new ForbiddenException('Missing restaurantId for tenant access');
+  private tenantId(user: JwtUser | undefined) {
+    if (!user?.tenantId) {
+      throw new ForbiddenException('Missing tenantId for tenant access');
     }
 
-    return user.restaurantId;
+    return user.tenantId;
   }
 
   private tenantWhere(user: JwtUser | undefined) {
-    if (this.isSuperAdmin(user) && !user?.restaurantId) return {};
-    return { restaurantId: this.restaurantId(user) };
+    if (this.isSuperAdmin(user) && !user?.tenantId) return {};
+    return { tenantId: this.tenantId(user) };
   }
 
   async createReservation(
     user: JwtUser | undefined,
     dto: CreateReservationDto,
   ) {
-    const restaurantId = this.restaurantId(user);
+    const tenantId = this.tenantId(user);
     const duration = dto.durationMinutes ?? 60;
     await this.assertTableAvailable(
       user,
@@ -49,7 +49,7 @@ export class ReservationsService {
 
     return this.prisma.reservations.create({
       data: {
-        restaurantId,
+        tenantId,
         tableId: dto.tableId,
         customerName: dto.customerName,
         customerPhone: dto.customerPhone,
@@ -128,17 +128,17 @@ export class ReservationsService {
   }
 
   async tableAvailability(user: JwtUser | undefined, reservationAt: string) {
-    const restaurantId = this.restaurantId(user);
+    const tenantId = this.tenantId(user);
     const start = new Date(reservationAt);
     const end = new Date(start.getTime() + 60 * 60 * 1000); // Assume 1 hour check
     const [tables, reservations] = await Promise.all([
       this.prisma.tables.findMany({
-        where: { restaurantId, isActive: true },
+        where: { tenantId, isActive: true },
         orderBy: { name: 'asc' },
       }),
       this.prisma.reservations.findMany({
         where: {
-          restaurantId,
+          tenantId,
           status: { in: ['PENDING', 'CONFIRMED', 'SEATED'] },
         },
       }),
@@ -168,9 +168,9 @@ export class ReservationsService {
     durationMinutes: number = 60,
     excludeReservationId?: string,
   ) {
-    const restaurantId = this.restaurantId(user);
+    const tenantId = this.tenantId(user);
     const table = await this.prisma.tables.findFirst({
-      where: { id: tableId, restaurantId, isActive: true },
+      where: { id: tableId, tenantId, isActive: true },
     });
     if (!table)
       throw new BadRequestException('Table is invalid for this restaurant');
@@ -181,7 +181,7 @@ export class ReservationsService {
     const existing = await this.prisma.reservations.findMany({
       where: {
         tableId,
-        restaurantId,
+        tenantId,
         id: excludeReservationId ? { not: excludeReservationId } : undefined,
         status: { in: ['PENDING', 'CONFIRMED', 'SEATED'] },
       },

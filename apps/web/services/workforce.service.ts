@@ -148,3 +148,4 @@ export const getLeaves = async (): Promise<Leave[]> => {
 export const updateLeaveStatus = async (id: string, status: string): Promise<Leave> => {
   return unwrap<Leave>(api.patch(`/workforce/leaves/${id}/status`, { status }));
 };
+

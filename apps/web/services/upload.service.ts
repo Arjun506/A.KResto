@@ -51,3 +51,4 @@ export const attachImage = async (data: {
 }) => {
   return unwrap(api.patch('/uploads/image', data));
 };
+

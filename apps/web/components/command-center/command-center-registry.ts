@@ -441,3 +441,4 @@ export function getRegistryItems(role: string): CommandResult[] {
     return item.permission.roles.includes(role);
   });
 }
+

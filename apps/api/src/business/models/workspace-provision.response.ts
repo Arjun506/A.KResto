@@ -16,7 +16,7 @@ export type WorkspaceOwnerSummary = {
   name: string;
   email: string;
   role: UserRole;
-  restaurantId: string;
+  tenantId: string;
 };
 
 export type WorkspaceBranchSummary = {

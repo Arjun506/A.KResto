@@ -102,7 +102,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50 dark:bg-[#07090e] text-slate-900 dark:text-slate-100 font-sans transition-colors duration-500">
+    <div className="flex h-screen w-screen overflow-hidden bg-slate-50 dark:bg-background text-slate-900 dark:text-slate-100 font-sans transition-colors duration-500">
       
       {/* Dynamic sidebar */}
       <AnimatePresence mode="wait">
@@ -112,7 +112,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             animate={{ width: 240, opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="hidden lg:block overflow-hidden"
+            className="hidden lg:flex flex-col h-full overflow-hidden flex-shrink-0 border-r border-[#E7ECF5] dark:border-border"
           >
             <Sidebar
               language={language}
@@ -129,7 +129,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       {isSidebarOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
           <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs" onClick={toggleSidebar} />
-          <div className="relative z-10 w-60">
+          <div className="relative z-10 w-60 h-full overflow-hidden">
             <Sidebar
               language={language}
               onClose={toggleSidebar}
@@ -139,14 +139,14 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       )}
 
       {/* Main Content Layout Frame */}
-      <div className="flex-1 flex flex-col overflow-x-hidden relative">
+      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden relative">
         <Navbar
           isSidebarOpen={isSidebarOpen}
           language={language}
           onLanguageChange={changeLanguage}
           onToggleSidebar={toggleSidebar}
           onHideHeader={() => setIsHeaderOpen(false)}
-          className={isHeaderOpen ? '' : 'hidden'}
+          className={isHeaderOpen ? 'h-16 flex-shrink-0' : 'hidden'}
         />
         {!isHeaderOpen && (
           <div className="absolute top-3.5 right-6 z-50">
@@ -162,7 +162,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         )}
         
         {/* Child page body content */}
-        <main className="p-6 flex-1 relative overflow-y-auto">
+        <main className="flex-1 overflow-y-auto p-6 relative">
           {children}
         </main>
       </div>
@@ -182,3 +182,4 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     </div>
   );
 }
+

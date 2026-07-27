@@ -2,6 +2,12 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import {
+  getRevenueAnalytics,
+  getMenuAnalytics,
+  type RevenueResponse,
+  type MenuResponse
+} from '@/services/analytics.service';
+import {
   BarChart,
   Bar,
   XAxis,
@@ -60,12 +66,48 @@ const COLORS = [
 
 export default function AnalyticsPage() {
   const [mounted, setMounted] = useState(false);
+  const [revenueData, setRevenueData] = useState<RevenueResponse | null>(null);
+  const [menuData, setMenuData] = useState<MenuResponse | null>(null);
+
   useEffect(() => {
     setMounted(true);
+    const loadRealAnalytics = async () => {
+      try {
+        const [revRes, menuRes] = await Promise.all([
+          getRevenueAnalytics(),
+          getMenuAnalytics()
+        ]);
+        setRevenueData(revRes);
+        setMenuData(menuRes);
+      } catch (err) {
+        console.warn('Failed to load real analytics page data:', err);
+      }
+    };
+    void loadRealAnalytics();
   }, []);
 
   const [activeTab, setActiveTab] = useState<'insights' | 'pl' | 'website'>('insights');
   const [timeRange, setTimeRange] = useState<'7d' | '30d'>('7d');
+
+  const barChartData = useMemo(() => {
+    if (!revenueData) return revenueData7d;
+    const source = timeRange === '7d' ? revenueData.daily : revenueData.weekly;
+    if (!source || source.length === 0) return revenueData7d;
+    return source.map(item => ({
+      day: item.label,
+      revenue: parseFloat(item.revenue),
+      orders: 0
+    }));
+  }, [revenueData, timeRange]);
+
+  const pieChartData = useMemo(() => {
+    if (!menuData || !menuData.topSellingItems || menuData.topSellingItems.length === 0) return salesData;
+    const totalQty = menuData.topSellingItems.reduce((acc, curr) => acc + curr.quantity, 0) || 1;
+    return menuData.topSellingItems.slice(0, 4).map(item => ({
+      name: item.name,
+      value: Math.round((item.quantity / totalQty) * 100)
+    }));
+  }, [menuData]);
   
   // Website Setup States
   const [domainName, setDomainName] = useState('royalfeast.a3resto.com');
@@ -235,7 +277,7 @@ export default function AnalyticsPage() {
 
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={revenueData7d}>
+                  <BarChart data={barChartData}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
                     <XAxis dataKey="day" stroke="#94A3B8" fontSize={11} tickLine={false} />
                     <YAxis stroke="#94A3B8" fontSize={11} tickLine={false} axisLine={false} />
@@ -259,13 +301,13 @@ export default function AnalyticsPage() {
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={salesData}
+                        data={pieChartData}
                         dataKey="value"
                         outerRadius={90}
                         innerRadius={60}
                         paddingAngle={4}
                       >
-                        {salesData.map((entry, index) => (
+                        {pieChartData.map((entry, index) => (
                           <Cell key={index} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
@@ -275,7 +317,7 @@ export default function AnalyticsPage() {
                 </div>
                 
                 <div className="space-y-3 pl-4">
-                  {salesData.map((item, idx) => (
+                  {pieChartData.map((item, idx) => (
                     <div key={item.name} className="flex items-center justify-between text-xs">
                       <div className="flex items-center gap-2">
                         <span className="h-3.5 w-3.5 rounded-full" style={{ backgroundColor: COLORS[idx] }}></span>

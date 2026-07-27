@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { ClockInDto } from './dto/clock-in.dto';
@@ -38,7 +43,9 @@ export class WorkforceService {
     });
 
     if (existingId) {
-      throw new BadRequestException(`Employee ID ${dto.employeeId} already exists in this tenant.`);
+      throw new BadRequestException(
+        `Employee ID ${dto.employeeId} already exists in this tenant.`,
+      );
     }
 
     let userId = dto.userId || null;
@@ -49,11 +56,14 @@ export class WorkforceService {
         where: { userId },
       });
       if (existingUserLink) {
-        throw new BadRequestException('This user account is already linked to another employee profile.');
+        throw new BadRequestException(
+          'This user account is already linked to another employee profile.',
+        );
       }
     } else {
       // Auto-provision a user account if email or phone is provided
-      const email = dto.email || `emp_${dto.employeeId.toLowerCase()}@akresto.com`;
+      const email =
+        dto.email || `emp_${dto.employeeId.toLowerCase()}@akresto.com`;
       const existingUser = await this.prisma.users.findUnique({
         where: { email },
       });
@@ -66,13 +76,13 @@ export class WorkforceService {
         const hashedPassword = await bcrypt.hash(plainPassword, 10);
 
         // Map designation to UserRole enum
-        let mappedRole: UserRole = UserRole.WAITER;
+        let mappedRole: UserRole = UserRole.OPERATOR;
         const des = dto.designation.toUpperCase();
         if (des.includes('MANAGER')) mappedRole = UserRole.MANAGER;
-        else if (des.includes('CHEF')) mappedRole = UserRole.CHEF;
+        else if (des.includes('CHEF')) mappedRole = UserRole.OPERATOR;
         else if (des.includes('CASHIER')) mappedRole = UserRole.CASHIER;
-        else if (des.includes('WAITER')) mappedRole = UserRole.WAITER;
-        else if (des.includes('OWNER')) mappedRole = UserRole.RESTAURANT_OWNER;
+        else if (des.includes('WAITER')) mappedRole = UserRole.OPERATOR;
+        else if (des.includes('OWNER')) mappedRole = UserRole.OWNER;
 
         const user = await this.prisma.users.create({
           data: {
@@ -80,7 +90,7 @@ export class WorkforceService {
             passwordHash: hashedPassword,
             name: dto.name,
             role: mappedRole,
-            restaurantId: tenantId,
+            tenantId: tenantId,
           },
         });
 
@@ -187,7 +197,9 @@ export class WorkforceService {
     });
 
     if (!employee || employee.tenantId !== tenantId) {
-      throw new NotFoundException('Employee profile not found for this user account.');
+      throw new NotFoundException(
+        'Employee profile not found for this user account.',
+      );
     }
 
     return employee;
@@ -250,7 +262,12 @@ export class WorkforceService {
     });
   }
 
-  async clockInEmployee(tenantId: string, employeeId: string, latitude?: number, longitude?: number) {
+  async clockInEmployee(
+    tenantId: string,
+    employeeId: string,
+    latitude?: number,
+    longitude?: number,
+  ) {
     const employee = await this.prisma.employees.findFirst({
       where: { id: employeeId, tenantId },
     });
@@ -272,7 +289,9 @@ export class WorkforceService {
     });
 
     if (existing) {
-      throw new BadRequestException('Employee has already clocked in for today.');
+      throw new BadRequestException(
+        'Employee has already clocked in for today.',
+      );
     }
 
     return this.prisma.employee_attendance.create({
@@ -373,7 +392,9 @@ export class WorkforceService {
       throw new BadRequestException('You have not clocked in today.');
     }
 
-    const breaksList = Array.isArray(attendance.breaks) ? [...(attendance.breaks as any[])] : [];
+    const breaksList = Array.isArray(attendance.breaks)
+      ? [...(attendance.breaks as any[])]
+      : [];
     const lastBreak = breaksList[breaksList.length - 1];
     const now = new Date();
 
@@ -540,7 +561,12 @@ export class WorkforceService {
     });
   }
 
-  async updateLeaveStatus(tenantId: string, id: string, status: string, approvedByUserId: string) {
+  async updateLeaveStatus(
+    tenantId: string,
+    id: string,
+    status: string,
+    approvedByUserId: string,
+  ) {
     const leave = await this.prisma.employee_leaves.findFirst({
       where: {
         id,

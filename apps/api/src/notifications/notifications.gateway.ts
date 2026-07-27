@@ -14,7 +14,7 @@ import type { JwtUser } from '../common/types/jwt-user.interface';
 
 type SocketData = {
   user?: JwtUser;
-  restaurantId?: string;
+  tenantId?: string;
 };
 
 type AuthenticatedSocket = Socket & {
@@ -25,25 +25,21 @@ type JwtPayload = {
   sub: string;
   email: string;
   role: string;
-  restaurantId?: string | null;
+  tenantId?: string | null;
 };
 
 @WebSocketGateway({
   cors: {
-    origin:
-      (process.env.SOCKETIO_ORIGINS ?? '')
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean).length > 0
-        ? (process.env.SOCKETIO_ORIGINS ?? '')
-            .split(',')
-            .map((s) => s.trim())
-            .filter(Boolean)
-        : false,
+    origin: process.env.ALLOWED_ORIGINS
+      ? process.env.ALLOWED_ORIGINS.split(',').map((s) => s.trim())
+      : '*',
+    credentials: true,
   },
 })
 @Injectable()
-export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class NotificationsGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   server!: Server;
 
@@ -65,25 +61,35 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
         id: payload.sub,
         email: payload.email,
         role: payload.role,
-        restaurantId: payload.restaurantId ?? undefined,
+        tenantId: payload.tenantId ?? undefined,
       };
 
       client.data = {
         user,
-        restaurantId: user.restaurantId,
+        tenantId: user.tenantId,
       };
 
       this.socketUsers.set(client.id, user.id);
 
       // Join user specific room
       await client.join(`user:${user.id}`);
-      
-      // Join tenant specific room if user is scoped
-      if (user.restaurantId) {
-        await client.join(`tenant:${user.restaurantId}`);
+
+      // Join tenant specific room if user is scoped and is a staff member
+      const allowedRoles = [
+        'SUPER_ADMIN',
+        'RESTAURANT_OWNER',
+        'MANAGER',
+        'CASHIER',
+        'WAITER',
+        'CHEF',
+      ];
+      if (user.tenantId && allowedRoles.includes(user.role)) {
+        await client.join(`tenant:${user.tenantId}`);
       }
 
-      this.logger.debug(`Client ${client.id} authenticated for user ${user.id}`);
+      this.logger.debug(
+        `Client ${client.id} authenticated for user ${user.id}`,
+      );
     } catch (err) {
       this.logger.error('WebSocket connection authentication failed', err);
       client.disconnect(true);
@@ -95,8 +101,8 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
     if (userId) {
       void client.leave(`user:${userId}`);
     }
-    if (client.data?.restaurantId) {
-      void client.leave(`tenant:${client.data.restaurantId}`);
+    if (client.data?.tenantId) {
+      void client.leave(`tenant:${client.data.tenantId}`);
     }
     this.socketUsers.delete(client.id);
     this.logger.debug(`Client ${client.id} disconnected`);

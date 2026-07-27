@@ -2,10 +2,18 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { AssignRoleDto } from './dto/assign-role.dto';
+import { EventBusService } from '../event-bus/event-bus.service';
+import {
+  PermissionUpdatedEvent,
+  RoleAssignedEvent,
+} from '../event-bus/events/system.events';
 
 @Injectable()
 export class PermissionsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventBus: EventBusService,
+  ) {}
 
   async listRoles(tenantId: string) {
     return this.prisma.roles_permissions.findMany({
@@ -14,7 +22,7 @@ export class PermissionsService {
   }
 
   async upsertRole(tenantId: string, dto: CreateRoleDto) {
-    return this.prisma.roles_permissions.upsert({
+    const role = await this.prisma.roles_permissions.upsert({
       where: {
         tenantId_roleName: {
           tenantId,
@@ -30,18 +38,26 @@ export class PermissionsService {
         permissions: dto.permissions,
       },
     });
+
+    await this.eventBus.publish(
+      new PermissionUpdatedEvent(
+        role.roleName,
+        { roleName: role.roleName, permissions: role.permissions },
+        tenantId,
+      ),
+    );
+
+    return role;
   }
 
   async assignRole(tenantId: string, dto: AssignRoleDto) {
-    // 1. Verify user belongs to tenant
     const user = await this.prisma.users.findFirst({
-      where: { id: dto.userId, restaurantId: tenantId },
+      where: { id: dto.userId, tenantId: tenantId },
     });
     if (!user) {
       throw new BadRequestException('User not found in this workspace');
     }
 
-    // 2. Verify role exists in custom registry
     const roleExists = await this.prisma.roles_permissions.findUnique({
       where: {
         tenantId_roleName: {
@@ -56,27 +72,33 @@ export class PermissionsService {
       );
     }
 
-    // 3. Map to database UserRole enum
-    const enumValues = [
+    const validRoles = [
       'SUPER_ADMIN',
-      'RESTAURANT_OWNER',
+      'ADMIN',
       'MANAGER',
-      'CASHIER',
-      'WAITER',
-      'CHEF',
+      'OPERATOR',
+      'STAFF',
+      'MEMBER',
       'CUSTOMER',
     ];
-    const targetEnum = enumValues.includes(dto.roleName.toUpperCase())
+    const targetEnum = validRoles.includes(dto.roleName.toUpperCase())
       ? (dto.roleName.toUpperCase() as any)
-      : 'CASHIER';
+      : 'CUSTOMER';
 
-    // 4. Update
     const updatedUser = await this.prisma.users.update({
       where: { id: dto.userId },
       data: {
         role: targetEnum,
       },
     });
+
+    await this.eventBus.publish(
+      new RoleAssignedEvent(
+        updatedUser.id,
+        { userId: updatedUser.id, roleName: dto.roleName },
+        tenantId,
+      ),
+    );
 
     return {
       id: updatedUser.id,

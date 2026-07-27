@@ -87,3 +87,4 @@ export const useNotifications = () => {
   if (!value) throw new Error('NotificationProvider missing');
   return value;
 };
+

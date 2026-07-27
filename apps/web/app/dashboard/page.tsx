@@ -1,12 +1,11 @@
 'use client';
 
-import { useAuth } from '@/context/auth-context';
-import dynamic from 'next/dynamic';
+import { useRoleBasedRedirect } from '@/hooks/use-role-based-redirect';
 import UniversalBusinessDashboard from '@/components/dashboard/UniversalBusinessDashboard';
 import { Loader2 } from 'lucide-react';
 
 export default function DashboardPage() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading } = useRoleBasedRedirect();
 
   if (isLoading) {
     return (
@@ -18,11 +17,7 @@ export default function DashboardPage() {
   }
 
   if (!user) {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center text-rose-500 font-bold">
-        Authentication Error. Please sign in again.
-      </div>
-    );
+    return null; // Will trigger router replace internally
   }
 
   return <UniversalBusinessDashboard />;

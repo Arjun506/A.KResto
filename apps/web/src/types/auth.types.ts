@@ -7,10 +7,11 @@ export type AuthRegisterRequest = {
   name: string;
   email: string;
   password: string;
-  restaurantId?: string | null;
+  tenantId?: string | null;
 };
 
 export type AuthAccessTokenResponse = {
   access_token: string;
 };
+
 

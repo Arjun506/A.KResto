@@ -61,11 +61,11 @@ export class SentryService {
   /**
    * Set user context for tracking
    */
-  setUserContext(userId: string, email?: string, restaurantId?: string): void {
+  setUserContext(userId: string, email?: string, tenantId?: string): void {
     Sentry.setUser({
       id: userId,
       email,
-      username: `restaurant:${restaurantId}`,
+      username: `restaurant:${tenantId}`,
     });
   }
 

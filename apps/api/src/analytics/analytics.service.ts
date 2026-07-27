@@ -4,7 +4,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import type { JwtUser } from '../common/types/jwt-user.interface';
 
-type TenantWhere = { restaurantId?: string };
+type TenantWhere = { tenantId?: string };
 
 type KpisResponse = {
   totalRevenue: string;
@@ -59,11 +59,11 @@ export class AnalyticsService {
 
   private getTenantWhere(user: JwtUser | undefined): TenantWhere {
     if (this.isSuperAdmin(user)) return {};
-    if (!user?.restaurantId) {
+    if (!user?.tenantId) {
       // TenantGuard should already protect this, but keep safety.
       return {};
     }
-    return { restaurantId: user.restaurantId };
+    return { tenantId: user.tenantId };
   }
 
   private startOfDay(d: Date): Date {
@@ -296,7 +296,10 @@ export class AnalyticsService {
       },
     });
 
-    const byMenuItem = new Map<string, MenuItemAgg & { revenueValue: Prisma.Decimal }>();
+    const byMenuItem = new Map<
+      string,
+      MenuItemAgg & { revenueValue: Prisma.Decimal }
+    >();
     for (const item of orderItems) {
       const existing =
         byMenuItem.get(item.menuItemId) ??

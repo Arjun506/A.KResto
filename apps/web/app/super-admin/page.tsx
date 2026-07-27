@@ -103,7 +103,7 @@ type LocalTenant = {
 
 type TenantUser = {
   id: string;
-  restaurantId: string;
+  tenantId: string;
   restaurantName: string;
   name: string;
   email: string;
@@ -428,7 +428,7 @@ export default function SuperAdminPage() {
         const demoUsers: TenantUser[] = mapped.flatMap((tenant) => [
           {
             id: `${tenant.id}-owner`,
-            restaurantId: tenant.id,
+            tenantId: tenant.id,
             restaurantName: tenant.name,
             name: tenant.owner,
             email: tenant.email || 'owner@resto.com',
@@ -439,7 +439,7 @@ export default function SuperAdminPage() {
           },
           {
             id: `${tenant.id}-manager`,
-            restaurantId: tenant.id,
+            tenantId: tenant.id,
             restaurantName: tenant.name,
             name: 'Store Manager',
             email: `manager.${tenant.name.toLowerCase().replace(/\s+/g, '')}@resto.com`,
@@ -451,7 +451,7 @@ export default function SuperAdminPage() {
           },
           {
             id: `${tenant.id}-cashier`,
-            restaurantId: tenant.id,
+            tenantId: tenant.id,
             restaurantName: tenant.name,
             name: 'Cashier Amit',
             email: `cashier.${tenant.name.toLowerCase().replace(/\s+/g, '')}@resto.com`,
@@ -463,7 +463,7 @@ export default function SuperAdminPage() {
           },
           {
             id: `${tenant.id}-chef`,
-            restaurantId: tenant.id,
+            tenantId: tenant.id,
             restaurantName: tenant.name,
             name: 'Chef Ramesh',
             email: `chef.${tenant.name.toLowerCase().replace(/\s+/g, '')}@resto.com`,
@@ -475,7 +475,7 @@ export default function SuperAdminPage() {
           },
           {
             id: `${tenant.id}-waiter`,
-            restaurantId: tenant.id,
+            tenantId: tenant.id,
             restaurantName: tenant.name,
             name: 'Ravi Verma',
             email: `waiter.${tenant.name.toLowerCase().replace(/\s+/g, '')}@resto.com`,
@@ -775,6 +775,7 @@ export default function SuperAdminPage() {
           <nav className="space-y-1">
             {[
               { id: 'dashboard', label: 'Dashboard Overview', icon: LayoutDashboard },
+              { id: 'pilots', label: 'Pilot Control Center', icon: Shield },
               { id: 'restaurants', label: 'Restaurant Management', icon: Store },
               { id: 'subscriptions', label: 'Subscription & Plans', icon: Crown },
               { id: 'users', label: 'User Management', icon: Users },
@@ -793,7 +794,13 @@ export default function SuperAdminPage() {
               return (
                 <button
                   key={item.id}
-                  onClick={() => setCurrentView(item.id as any)}
+                  onClick={() => {
+                    if (item.id === 'pilots') {
+                      router.push('/super-admin/pilots');
+                    } else {
+                      setCurrentView(item.id as any);
+                    }
+                  }}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-bold transition-all text-left ${
                     isActive
                       ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
@@ -1999,3 +2006,4 @@ export default function SuperAdminPage() {
     </div>
   );
 }
+

@@ -17,7 +17,7 @@ export class AuditProvisioner {
       tx as { audit_logs: { create: (args: any) => Promise<unknown> } }
     ).audit_logs.create({
       data: {
-        restaurantId: tenantId,
+        tenantId: tenantId,
         userId: ownerId,
         entity: 'Tenant',
         entityId: tenantId,

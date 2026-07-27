@@ -48,3 +48,4 @@ export type CustomerRecommendationsResponse = {
   items: BusinessDiscoveryCard[];
 };
 
+

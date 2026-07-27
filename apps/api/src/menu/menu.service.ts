@@ -21,25 +21,25 @@ export class MenuService {
     return user?.role === 'SUPER_ADMIN';
   }
 
-  private restaurantId(user: JwtUser | undefined) {
-    if (!user?.restaurantId) {
-      throw new ForbiddenException('Missing restaurantId for tenant access');
+  private tenantId(user: JwtUser | undefined) {
+    if (!user?.tenantId) {
+      throw new ForbiddenException('Missing tenantId for tenant access');
     }
 
-    return user.restaurantId;
+    return user.tenantId;
   }
 
   private tenantWhere(user: JwtUser | undefined) {
-    if (this.isSuperAdmin(user) && !user?.restaurantId) return {};
-    return { restaurantId: this.restaurantId(user) };
+    if (this.isSuperAdmin(user) && !user?.tenantId) return {};
+    return { tenantId: this.tenantId(user) };
   }
 
   async createCategory(user: JwtUser | undefined, dto: CreateCategoryDto) {
-    const restaurantId = this.restaurantId(user);
+    const tenantId = this.tenantId(user);
 
     return this.prisma.categories.create({
       data: {
-        restaurantId,
+        tenantId,
         name: dto.name,
         sortOrder: dto.sortOrder ?? 0,
         isActive: dto.isActive ?? true,
@@ -79,12 +79,12 @@ export class MenuService {
   }
 
   async createMenuItem(user: JwtUser | undefined, dto: CreateMenuItemDto) {
-    const restaurantId = this.restaurantId(user);
+    const tenantId = this.tenantId(user);
     await this.assertCategory(user, dto.categoryId);
 
     return this.prisma.menu_items.create({
       data: {
-        restaurantId,
+        tenantId,
         categoryId: dto.categoryId,
         name: dto.name,
         description: dto.description,
@@ -93,14 +93,14 @@ export class MenuService {
         isAvailable: dto.isAvailable ?? true,
         menu_item_variants: {
           create: (dto.variants ?? []).map((variant) => ({
-            restaurantId,
+            tenantId,
             name: variant.name,
             priceDelta: variant.priceDelta,
           })),
         },
         menu_item_addons: {
           create: (dto.addons ?? []).map((addon) => ({
-            restaurantId,
+            tenantId,
             name: addon.name,
             price: addon.price,
           })),
@@ -157,7 +157,7 @@ export class MenuService {
           menu_item_variants: variants
             ? {
                 create: variants.map((variant) => ({
-                  restaurantId: this.restaurantId(user),
+                  tenantId: this.tenantId(user),
                   name: variant.name,
                   priceDelta: variant.priceDelta,
                 })),
@@ -166,7 +166,7 @@ export class MenuService {
           menu_item_addons: addons
             ? {
                 create: addons.map((addon) => ({
-                  restaurantId: this.restaurantId(user),
+                  tenantId: this.tenantId(user),
                   name: addon.name,
                   price: addon.price,
                 })),

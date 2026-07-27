@@ -20,7 +20,7 @@ export class SubscriptionProvisioner {
       tx as { subscriptions: { create: (args: any) => any } }
     ).subscriptions.create({
       data: {
-        restaurantId: input.tenantId,
+        tenantId: input.tenantId,
         planName: input.plan,
         status: 'TRIALING',
         billingEmail: input.billingEmail,

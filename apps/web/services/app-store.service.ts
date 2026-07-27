@@ -85,3 +85,4 @@ export async function updateModule(
   if (res.data.success) return res.data.data;
   return res.data;
 }
+

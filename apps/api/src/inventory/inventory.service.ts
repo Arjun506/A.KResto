@@ -30,26 +30,26 @@ export class InventoryService {
     return user?.role === 'SUPER_ADMIN';
   }
 
-  private restaurantId(user: JwtUser | undefined) {
-    if (!user?.restaurantId) {
-      throw new ForbiddenException('Missing restaurantId for tenant access');
+  private tenantId(user: JwtUser | undefined) {
+    if (!user?.tenantId) {
+      throw new ForbiddenException('Missing tenantId for tenant access');
     }
 
-    return user.restaurantId;
+    return user.tenantId;
   }
 
   private tenantWhere(user: JwtUser | undefined) {
-    if (this.isSuperAdmin(user) && !user?.restaurantId) return {};
-    return { restaurantId: this.restaurantId(user) };
+    if (this.isSuperAdmin(user) && !user?.tenantId) return {};
+    return { tenantId: this.tenantId(user) };
   }
 
   async createItem(user: JwtUser | undefined, dto: CreateInventoryItemDto) {
-    const restaurantId = this.restaurantId(user);
+    const tenantId = this.tenantId(user);
     await this.assertSupplier(user, dto.supplierId);
 
     return this.prisma.inventory_items.create({
       data: {
-        restaurantId,
+        tenantId,
         name: dto.name,
         sku: dto.sku,
         quantity: dto.quantity,
@@ -121,7 +121,7 @@ export class InventoryService {
   async createSupplier(user: JwtUser | undefined, dto: CreateSupplierDto) {
     return this.prisma.suppliers.create({
       data: {
-        restaurantId: this.restaurantId(user),
+        tenantId: this.tenantId(user),
         ...dto,
       },
     });
@@ -159,7 +159,7 @@ export class InventoryService {
     user: JwtUser | undefined,
     dto: CreatePurchaseOrderDto,
   ) {
-    const restaurantId = this.restaurantId(user);
+    const tenantId = this.tenantId(user);
     await this.assertSupplier(user, dto.supplierId);
 
     const totalAmount = dto.items.reduce(
@@ -169,7 +169,7 @@ export class InventoryService {
 
     return this.prisma.purchase_orders.create({
       data: {
-        restaurantId,
+        tenantId,
         supplierId: dto.supplierId,
         expectedDeliveryDate: dto.expectedDeliveryDate
           ? new Date(dto.expectedDeliveryDate)
@@ -228,7 +228,7 @@ export class InventoryService {
     menuItemId: string,
     dto: SetMenuItemIngredientsDto,
   ) {
-    const restaurantId = this.restaurantId(user);
+    const tenantId = this.tenantId(user);
     await this.assertMenuItem(user, menuItemId);
 
     const inventoryIds = dto.ingredients.map((item) => item.inventoryItemId);
@@ -236,7 +236,7 @@ export class InventoryService {
       const inventoryItems = await this.prisma.inventory_items.findMany({
         where: {
           id: { in: inventoryIds },
-          restaurantId,
+          tenantId,
         },
         select: { id: true },
       });
@@ -250,13 +250,13 @@ export class InventoryService {
 
     await this.prisma.$transaction(async (tx) => {
       await tx.menu_item_ingredients.deleteMany({
-        where: { menuItemId, restaurantId },
+        where: { menuItemId, tenantId },
       });
 
       if (dto.ingredients.length > 0) {
         await tx.menu_item_ingredients.createMany({
           data: dto.ingredients.map((ingredient) => ({
-            restaurantId,
+            tenantId,
             menuItemId,
             inventoryItemId: ingredient.inventoryItemId,
             quantity: ingredient.quantity,
@@ -280,7 +280,7 @@ export class InventoryService {
   async consumeForOrder(
     client: InventoryWriteClient,
     input: {
-      restaurantId: string;
+      tenantId: string;
       orderId: string;
       items: Array<{ id: string; menuItemId: string; quantity: number }>;
     },
@@ -291,7 +291,7 @@ export class InventoryService {
 
     const ingredients = await client.menu_item_ingredients.findMany({
       where: {
-        restaurantId: input.restaurantId,
+        tenantId: input.tenantId,
         menuItemId: { in: menuItemIds },
       },
       include: { inventory_items: true },
@@ -317,8 +317,7 @@ export class InventoryService {
       const required = this.roundQuantity(
         Number(ingredient.quantity) * orderItem.quantity,
       );
-      const current =
-        requiredByInventory.get(ingredient.inventoryItemId) ?? 0;
+      const current = requiredByInventory.get(ingredient.inventoryItemId) ?? 0;
       requiredByInventory.set(
         ingredient.inventoryItemId,
         this.roundQuantity(current + required),
@@ -333,13 +332,15 @@ export class InventoryService {
 
     const inventoryItems = await client.inventory_items.findMany({
       where: {
-        restaurantId: input.restaurantId,
+        tenantId: input.tenantId,
         id: { in: Array.from(requiredByInventory.keys()) },
       },
       select: { id: true, name: true, quantity: true },
     });
 
-    const inventoryById = new Map(inventoryItems.map((item) => [item.id, item]));
+    const inventoryById = new Map(
+      inventoryItems.map((item) => [item.id, item]),
+    );
 
     for (const [inventoryItemId, required] of requiredByInventory.entries()) {
       const item = inventoryById.get(inventoryItemId);
@@ -364,7 +365,7 @@ export class InventoryService {
     if (movementRows.length > 0) {
       await client.inventory_movements.createMany({
         data: movementRows.map((row) => ({
-          restaurantId: input.restaurantId,
+          tenantId: input.tenantId,
           inventoryItemId: row.inventoryItemId,
           orderId: input.orderId,
           orderItemId: row.orderItemId,

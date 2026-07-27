@@ -24,21 +24,28 @@ export class TablesController {
   constructor(private readonly prisma: PrismaService) {}
 
   @Get()
-  @Roles('RESTAURANT_OWNER', 'OWNER', 'MANAGER', 'CASHIER', 'WAITER', 'SUPER_ADMIN')
+  @Roles(
+    'RESTAURANT_OWNER',
+    'OWNER',
+    'MANAGER',
+    'CASHIER',
+    'WAITER',
+    'SUPER_ADMIN',
+  )
   async getTables(@Req() req: AuthenticatedRequest) {
-    const restaurantId = req.user?.restaurantId;
-    if (!restaurantId) return apiSuccess([]);
+    const tenantId = req.user?.tenantId;
+    if (!tenantId) return apiSuccess([]);
 
     // Fetch tables
     const tables = await this.prisma.tables.findMany({
-      where: { restaurantId },
+      where: { tenantId },
       orderBy: { code: 'asc' },
     });
 
     // Fetch active orders to compute status
     const activeOrders = await this.prisma.orders.findMany({
       where: {
-        restaurantId,
+        tenantId,
         status: { notIn: ['COMPLETED', 'CANCELLED'] },
       },
     });
@@ -51,7 +58,7 @@ export class TablesController {
 
     const activeReservations = await this.prisma.reservations.findMany({
       where: {
-        restaurantId,
+        tenantId,
         status: 'CONFIRMED',
         reservationAt: {
           gte: startOfDay,
@@ -88,16 +95,16 @@ export class TablesController {
     @Req() req: AuthenticatedRequest,
     @Body() body: { name: string; code: string; capacity: number },
   ) {
-    const restaurantId = req.user?.restaurantId;
-    if (!restaurantId) throw new BadRequestException('Missing restaurantId');
+    const tenantId = req.user?.tenantId;
+    if (!tenantId) throw new BadRequestException('Missing tenantId');
 
     const created = await this.prisma.tables.create({
       data: {
-        restaurantId,
+        tenantId,
         name: body.name,
         code: body.code,
         capacity: Number(body.capacity) || 2,
-        qrCode: `qr-${restaurantId}-${body.code}`,
+        qrCode: `qr-${tenantId}-${body.code}`,
       },
     });
     return apiSuccess(created, 'Table created');
@@ -110,11 +117,11 @@ export class TablesController {
     @Param('id') id: string,
     @Body() body: { name?: string; capacity?: number },
   ) {
-    const restaurantId = req.user?.restaurantId;
-    if (!restaurantId) throw new BadRequestException('Missing restaurantId');
+    const tenantId = req.user?.tenantId;
+    if (!tenantId) throw new BadRequestException('Missing tenantId');
 
     const updated = await this.prisma.tables.updateMany({
-      where: { id, restaurantId },
+      where: { id, tenantId },
       data: {
         ...(body.name && { name: body.name }),
         ...(body.capacity && { capacity: Number(body.capacity) }),
@@ -126,7 +133,7 @@ export class TablesController {
     }
 
     const table = await this.prisma.tables.findFirst({
-      where: { id, restaurantId },
+      where: { id, tenantId },
     });
 
     return apiSuccess(table, 'Table updated');
@@ -135,11 +142,11 @@ export class TablesController {
   @Delete(':id')
   @Roles('RESTAURANT_OWNER', 'OWNER', 'MANAGER', 'SUPER_ADMIN')
   async deleteTable(@Req() req: AuthenticatedRequest, @Param('id') id: string) {
-    const restaurantId = req.user?.restaurantId;
-    if (!restaurantId) throw new BadRequestException('Missing restaurantId');
+    const tenantId = req.user?.tenantId;
+    if (!tenantId) throw new BadRequestException('Missing tenantId');
 
     await this.prisma.tables.deleteMany({
-      where: { id, restaurantId },
+      where: { id, tenantId },
     });
     return apiSuccess({ id }, 'Table deleted');
   }

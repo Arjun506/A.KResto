@@ -9,28 +9,38 @@ import React, {
   useState,
 } from 'react';
 
-export type UserRole = 'OWNER' | 'CASHIER' | 'CHEF' | 'WAITER' | 'SUPER_ADMIN';
+export type UserRole =
+  | 'SUPER_ADMIN'
+  | 'RESTAURANT_OWNER'
+  | 'OWNER'
+  | 'MANAGER'
+  | 'CASHIER'
+  | 'WAITER'
+  | 'CHEF'
+  | 'CUSTOMER';
 
 interface AuthUser {
   id: string;
   email: string;
   role: UserRole;
-  restaurantId?: string;
+  tenantId?: string;
 }
 
 type AuthContextValue = {
   token: string | null;
   user: AuthUser | null;
   isLoading: boolean;
-  login: (token: string) => void;
+  login: (token: string, rememberMe?: boolean) => void;
   logout: () => void;
+  hasPermission: (permission: string) => boolean;
+  hasAnyRole: (roles: UserRole[]) => boolean;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 const TOKEN_KEY = 'token';
 
-// Helper to decode JWT token
+// Helper to decode JWT token safely
 function decodeToken(token: string): AuthUser | null {
   try {
     const parts = token.split('.');
@@ -40,11 +50,17 @@ function decodeToken(token: string): AuthUser | null {
       atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'))
     );
 
+    // Map legacy roles like OWNER to RESTAURANT_OWNER if needed
+    let role = (decoded.role || 'WAITER') as UserRole;
+    if (role === 'OWNER') {
+      role = 'RESTAURANT_OWNER';
+    }
+
     return {
       id: decoded.sub || decoded.id || '',
       email: decoded.email || '',
-      role: (decoded.role || 'WAITER') as UserRole,
-      restaurantId: decoded.restaurantId,
+      role,
+      tenantId: decoded.tenantId,
     };
   } catch (error) {
     console.error('Failed to decode token:', error);
@@ -63,8 +79,10 @@ export function AuthProvider({
 
   // Initialize auth state once on the client.
   useEffect(() => {
-    const nextToken = localStorage.getItem(TOKEN_KEY);
-    // Avoid the cascading-renders lint rule by deferring state updates.
+    // Check both local storage and session storage
+    const nextToken =
+      localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY);
+    
     queueMicrotask(() => {
       setToken(nextToken);
       if (nextToken) {
@@ -75,17 +93,15 @@ export function AuthProvider({
     });
   }, []);
 
-
-
-
-
-
-
-
-
-
-  const login = useCallback((nextToken: string) => {
-    localStorage.setItem(TOKEN_KEY, nextToken);
+  const login = useCallback((nextToken: string, rememberMe: boolean = false) => {
+    if (rememberMe) {
+      localStorage.setItem(TOKEN_KEY, nextToken);
+      sessionStorage.removeItem(TOKEN_KEY);
+    } else {
+      sessionStorage.setItem(TOKEN_KEY, nextToken);
+      localStorage.removeItem(TOKEN_KEY);
+    }
+    
     setToken(nextToken);
     const decodedUser = decodeToken(nextToken);
     setUser(decodedUser);
@@ -93,9 +109,35 @@ export function AuthProvider({
 
   const logout = useCallback(() => {
     localStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(TOKEN_KEY);
     setToken(null);
     setUser(null);
   }, []);
+
+  const hasPermission = useCallback((permission: string): boolean => {
+    if (!user) return false;
+    const role = user.role;
+    
+    // Super admins and owners override all checks
+    if (['SUPER_ADMIN', 'RESTAURANT_OWNER', 'OWNER', 'MANAGER'].includes(role)) {
+      return true;
+    }
+    
+    // Define the client-side permission lookup table corresponding to business.constants.ts
+    const rolePermissions: Record<string, string[]> = {
+      CASHIER: ['pos:read', 'pos:write', 'payments:read', 'payments:write', 'orders:read', 'orders:write', 'tables:read'],
+      WAITER: ['tables:read', 'orders:read', 'orders:write'],
+      CHEF: ['kitchen:read', 'kitchen:write', 'inventory:read'],
+    };
+    
+    const permissions = rolePermissions[role] || [];
+    return permissions.includes(permission);
+  }, [user]);
+
+  const hasAnyRole = useCallback((roles: UserRole[]): boolean => {
+    if (!user) return false;
+    return roles.includes(user.role);
+  }, [user]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -104,8 +146,10 @@ export function AuthProvider({
       isLoading,
       login,
       logout,
+      hasPermission,
+      hasAnyRole,
     }),
-    [token, user, isLoading, login, logout],
+    [token, user, isLoading, login, logout, hasPermission, hasAnyRole],
   );
 
   return (
@@ -122,6 +166,4 @@ export function useAuth() {
   }
   return ctx;
 }
-
-
 

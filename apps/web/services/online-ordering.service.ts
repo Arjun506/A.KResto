@@ -48,7 +48,7 @@ export interface SearchFilters {
 
 export interface MenuItem {
   id: string;
-  restaurantId: string;
+  tenantId: string;
   name: string;
   description?: string;
   price: number;
@@ -105,7 +105,7 @@ export interface OrderItem extends CartItem {
 
 export interface Order {
   id: string;
-  restaurantId: string;
+  tenantId: string;
   customerId: string;
   items: OrderItem[];
   subtotal: number;
@@ -166,7 +166,7 @@ export interface DeliveryPartner {
 
 export interface TableBooking {
   id: string;
-  restaurantId: string;
+  tenantId: string;
   customerId: string;
   guestCount: number;
   bookingDate: string;
@@ -178,7 +178,7 @@ export interface TableBooking {
 
 export interface EventBooking {
   id: string;
-  restaurantId: string;
+  tenantId: string;
   customerId: string;
   eventType: 'birthday' | 'anniversary' | 'wedding' | 'corporate' | 'other';
   eventDate: string;
@@ -266,7 +266,7 @@ export const getMenuItemDetail = async (restaurantSlug: string, itemId: string):
 // ============================================
 
 export interface CreateOrderPayload {
-  restaurantId: string;
+  tenantId: string;
   customerId?: string;
   items: CartItem[];
   deliveryAddress: DeliveryAddress;
@@ -346,9 +346,9 @@ export const getAvailableCoupons = async (): Promise<Coupon[]> => {
   );
 };
 
-export const validateCoupon = async (couponCode: string, restaurantId?: string, orderValue?: number): Promise<{ valid: boolean; discount: number; message: string }> => {
+export const validateCoupon = async (couponCode: string, tenantId?: string, orderValue?: number): Promise<{ valid: boolean; discount: number; message: string }> => {
   return unwrap<{ valid: boolean; discount: number; message: string }>(
-    api.post('/coupons/validate', { couponCode, restaurantId, orderValue })
+    api.post('/coupons/validate', { couponCode, tenantId, orderValue })
   );
 };
 
@@ -363,7 +363,7 @@ export const applyCoupon = async (orderId: string, couponCode: string): Promise<
 // ============================================
 
 export interface BookTablePayload {
-  restaurantId: string;
+  tenantId: string;
   customerId?: string;
   guestCount: number;
   bookingDate: string;
@@ -385,9 +385,9 @@ export const getTableBookings = async (customerId: string): Promise<TableBooking
   );
 };
 
-export const getAvailableTables = async (restaurantId: string, date: string, time: string, guestCount: number): Promise<any[]> => {
+export const getAvailableTables = async (tenantId: string, date: string, time: string, guestCount: number): Promise<any[]> => {
   return unwrap<any[]>(
-    api.get(`/restaurants/${restaurantId}/available-tables`, { params: { date, time, guestCount } })
+    api.get(`/restaurants/${tenantId}/available-tables`, { params: { date, time, guestCount } })
   );
 };
 
@@ -402,7 +402,7 @@ export const cancelTableBooking = async (bookingId: string, reason?: string): Pr
 // ============================================
 
 export interface BookEventPayload {
-  restaurantId: string;
+  tenantId: string;
   customerId?: string;
   eventType: EventBooking['eventType'];
   eventDate: string;
@@ -426,15 +426,15 @@ export const getEventBookings = async (customerId: string): Promise<EventBooking
   );
 };
 
-export const getDecorationPackages = async (restaurantId: string): Promise<DecorationPackage[]> => {
+export const getDecorationPackages = async (tenantId: string): Promise<DecorationPackage[]> => {
   return unwrap<DecorationPackage[]>(
-    api.get(`/restaurants/${restaurantId}/decoration-packages`)
+    api.get(`/restaurants/${tenantId}/decoration-packages`)
   );
 };
 
-export const getEventPackages = async (restaurantId: string, eventType: string): Promise<any[]> => {
+export const getEventPackages = async (tenantId: string, eventType: string): Promise<any[]> => {
   return unwrap<any[]>(
-    api.get(`/restaurants/${restaurantId}/event-packages`, { params: { eventType } })
+    api.get(`/restaurants/${tenantId}/event-packages`, { params: { eventType } })
   );
 };
 
@@ -550,7 +550,7 @@ export const rejectDelivery = async (orderId: string, reason?: string): Promise<
 // ============================================
 
 export interface RateRestaurantPayload {
-  restaurantId: string;
+  tenantId: string;
   rating: number;
   review?: string;
 }
@@ -561,9 +561,9 @@ export const rateRestaurant = async (data: RateRestaurantPayload): Promise<{ suc
   );
 };
 
-export const getRestaurantReviews = async (restaurantId: string, limit = 5, offset = 0): Promise<any[]> => {
+export const getRestaurantReviews = async (tenantId: string, limit = 5, offset = 0): Promise<any[]> => {
   return unwrap<any[]>(
-    api.get(`/restaurants/${restaurantId}/reviews`, { params: { limit, offset } })
+    api.get(`/restaurants/${tenantId}/reviews`, { params: { limit, offset } })
   );
 };
 
@@ -600,3 +600,4 @@ export const processRefund = async (data: ProcessRefundPayload): Promise<{ succe
     api.post('/returns/process-refund', data)
   );
 };
+

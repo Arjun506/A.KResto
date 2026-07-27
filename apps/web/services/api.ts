@@ -9,10 +9,10 @@ import type { ApiFailure } from '../src/types/api.types';
 
 
 const getApiBaseUrl = () => {
-  return (
+  const url =
     process.env.NEXT_PUBLIC_API_URL ||
-    'http://localhost:3001'
-  );
+    'http://localhost:3001';
+  return url.endsWith('/api/v1') ? url : `${url}/api/v1`;
 };
 
 function isBrowser() {
@@ -27,7 +27,9 @@ api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     if (!isBrowser()) return config;
 
-    const token = window.localStorage.getItem('token');
+    const token =
+      window.localStorage.getItem('token') ||
+      window.sessionStorage.getItem('token');
     if (token) {
       config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
@@ -44,6 +46,7 @@ api.interceptors.response.use(
 
     if (error.response?.status === 401 && isBrowser()) {
       window.localStorage.removeItem('token');
+      window.sessionStorage.removeItem('token');
       // optional: hard reload to let ProtectedRoute redirect
       window.location.href = '/login';
     }
@@ -53,5 +56,6 @@ api.interceptors.response.use(
 );
 
 export default api;
+
 
 

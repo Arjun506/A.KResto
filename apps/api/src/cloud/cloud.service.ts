@@ -19,7 +19,11 @@ export interface CloudFileMetadata {
 
 @Injectable()
 export class CloudService {
-  private readonly registryPath = path.join(process.cwd(), 'uploads', 'metadata-registry.json');
+  private readonly registryPath = path.join(
+    process.cwd(),
+    'uploads',
+    'metadata-registry.json',
+  );
 
   constructor(
     @Inject('StorageAdapter') private readonly storage: StorageAdapter,
@@ -39,22 +43,39 @@ export class CloudService {
   }
 
   private async saveRegistry(records: CloudFileMetadata[]): Promise<void> {
-    await fs.writeFile(this.registryPath, JSON.stringify(records, null, 2), 'utf8');
+    await fs.writeFile(
+      this.registryPath,
+      JSON.stringify(records, null, 2),
+      'utf8',
+    );
   }
 
   async uploadFile(
     tenantId: string,
     userId: string,
-    file: { buffer: Buffer; originalname: string; mimetype: string; size: number },
+    file: {
+      buffer: Buffer;
+      originalname: string;
+      mimetype: string;
+      size: number;
+    },
     category: string,
     isPublic: boolean,
   ): Promise<CloudFileMetadata> {
-    const fileId = Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
-    const sanitizedOriginalName = file.originalname.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+    const fileId =
+      Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+    const sanitizedOriginalName = file.originalname.replace(
+      /[^a-zA-Z0-9.\-_]/g,
+      '_',
+    );
     const storageKey = `tenants/${tenantId}/${category}/${fileId}_${sanitizedOriginalName}`;
 
     // Write file to actual storage adapter
-    const savedPath = await this.storage.save(storageKey, file.buffer, file.mimetype);
+    const savedPath = await this.storage.save(
+      storageKey,
+      file.buffer,
+      file.mimetype,
+    );
 
     // Build absolute/relative URL
     const url = isPublic
@@ -82,25 +103,37 @@ export class CloudService {
     return metadata;
   }
 
-  async getFileMetadata(tenantId: string, fileId: string): Promise<CloudFileMetadata> {
+  async getFileMetadata(
+    tenantId: string,
+    fileId: string,
+  ): Promise<CloudFileMetadata> {
     const registry = await this.loadRegistry();
-    const file = registry.find((item) => item.id === fileId && item.tenantId === tenantId);
+    const file = registry.find(
+      (item) => item.id === fileId && item.tenantId === tenantId,
+    );
     if (!file) {
       throw new NotFoundException(`File not found: ${fileId}`);
     }
     return file;
   }
 
-  async listFiles(tenantId: string, category?: string): Promise<CloudFileMetadata[]> {
+  async listFiles(
+    tenantId: string,
+    category?: string,
+  ): Promise<CloudFileMetadata[]> {
     const registry = await this.loadRegistry();
     return registry.filter((item) => {
       const tenantMatch = item.tenantId === tenantId;
-      const categoryMatch = !category || item.category.toLowerCase() === category.toLowerCase();
+      const categoryMatch =
+        !category || item.category.toLowerCase() === category.toLowerCase();
       return tenantMatch && categoryMatch;
     });
   }
 
-  async getFileBuffer(tenantId: string, fileId: string): Promise<{ buffer: Buffer; metadata: CloudFileMetadata }> {
+  async getFileBuffer(
+    tenantId: string,
+    fileId: string,
+  ): Promise<{ buffer: Buffer; metadata: CloudFileMetadata }> {
     const metadata = await this.getFileMetadata(tenantId, fileId);
     const buffer = await this.storage.get(metadata.fileName);
     return { buffer, metadata };
@@ -112,7 +145,9 @@ export class CloudService {
 
   async deleteFile(tenantId: string, fileId: string): Promise<void> {
     const registry = await this.loadRegistry();
-    const fileIndex = registry.findIndex((item) => item.id === fileId && item.tenantId === tenantId);
+    const fileIndex = registry.findIndex(
+      (item) => item.id === fileId && item.tenantId === tenantId,
+    );
     if (fileIndex === -1) {
       throw new NotFoundException(`File not found: ${fileId}`);
     }

@@ -23,7 +23,7 @@ export class OrderResponseDto {
   customerPhone?: string | null;
   status!: OrderStatus;
   totalAmount!: string;
-  restaurantId!: string;
+  tenantId!: string;
   tableId!: string;
   createdAt!: Date;
   updatedAt!: Date;

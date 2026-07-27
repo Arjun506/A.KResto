@@ -4,12 +4,12 @@ import type {
 } from '../types/module-platform.types';
 
 async function getTenantId(): Promise<string> {
-  // Tenant is represented as restaurantId in JWT.
+  // Tenant is represented as tenantId in JWT.
   // Current frontend does not reliably expose it via a single selector,
   // so we default to the value stored in localStorage by other flows.
   // This will be wired properly in Sprint 2 continuation.
-  const v = localStorage.getItem('restaurantId');
-  if (!v) throw new Error('Missing tenantId (restaurantId)');
+  const v = localStorage.getItem('tenantId');
+  if (!v) throw new Error('Missing tenantId (tenantId)');
   return v;
 }
 
@@ -51,4 +51,5 @@ export async function getDashboardWidgets(role: string) {
   if (!res.ok) throw new Error(await res.text());
   return (await res.json()) as ModuleWidgetsResponse;
 }
+
 

@@ -113,7 +113,7 @@ async function main() {
     update: {},
     create: {
       id: 'sub-1',
-      restaurantId: 'rest-1',
+      tenantId: 'rest-1',
       planName: PlanTier.TRIAL,
       status: SubscriptionStatus.TRIALING,
       billingEmail: 'owner@akresto.com',
@@ -131,7 +131,7 @@ async function main() {
     email: string;
     passwordHash: string;
     role: UserRole;
-    restaurantId: string | null;
+    tenantId: string | null;
   }> = [
     {
       id: 'admin-id',
@@ -139,7 +139,7 @@ async function main() {
       email: 'admin@restobill.com',
       passwordHash: hashedPassword,
       role: UserRole.SUPER_ADMIN,
-      restaurantId: null,
+      tenantId: null,
     },
     {
       id: 'admin-console-id',
@@ -147,23 +147,23 @@ async function main() {
       email: 'admin.console@restobill.com',
       passwordHash: hashedPassword,
       role: UserRole.SUPER_ADMIN,
-      restaurantId: null,
+      tenantId: null,
     },
     {
       id: 'owner-id',
-      name: 'Restaurant Owner',
+      name: 'Tenant Owner',
       email: 'owner@restobill.com',
       passwordHash: hashedPassword,
-      role: UserRole.RESTAURANT_OWNER,
-      restaurantId: 'rest-1',
+      role: UserRole.OWNER,
+      tenantId: 'rest-1',
     },
     {
       id: 'owner-akresto-id',
-      name: 'Restaurant Owner (AKresto)',
+      name: 'Tenant Owner (AKresto)',
       email: 'owner@akresto.com',
       passwordHash: hashedPassword,
-      role: UserRole.RESTAURANT_OWNER,
-      restaurantId: 'rest-1',
+      role: UserRole.OWNER,
+      tenantId: 'rest-1',
     },
     {
       id: 'billing-akresto-id',
@@ -171,23 +171,31 @@ async function main() {
       email: 'billing@akresto.com',
       passwordHash: hashedPassword,
       role: UserRole.CASHIER,
-      restaurantId: 'rest-1',
+      tenantId: 'rest-1',
     },
     {
       id: 'waiter-akresto-id',
       name: 'Waiter Staff',
       email: 'waiter@akresto.com',
       passwordHash: hashedPassword,
-      role: UserRole.WAITER,
-      restaurantId: 'rest-1',
+      role: UserRole.OPERATOR,
+      tenantId: 'rest-1',
     },
     {
       id: 'chef-akresto-id',
       name: 'Chef Staff',
       email: 'chef@akresto.com',
       passwordHash: hashedPassword,
-      role: UserRole.CHEF,
-      restaurantId: 'rest-1',
+      role: UserRole.OPERATOR,
+      tenantId: 'rest-1',
+    },
+    {
+      id: 'manager-akresto-id',
+      name: 'Manager Staff',
+      email: 'manager@akresto.com',
+      passwordHash: hashedPassword,
+      role: UserRole.MANAGER,
+      tenantId: 'rest-1',
     },
   ];
 
@@ -204,10 +212,9 @@ async function main() {
         name: u.name,
         passwordHash: u.passwordHash,
         role: u.role,
-        restaurantId: u.restaurantId,
+        tenantId: u.tenantId,
       },
       create: u,
-
     });
   }
 
@@ -215,14 +222,14 @@ async function main() {
   // 7. Seed audit log (workspace bootstrap record)
   // ─────────────────────────────────────────────
   const existingAuditLog = await prisma.audit_logs.findFirst({
-    where: { restaurantId: tenant.id, action: 'WORKSPACE_SEEDED' },
+    where: { tenantId: tenant.id, action: 'WORKSPACE_SEEDED' },
   });
 
   if (!existingAuditLog) {
     const ownerUser = await prisma.users.findUnique({ where: { email: 'owner@akresto.com' } });
     await prisma.audit_logs.create({
       data: {
-        restaurantId: tenant.id,
+        tenantId: tenant.id,
         userId: ownerUser?.id ?? null,
         entity: 'Tenant',
         entityId: tenant.id,
@@ -233,7 +240,7 @@ async function main() {
           'seeded main branch',
           'seeded 5 roles with permissions',
           'seeded TRIAL subscription',
-          'seeded 7 default users',
+          'seeded 8 default users',
         ],
       },
     });
