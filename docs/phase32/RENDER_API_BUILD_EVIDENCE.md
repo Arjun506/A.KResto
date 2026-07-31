@@ -1,15 +1,16 @@
 # Phase 32B — Render API Build Evidence
 
-**Status**: `AWAITING_OPERATOR_EVIDENCE`
+**Status**: `REMEDIATED_AWAITING_REDEPLOYMENT`
 
 ---
 
-## Container Build Log Audit
+## 1. Container Build Log Audit
 
-- **Docker Build Context**: `AWAITING_OPERATOR_EVIDENCE`
-- **npm ci Status**: `AWAITING_OPERATOR_EVIDENCE`
-- **Prisma Generate Status**: `AWAITING_OPERATOR_EVIDENCE`
-- **NestJS Build Status**: `AWAITING_OPERATOR_EVIDENCE`
-- **Container Image Build**: `AWAITING_OPERATOR_EVIDENCE`
-- **Container Start**: `AWAITING_OPERATOR_EVIDENCE`
-- **Secret Leakage Check**: `AWAITING_OPERATOR_EVIDENCE`
+- **Failure Analysis**: Incident 001 (`npm ci` missing `package-lock.json`).
+- **Remediation**: Generated and committed `apps/api/package-lock.json`.
+- **Docker Context**: `apps/api`
+- **npm ci Status**: `VERIFIED_LOCAL_LOCKFILE`
+- **Prisma Generate Status**: `PASS`
+- **NestJS Build Status**: `PASS`
+- **Container Build Target**: Node 22 Alpine multi-stage runner
+- **Docker Build Status**: `NOT_VERIFIED` (Docker CLI not installed on local Windows environment)
