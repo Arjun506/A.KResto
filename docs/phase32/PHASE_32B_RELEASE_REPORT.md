@@ -6,6 +6,8 @@
 
 ## Infrastructure Gate Status Matrix
 
+- **INCIDENT_001**: `RESOLVED` (`apps/api/package-lock.json` committed)
+- **INCIDENT_002**: `RESOLVED` (`CMD ["node", "dist/src/main.js"]` updated)
 - **RENDER_API_SERVICE**: `REMEDIATED_AWAITING_REDEPLOYMENT`
 - **DOCKER_BUILD**: `NOT_VERIFIED`
 - **CONTAINER_START**: `NOT_VERIFIED`

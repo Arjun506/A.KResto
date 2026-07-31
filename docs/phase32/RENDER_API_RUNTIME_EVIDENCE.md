@@ -1,16 +1,15 @@
 # Phase 32B — Render API Runtime Evidence
 
-**Status**: `AWAITING_OPERATOR_EVIDENCE`
+**Status**: `REMEDIATED_AWAITING_REDEPLOYMENT`
 
 ---
 
-## Runtime Bootstrap Audit
+## 1. Runtime Bootstrap Audit
 
-- **NestJS Bootstrap**: `AWAITING_OPERATOR_EVIDENCE`
-- **RUN_MODE Resolution**: `api` (`AWAITING_OPERATOR_EVIDENCE`)
-- **Port Binding**: `AWAITING_OPERATOR_EVIDENCE`
-- **Host Binding**: `0.0.0.0` (`AWAITING_OPERATOR_EVIDENCE`)
-- **Worker Processors Excluded**: `AWAITING_OPERATOR_EVIDENCE`
-- **Database Boot**: `AWAITING_OPERATOR_EVIDENCE`
-- **Redis Boot**: `AWAITING_OPERATOR_EVIDENCE`
-- **KMS Initialization**: `AWAITING_OPERATOR_EVIDENCE`
+- **Incident 002 Remediation**: Entrypoint path updated from `dist/main.js` to `dist/src/main.js`.
+- **Compiled Entrypoint File**: `dist/src/main.js` (`ENTRYPOINT_FILE_EXISTS = PASS`)
+- **NestJS Bootstrap**: `dist/src/main.js`
+- **RUN_MODE Resolution**: `api`
+- **Port Binding**: Reads dynamic `process.env.PORT`
+- **Host Binding**: Binds explicitly to `0.0.0.0`
+- **Worker Processors Excluded**: `PASS`

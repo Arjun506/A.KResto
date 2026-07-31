@@ -4,16 +4,17 @@
 
 ---
 
-## 1. Monorepo Root & Workspace Strategy
+## 1. Production Startup Contract
 
 - **Runtime Strategy**: **Docker** using `apps/api/Dockerfile`.
 - **Lockfile Strategy**: `apps/api/package-lock.json` committed and validated.
+- **Compiled Entrypoint**: `dist/src/main.js`
 - **Root Directory**: `apps/api`
 - **Docker Build Context Directory**: `apps/api`
 - **Dockerfile Path**: `Dockerfile` (or `apps/api/Dockerfile`)
 - **Install Command**: Handled inside Dockerfile `RUN npm ci`
 - **Build Command**: Handled inside Dockerfile `RUN npm run build`
-- **Start Command**: `node dist/main.js` (Dockerfile `CMD ["node", "dist/main.js"]`)
+- **Start Command**: `node dist/src/main.js` (Dockerfile `CMD ["node", "dist/src/main.js"]`)
 
 ---
 
