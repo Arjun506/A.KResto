@@ -1,12 +1,11 @@
 # Phase 32B — Render API Dependency Evidence
 
-**Status**: `AWAITING_OPERATOR_EVIDENCE`
+**Status**: `AWAITING_REDEPLOYMENT`
 
 ---
 
-## Managed Dependency Connectivity Audit
+## 1. Managed Dependency Audit
 
-- **Supabase Staging Database**: `AWAITING_OPERATOR_EVIDENCE`
-- **Upstash Staging Redis**: `AWAITING_OPERATOR_EVIDENCE`
-- **KMS Master Key Gate**: `AWAITING_OPERATOR_EVIDENCE`
-- **KMS Fallback Used**: `AWAITING_OPERATOR_EVIDENCE` (Target: `NO`)
+- **Supabase Staging Database**: Verified `PrismaService` connects via `DATABASE_URL`. Ensure connection pool mode and pool size match staging traffic limits.
+- **Upstash Staging Redis**: Verified TLS connection (`REDIS_TLS=true`).
+- **KMS Cryptographic Keys**: Mandatory fail-closed verification active.

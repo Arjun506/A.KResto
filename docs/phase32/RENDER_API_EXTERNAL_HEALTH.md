@@ -1,13 +1,11 @@
 # Phase 32B — Render API External Health Evidence
 
-**Status**: `AWAITING_OPERATOR_EVIDENCE`
+**Status**: `AWAITING_REDEPLOYMENT`
 
 ---
 
-## External HTTPS Health Audit
+## 1. External HTTPS Health Audit
 
-- **HTTPS Endpoint**: `AWAITING_OPERATOR_EVIDENCE`
-- **Liveness Gate (`/api/v1/health`)**: `AWAITING_OPERATOR_EVIDENCE`
-- **Readiness Gate (`/api/v1/ready`)**: `AWAITING_OPERATOR_EVIDENCE`
-- **TLS Certificate Verification**: `AWAITING_OPERATOR_EVIDENCE`
-- **Response Latency**: `AWAITING_OPERATOR_EVIDENCE`
+- **HTTPS Endpoint**: `AWAITING_OPERATOR_REDEPLOYMENT`
+- **Liveness Gate (`/api/v1/health`)**: Process health check endpoint.
+- **Readiness Gate (`/api/v1/ready`)**: Database connectivity ping check.

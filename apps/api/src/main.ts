@@ -75,4 +75,8 @@ async function bootstrap() {
   );
 }
 
-void bootstrap();
+bootstrap().catch((err) => {
+  const logger = new JsonLogger();
+  logger.error('Fatal application bootstrap failure', err);
+  process.exit(1);
+});

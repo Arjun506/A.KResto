@@ -1,14 +1,12 @@
 # Phase 32B — Render API Security Evidence
 
-**Status**: `AWAITING_OPERATOR_EVIDENCE`
+**Status**: `AWAITING_REDEPLOYMENT`
 
 ---
 
-## Staging Security Smoke Audit
+## 1. Security & Redaction Audit
 
-- **HTTPS Enforced**: `AWAITING_OPERATOR_EVIDENCE`
-- **Error Stack Trace Disclosure**: `AWAITING_OPERATOR_EVIDENCE` (Target: `NONE`)
-- **Health Secret Leakage**: `AWAITING_OPERATOR_EVIDENCE` (Target: `NONE`)
-- **Unauthenticated Auth Boundary**: `AWAITING_OPERATOR_EVIDENCE`
-- **CORS Credentials Gate**: `AWAITING_OPERATOR_EVIDENCE`
-- **Rate Limit Initialization**: `AWAITING_OPERATOR_EVIDENCE`
+- **Structured Logging Redaction**: Password, token, key, secret, and credential strings are redacted in `JsonLogger`.
+- **Exception Redaction**: Stack traces and error messages pass through `redact()` filter before console output.
+- **KMS Keys Gate**: Enforced fail-closed behavior for `SAAS_MASTER_ENCRYPTION_KEY` and `SAAS_BLIND_INDEX_KEY` in `production`.
+- **JWT Secret Gate**: Mandatory `JWT_SECRET` configuration enforced at startup.

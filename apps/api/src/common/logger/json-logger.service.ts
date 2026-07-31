@@ -19,6 +19,37 @@ export class JsonLogger implements LoggerService {
       );
   }
 
+  private formatValue(val: any): any {
+    if (val === null || val === undefined) {
+      return val;
+    }
+    if (val instanceof Error) {
+      return {
+        name: val.name,
+        message: this.redact(val.message),
+        stack: val.stack ? this.redact(val.stack) : undefined,
+      };
+    }
+    if (typeof val === 'object') {
+      if (typeof val.message === 'string' || typeof val.stack === 'string') {
+        return {
+          name: val.name || 'Error',
+          message: this.redact(val.message || String(val)),
+          stack: val.stack ? this.redact(val.stack) : undefined,
+        };
+      }
+      try {
+        return JSON.parse(this.redact(JSON.stringify(val)));
+      } catch {
+        return String(val);
+      }
+    }
+    if (typeof val === 'string') {
+      return this.redact(val);
+    }
+    return val;
+  }
+
   log(message: any, ...optionalParams: any[]) {
     this.print('INFO', message, optionalParams);
   }
@@ -40,14 +71,19 @@ export class JsonLogger implements LoggerService {
   }
 
   private print(level: string, message: any, optionalParams: any[]) {
+    const formattedMessage = this.formatValue(message);
+    const firstParam = optionalParams[0] ? this.formatValue(optionalParams[0]) : undefined;
+    const secondParam = optionalParams[1] ? this.formatValue(optionalParams[1]) : undefined;
+
     const payload = {
       timestamp: new Date().toISOString(),
       level,
       service: 'api-service',
       environment: process.env.NODE_ENV || 'production',
       releaseVersion: process.env.RELEASE_VERSION || '1.0.0',
-      message: this.redact(message),
-      context: optionalParams[0] || undefined,
+      message: formattedMessage,
+      trace: level === 'ERROR' && firstParam ? firstParam : undefined,
+      context: secondParam || (typeof optionalParams[0] === 'string' && !optionalParams[0].includes('\n') ? optionalParams[0] : undefined),
     };
 
     console.log(JSON.stringify(payload));
