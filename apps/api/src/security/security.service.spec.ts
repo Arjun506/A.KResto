@@ -120,7 +120,10 @@ describe('DataSecurityService', () => {
         'sha256',
         crypto
           .createHash('sha256')
-          .update('dev-local-blind-index-key-secret!')
+          .update(
+            process.env.SAAS_BLIND_INDEX_KEY ||
+              'dev-local-blind-index-key-secret!',
+          )
           .digest(),
       )
       .update('dl-1ca-1234')
