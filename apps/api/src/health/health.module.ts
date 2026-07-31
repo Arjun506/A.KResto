@@ -10,6 +10,6 @@ import { SecurityModule } from '../security/security.module';
 @Module({
   imports: [TerminusModule, CacheConfigModule, QueueModule, SecurityModule],
   controllers: [HealthController],
-  providers: [PrismaService, CacheService],
+  providers: [CacheService],
 })
 export class HealthModule {}

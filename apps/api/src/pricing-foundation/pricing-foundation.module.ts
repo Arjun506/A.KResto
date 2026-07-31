@@ -57,9 +57,7 @@ import { PricingLookupService } from './lookups/pricing-lookup.service';
     PricingCalendarsController,
     PricingLookupController,
   ],
-  providers: [
-    PrismaService,
-    PriceBooksService,
+  providers: [PriceBooksService,
     PriceBooksRepository,
     PricingVersioningService,
     PricingWorkflowService,
@@ -75,8 +73,7 @@ import { PricingLookupService } from './lookups/pricing-lookup.service';
     TierPricingService,
     PriceCalculationService,
     PricingCalendarsService,
-    PricingLookupService,
-  ],
+    PricingLookupService],
   exports: [
     PriceBooksService,
     PricingVersioningService,

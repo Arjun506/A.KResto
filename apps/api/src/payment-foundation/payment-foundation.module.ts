@@ -82,9 +82,7 @@ import { PaymentLookupController } from './lookups/payment-lookup.controller';
     FraudRiskController,
     PaymentLookupController,
   ],
-  providers: [
-    PrismaService,
-    PaymentIntentService,
+  providers: [PaymentIntentService,
     TokenVaultService,
     SubscriptionBillingService,
     PaymentDisputesService,
@@ -102,8 +100,7 @@ import { PaymentLookupController } from './lookups/payment-lookup.controller';
     WalletFoundationService,
     GiftCardService,
     SplitPaymentService,
-    FraudRiskService,
-  ],
+    FraudRiskService],
   exports: [
     PaymentIntentService,
     TokenVaultService,

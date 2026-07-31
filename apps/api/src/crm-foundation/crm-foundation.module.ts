@@ -54,7 +54,6 @@ import { CrmLookupController } from './lookups/crm-lookup.controller';
     CrmLookupController,
   ],
   providers: [
-    PrismaService,
     LeadsService,
     OpportunitiesService,
     CrmCasesService,

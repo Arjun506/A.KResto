@@ -8,7 +8,7 @@ import { HealthcareController } from './healthcare.controller';
 @Module({
   imports: [EventBusModule],
   controllers: [HealthcareController],
-  providers: [PrismaService, HealthcareService],
+  providers: [HealthcareService],
   exports: [HealthcareService],
 })
 export class HealthcarePackModule {}

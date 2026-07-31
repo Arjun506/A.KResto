@@ -10,7 +10,7 @@ import { OrdersService } from './orders.service';
 @Module({
   imports: [AuthModule, InventoryModule],
   controllers: [OrdersController],
-  providers: [OrdersService, OrdersGateway, PrismaService],
+  providers: [OrdersService, OrdersGateway],
   exports: [OrdersService, OrdersGateway],
 })
 export class OrdersModule {}

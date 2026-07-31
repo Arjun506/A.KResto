@@ -7,7 +7,7 @@ import { TablesController } from './tables.controller';
 
 @Module({
   controllers: [RestaurantsController, TablesController],
-  providers: [RestaurantsService, PrismaService],
+  providers: [RestaurantsService],
   exports: [RestaurantsService],
 })
 export class RestaurantsModule {}

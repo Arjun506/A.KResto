@@ -13,7 +13,6 @@ import { AiPlatformController } from './ai-platform.controller';
   imports: [EventBusModule],
   controllers: [AiPlatformController],
   providers: [
-    PrismaService,
     AiGatewayService,
     AiPromptRegistryService,
     AiAgentService,

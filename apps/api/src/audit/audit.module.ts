@@ -7,7 +7,7 @@ import { PrismaService } from '../prisma/prisma.service';
 @Global()
 @Module({
   controllers: [AuditController],
-  providers: [AuditService, AuditRepository, PrismaService],
+  providers: [AuditService, AuditRepository],
   exports: [AuditService, AuditRepository],
 })
 export class AuditModule {}

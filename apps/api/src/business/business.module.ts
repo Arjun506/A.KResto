@@ -7,7 +7,7 @@ import { AuthModule } from '../auth/auth.module';
 @Module({
   imports: [AuthModule],
   controllers: [BusinessController],
-  providers: [BusinessService, PrismaService],
+  providers: [BusinessService],
   exports: [BusinessService],
 })
 export class BusinessModule {}

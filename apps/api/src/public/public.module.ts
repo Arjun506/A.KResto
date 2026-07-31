@@ -8,6 +8,6 @@ import { PublicService } from './public.service';
 @Module({
   imports: [AuthModule],
   controllers: [PublicController],
-  providers: [PublicService, OrdersGateway, PrismaService],
+  providers: [PublicService, OrdersGateway],
 })
 export class PublicModule {}

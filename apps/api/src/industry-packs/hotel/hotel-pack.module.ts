@@ -8,7 +8,7 @@ import { HotelController } from './hotel.controller';
 @Module({
   imports: [EventBusModule],
   controllers: [HotelController],
-  providers: [PrismaService, HotelService],
+  providers: [HotelService],
   exports: [HotelService],
 })
 export class HotelPackModule {}

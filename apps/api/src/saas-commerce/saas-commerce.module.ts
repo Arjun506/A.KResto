@@ -11,7 +11,7 @@ import { SaasCommerceController } from './saas-commerce.controller';
 @Module({
   imports: [EventBusModule, TenantModule, IamModule, PlatformPackModule],
   controllers: [SaasCommerceController],
-  providers: [PrismaService, SaasCommerceService],
+  providers: [SaasCommerceService],
   exports: [SaasCommerceService],
 })
 export class SaasCommerceModule {}

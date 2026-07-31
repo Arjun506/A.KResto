@@ -41,13 +41,13 @@ import { SaasCommerceModule } from './saas-commerce/saas-commerce.module';
 import { SecurityModule } from './security/security.module';
 import { CacheConfigModule } from './cache/cache.module';
 
-import { TenantGuard } from './tenant/tenant.guard';
-import { PrismaService } from './prisma/prisma.service';
+import { PrismaModule } from './prisma/prisma.module';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
 
 @Module({
   imports: [
     EnvConfigModule,
+    PrismaModule,
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -95,7 +95,6 @@ import { CorrelationIdMiddleware } from './common/middleware/correlation-id.midd
   controllers: [AppController],
   providers: [
     AppService,
-    PrismaService,
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,

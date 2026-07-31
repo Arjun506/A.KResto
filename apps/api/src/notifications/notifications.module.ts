@@ -19,9 +19,7 @@ const isWorker = process.env.RUN_MODE === 'worker';
     ),
   ],
   controllers: [NotificationsController],
-  providers: [
-    PrismaService,
-    NotificationsService,
+  providers: [NotificationsService,
     NotificationsGateway,
     ...(isWorker ? [EmailProcessor, SmsProcessor, DeliveryProcessor] : []),
   ],

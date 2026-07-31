@@ -18,9 +18,7 @@ import { SubscriptionProvisioner } from './pipeline/subscription-provisioner';
 import { AuditProvisioner } from './pipeline/audit-provisioner';
 
 @Module({
-  providers: [
-    WorkspaceProvisioningService,
-    PrismaService,
+  providers: [WorkspaceProvisioningService,
     WorkspaceCreator,
     OwnerCreator,
     BusinessCreator,
@@ -33,8 +31,7 @@ import { AuditProvisioner } from './pipeline/audit-provisioner';
     ConsumerProvisioner,
     NotificationProvisioner,
     SubscriptionProvisioner,
-    AuditProvisioner,
-  ],
+    AuditProvisioner],
   exports: [WorkspaceProvisioningService],
 })
 export class WorkspaceProvisioningModule {}

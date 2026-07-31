@@ -13,15 +13,12 @@ import { CustomerPlatformController } from './customer-platform.controller';
 @Module({
   imports: [EventBusModule],
   controllers: [CustomerPlatformController],
-  providers: [
-    PrismaService,
-    CustIdentityService,
+  providers: [CustIdentityService,
     CustSearchService,
     CustWalletService,
     CustCapabilityService,
     CustCheckoutService,
-    CustReviewsService,
-  ],
+    CustReviewsService],
   exports: [
     CustIdentityService,
     CustSearchService,

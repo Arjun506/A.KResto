@@ -80,9 +80,7 @@ import { OrderLookupController } from './lookups/order-lookup.controller';
     OrderTagsController,
     OrderLookupController,
   ],
-  providers: [
-    PrismaService,
-    TransactionsService,
+  providers: [TransactionsService,
     OrderRegistryRepository,
     OrderRegistryService,
     OrderTypesService,
@@ -100,8 +98,7 @@ import { OrderLookupController } from './lookups/order-lookup.controller';
     OrderVersioningService,
     OrderNotesService,
     OrderTagsService,
-    OrderLookupService,
-  ],
+    OrderLookupService],
   exports: [
     TransactionsService,
     OrderRegistryService,

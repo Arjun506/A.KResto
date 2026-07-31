@@ -22,13 +22,10 @@ import { RestaurantAnalyticsController } from './analytics/restaurant-analytics.
     RestaurantOpsController,
     RestaurantAnalyticsController,
   ],
-  providers: [
-    PrismaService,
-    RestaurantCoreService,
+  providers: [RestaurantCoreService,
     RestaurantDiningService,
     RestaurantOpsService,
-    RestaurantAnalyticsService,
-  ],
+    RestaurantAnalyticsService],
   exports: [
     RestaurantCoreService,
     RestaurantDiningService,

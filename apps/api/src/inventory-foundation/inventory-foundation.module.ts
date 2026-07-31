@@ -92,9 +92,7 @@ import { InventoryLookupController } from './lookups/inventory-lookup.controller
     InventoryValuationController,
     InventoryLookupController,
   ],
-  providers: [
-    PrismaService,
-    InventoryRegistryRepository,
+  providers: [InventoryRegistryRepository,
     InventoryRegistryService,
     WarehousesService,
     StorageLocationsService,
@@ -115,8 +113,7 @@ import { InventoryLookupController } from './lookups/inventory-lookup.controller
     StockTransfersService,
     ReorderRulesService,
     InventoryValuationService,
-    InventoryLookupService,
-  ],
+    InventoryLookupService],
   exports: [
     InventoryRegistryService,
     WarehousesService,

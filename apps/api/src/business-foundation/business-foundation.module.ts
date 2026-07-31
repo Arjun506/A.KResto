@@ -47,7 +47,6 @@ import { LookupService } from './lookups/lookup.service';
     LookupController,
   ],
   providers: [
-    PrismaService,
     BusinessRegistryService,
     BusinessRegistryRepository,
     BusinessOwnershipService,

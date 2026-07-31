@@ -52,7 +52,6 @@ import { CustomerLookupService } from './lookups/customer-lookup.service';
     CustomerLookupController,
   ],
   providers: [
-    PrismaService,
     CustomerRegistryService,
     CustomerRegistryRepository,
     CustomerProfileService,

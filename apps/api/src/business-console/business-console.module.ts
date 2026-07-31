@@ -12,7 +12,6 @@ import { BusinessConsoleController } from './business-console.controller';
   imports: [EventBusModule],
   controllers: [BusinessConsoleController],
   providers: [
-    PrismaService,
     ConsoleWorkspaceService,
     ConsoleCommandService,
     ConsoleDashboardService,

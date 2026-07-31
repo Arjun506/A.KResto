@@ -5,7 +5,7 @@ import { WorkforceService } from './workforce.service';
 
 @Module({
   controllers: [WorkforceController],
-  providers: [WorkforceService, PrismaService],
+  providers: [WorkforceService],
   exports: [WorkforceService],
 })
 export class WorkforceModule {}

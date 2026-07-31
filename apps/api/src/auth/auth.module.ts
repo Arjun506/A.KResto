@@ -30,7 +30,7 @@ import { PermissionsGuard } from './permissions.guard';
 
   controllers: [AuthController],
 
-  providers: [AuthService, JwtStrategy, PrismaService, PermissionsGuard],
+  providers: [AuthService, JwtStrategy, PermissionsGuard],
 
   exports: [JwtModule, PassportModule, PermissionsGuard],
 })

@@ -60,9 +60,7 @@ import { ProductLookupService } from './lookups/product-lookup.service';
     ProductTagsController,
     ProductLookupController,
   ],
-  providers: [
-    PrismaService,
-    ProductRegistryService,
+  providers: [ProductRegistryService,
     ProductRegistryRepository,
     ProductVersioningService,
     ProductPublishingService,
@@ -79,8 +77,7 @@ import { ProductLookupService } from './lookups/product-lookup.service';
     ProductUomService,
     ProductSuppliersService,
     ProductTagsService,
-    ProductLookupService,
-  ],
+    ProductLookupService],
   exports: [
     ProductRegistryService,
     ProductVersioningService,

@@ -11,13 +11,10 @@ import { PlatformPackEngineController } from './platform-pack-engine.controller'
 @Module({
   imports: [EventBusModule],
   controllers: [PlatformPackEngineController],
-  providers: [
-    PrismaService,
-    PackRegistryService,
+  providers: [PackRegistryService,
     ManifestValidatorService,
     PackLifecycleService,
-    PackHealthService,
-  ],
+    PackHealthService],
   exports: [
     PackRegistryService,
     ManifestValidatorService,

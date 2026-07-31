@@ -8,7 +8,7 @@ import { LogisticsController } from './logistics.controller';
 @Module({
   imports: [EventBusModule],
   controllers: [LogisticsController],
-  providers: [PrismaService, LogisticsService],
+  providers: [LogisticsService],
   exports: [LogisticsService],
 })
 export class LogisticsPackModule {}

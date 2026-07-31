@@ -8,12 +8,9 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Module({
   controllers: [BillingController],
-  providers: [
-    PaymentProviderFactory,
+  providers: [PaymentProviderFactory,
     PaymentService,
-    MockPaymentProvider,
-    PrismaService,
-  ],
+    MockPaymentProvider],
   exports: [PaymentService, PaymentProviderFactory],
 })
 export class PaymentModule {}

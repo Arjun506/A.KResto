@@ -8,7 +8,7 @@ import { RetailController } from './retail.controller';
 @Module({
   imports: [EventBusModule],
   controllers: [RetailController],
-  providers: [PrismaService, RetailService],
+  providers: [RetailService],
   exports: [RetailService],
 })
 export class RetailPackModule {}

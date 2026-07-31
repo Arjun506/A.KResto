@@ -7,12 +7,9 @@ import { SecurityController } from './security.controller';
 
 @Module({
   controllers: [SecurityController],
-  providers: [
-    PrismaService,
-    KeyManagementService,
+  providers: [KeyManagementService,
     DataEncryptionService,
-    SecurityPolicyService,
-  ],
+    SecurityPolicyService],
   exports: [KeyManagementService, DataEncryptionService, SecurityPolicyService],
 })
 export class SecurityModule {}

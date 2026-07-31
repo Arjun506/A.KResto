@@ -4,7 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Global()
 @Module({
-  providers: [PlatformSettingsService, PrismaService],
+  providers: [PlatformSettingsService],
   exports: [PlatformSettingsService],
 })
 export class PlatformSettingsModule {}

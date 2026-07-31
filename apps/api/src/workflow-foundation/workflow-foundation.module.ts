@@ -45,9 +45,7 @@ import { WorkflowLookupController } from './lookups/workflow-lookup.controller';
     WebhookEngineController,
     WorkflowLookupController,
   ],
-  providers: [
-    PrismaService,
-    WorkflowRegistryService,
+  providers: [WorkflowRegistryService,
     BpmnCompatService,
     WorkflowInstancesService,
     StateMachineService,
@@ -58,8 +56,7 @@ import { WorkflowLookupController } from './lookups/workflow-lookup.controller';
     ApprovalEngineService,
     CompensationService,
     SlaEngineService,
-    WebhookEngineService,
-  ],
+    WebhookEngineService],
   exports: [
     WorkflowRegistryService,
     BpmnCompatService,

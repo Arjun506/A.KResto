@@ -7,7 +7,7 @@ import { AuthModule } from '../auth/auth.module';
 @Module({
   imports: [AuthModule],
   controllers: [MasterDataController],
-  providers: [MasterDataService, PrismaService],
+  providers: [MasterDataService],
   exports: [MasterDataService],
 })
 export class MasterDataModule {}

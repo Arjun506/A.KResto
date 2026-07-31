@@ -5,7 +5,7 @@ import { PosRegisterService } from './pos-register.service';
 
 @Module({
   controllers: [PosRegisterController],
-  providers: [PosRegisterService, PrismaService],
+  providers: [PosRegisterService],
   exports: [PosRegisterService],
 })
 export class PosRegisterModule {}
