@@ -38,8 +38,21 @@ async function bootstrap() {
   logger.log(
     'BOOTSTRAP_STAGE_02_MIDDLEWARE_CONFIGURED - Setting global prefix, CORS, pipes, filters, interceptors...',
   );
-  app.setGlobalPrefix('api/v1');
-  app.enableCors();
+  const allowedOrigins = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',').map((s) => s.trim())
+    : true;
+
+  app.enableCors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Requested-With',
+      'x-tenant-id',
+    ],
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({

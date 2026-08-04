@@ -32,7 +32,7 @@ type JwtPayload = {
   cors: {
     origin: process.env.ALLOWED_ORIGINS
       ? process.env.ALLOWED_ORIGINS.split(',').map((s) => s.trim())
-      : '*',
+      : true,
     credentials: true,
   },
 })

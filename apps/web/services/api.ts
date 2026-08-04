@@ -8,11 +8,9 @@ import type { ApiFailure } from '../src/types/api.types';
 
 
 
-const getApiBaseUrl = () => {
-  const url =
-    process.env.NEXT_PUBLIC_API_URL ||
-    'http://localhost:3001';
-  return url.endsWith('/api/v1') ? url : `${url}/api/v1`;
+export const getApiBaseUrl = () => {
+  const raw = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/+$/, '');
+  return raw.endsWith('/api/v1') ? raw : `${raw}/api/v1`;
 };
 
 function isBrowser() {
@@ -25,6 +23,15 @@ const api: AxiosInstance = axios.create({
 
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
+    // Strip duplicate /api/v1 prefixes if accidentally included in endpoint path
+    if (config.url) {
+      if (config.url.startsWith('/api/v1/')) {
+        config.url = config.url.replace(/^\/api\/v1\//, '/');
+      } else if (config.url.startsWith('api/v1/')) {
+        config.url = config.url.replace(/^api\/v1\//, '');
+      }
+    }
+
     if (!isBrowser()) return config;
 
     const token =

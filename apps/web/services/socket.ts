@@ -2,11 +2,11 @@ import { io, Socket } from 'socket.io-client';
 
 let socket: Socket | null = null;
 
-const getApiBaseUrl = () => {
-  return (
-    process.env.NEXT_PUBLIC_API_URL ||
-    'http://localhost:3001'
-  );
+const getSocketBaseUrl = () => {
+  const raw = (
+    process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+  ).replace(/\/+$/, '');
+  return raw.replace(/\/api\/v1$/, '');
 };
 
 export const getSocket = (tenantId?: string) => {
@@ -27,11 +27,11 @@ export const getSocket = (tenantId?: string) => {
     return socket;
   }
 
-  socket = io(getApiBaseUrl(), {
+  socket = io(getSocketBaseUrl(), {
     auth: token ? { token } : undefined,
     query: tenantId ? { tenantId } : undefined,
     autoConnect: true,
-    transports: ['websocket'],
+    transports: ['websocket', 'polling'],
   });
 
   return socket;
