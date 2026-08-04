@@ -38,6 +38,8 @@ async function bootstrap() {
   logger.log(
     'BOOTSTRAP_STAGE_02_MIDDLEWARE_CONFIGURED - Setting global prefix, CORS, pipes, filters, interceptors...',
   );
+  app.setGlobalPrefix('api/v1');
+
   const allowedOrigins = process.env.ALLOWED_ORIGINS
     ? process.env.ALLOWED_ORIGINS.split(',').map((s) => s.trim())
     : true;
