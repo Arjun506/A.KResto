@@ -341,6 +341,28 @@ export class AuthService {
     };
   }
 
+  async getProfile(userId: string) {
+    const user = await this.prisma.users.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        tenantId: true,
+        isActive: true,
+        lastLoginAt: true,
+        createdAt: true,
+      },
+    });
+
+    if (!user || !user.isActive) {
+      throw new NotFoundException('User profile not found or inactive');
+    }
+
+    return user;
+  }
+
   async refresh(refreshToken: string) {
     const session = await this.verifyAndConsumeRefreshSession({
       refreshToken,

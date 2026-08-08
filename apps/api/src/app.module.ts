@@ -40,6 +40,7 @@ import { LogisticsPackModule } from './industry-packs/logistics/logistics-pack.m
 import { SaasCommerceModule } from './saas-commerce/saas-commerce.module';
 import { SecurityModule } from './security/security.module';
 import { CacheConfigModule } from './cache/cache.module';
+import { RestaurantsModule } from './restaurants/restaurants.module';
 
 import { PrismaModule } from './prisma/prisma.module';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
@@ -91,6 +92,7 @@ import { CorrelationIdMiddleware } from './common/middleware/correlation-id.midd
     SaasCommerceModule,
     SecurityModule,
     CacheConfigModule,
+    RestaurantsModule,
   ],
   controllers: [AppController],
   providers: [

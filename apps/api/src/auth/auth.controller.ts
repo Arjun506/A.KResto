@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   Post,
   HttpCode,
   HttpStatus,
@@ -41,6 +42,14 @@ export class AuthController {
   @ApiOperation({ summary: 'Authenticate user credentials' })
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get currently authenticated user profile' })
+  async getProfile(@Req() req: any) {
+    return this.authService.getProfile(req.user.id);
   }
 
   @Post('refresh')
