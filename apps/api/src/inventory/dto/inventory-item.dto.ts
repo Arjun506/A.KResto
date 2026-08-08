@@ -1,4 +1,5 @@
 import {
+  IsBoolean,
   IsNumber,
   IsOptional,
   IsString,
@@ -16,6 +17,11 @@ export class CreateInventoryItemDto {
   @MaxLength(80)
   sku?: string;
 
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  category?: string;
+
   @IsNumber()
   @Min(0)
   quantity!: number;
@@ -30,8 +36,22 @@ export class CreateInventoryItemDto {
   lowStockLevel?: number;
 
   @IsOptional()
+  @IsNumber()
+  @Min(0)
+  reorderLevel?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  costPerUnit?: number;
+
+  @IsOptional()
   @IsString()
   supplierId?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
 }
 
 export class UpdateInventoryItemDto {
@@ -44,6 +64,11 @@ export class UpdateInventoryItemDto {
   @IsString()
   @MaxLength(80)
   sku?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  category?: string;
 
   @IsOptional()
   @IsNumber()
@@ -61,12 +86,44 @@ export class UpdateInventoryItemDto {
   lowStockLevel?: number;
 
   @IsOptional()
+  @IsNumber()
+  @Min(0)
+  reorderLevel?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  costPerUnit?: number;
+
+  @IsOptional()
   @IsString()
   supplierId?: string | null;
+
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
 }
 
 export class DeductStockDto {
   @IsNumber()
   @Min(0.01)
   quantity!: number;
+
+  @IsOptional()
+  @IsString()
+  reason?: string;
 }
+
+export class AdjustStockDto {
+  @IsNumber()
+  changeQuantity!: number;
+
+  @IsOptional()
+  @IsString()
+  type?: string; // MANUAL_ADJUSTMENT, WASTAGE, DAMAGE, STOCK_COUNT_CORRECTION, OPENING_BALANCE
+
+  @IsOptional()
+  @IsString()
+  reason?: string;
+}
+

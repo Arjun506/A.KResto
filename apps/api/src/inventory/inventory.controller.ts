@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -17,6 +18,7 @@ import { apiSuccess } from '../common/responses/api-response';
 import type { AuthenticatedRequest } from '../common/types/authenticated-request.interface';
 import { TenantGuard } from '../tenant/tenant.guard';
 import {
+  AdjustStockDto,
   CreateInventoryItemDto,
   DeductStockDto,
   UpdateInventoryItemDto,
@@ -65,6 +67,19 @@ export class InventoryController {
     );
   }
 
+  @Patch('items/:id/adjust')
+  @RequirePermission('inventory:write')
+  async adjustStock(
+    @Req() req: AuthenticatedRequest,
+    @Param('id') id: string,
+    @Body() dto: AdjustStockDto,
+  ) {
+    return apiSuccess(
+      await this.inventoryService.adjustStock(req.user, id, dto),
+      'Stock adjusted successfully',
+    );
+  }
+
   @Patch('items/:id/deduct')
   @RequirePermission('inventory:write')
   async deductStock(
@@ -87,6 +102,12 @@ export class InventoryController {
     );
   }
 
+  @Get('dashboard/summary')
+  @RequirePermission('inventory:read')
+  async getDashboardSummary(@Req() req: AuthenticatedRequest) {
+    return apiSuccess(await this.inventoryService.getDashboardSummary(req.user));
+  }
+
   @Get('alerts/low-stock')
   @RequirePermission('inventory:read')
   async lowStockAlerts(@Req() req: AuthenticatedRequest) {
@@ -95,13 +116,30 @@ export class InventoryController {
 
   @Get('movements')
   @RequirePermission('inventory:read')
-  async getMovements(@Req() req: AuthenticatedRequest) {
-    return apiSuccess(await this.inventoryService.getMovements(req.user));
+  async getMovements(
+    @Req() req: AuthenticatedRequest,
+    @Query('type') type?: string,
+    @Query('inventoryItemId') inventoryItemId?: string,
+  ) {
+    return apiSuccess(
+      await this.inventoryService.getMovements(req.user, { type, inventoryItemId }),
+    );
   }
 
   @Get('menu-items/:menuItemId/ingredients')
   @RequirePermission('inventory:read')
   async getMenuItemIngredients(
+    @Req() req: AuthenticatedRequest,
+    @Param('menuItemId') menuItemId: string,
+  ) {
+    return apiSuccess(
+      await this.inventoryService.getMenuItemIngredients(req.user, menuItemId),
+    );
+  }
+
+  @Get('menu-items/:menuItemId/recipe')
+  @RequirePermission('inventory:read')
+  async getMenuItemRecipe(
     @Req() req: AuthenticatedRequest,
     @Param('menuItemId') menuItemId: string,
   ) {

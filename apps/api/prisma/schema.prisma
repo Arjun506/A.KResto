@@ -707,10 +707,14 @@ model inventory_items {
   tenantId              String
   name                  String
   sku                   String?
+  category              String?
   quantity              Decimal                 @default(0) @db.Decimal(10, 2)
   unit                  String
   lowStockLevel         Decimal                 @default(0) @db.Decimal(10, 2)
+  reorderLevel          Decimal                 @default(0) @db.Decimal(10, 2)
+  costPerUnit           Decimal                 @default(0) @db.Decimal(10, 2)
   supplierId            String?
+  isActive              Boolean                 @default(true)
   createdAt             DateTime                @default(now())
   updatedAt             DateTime                @updatedAt
   tenant                Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -729,6 +733,8 @@ model menu_item_ingredients {
   menuItemId      String
   inventoryItemId String
   quantity        Decimal         @db.Decimal(10, 2)
+  unit            String?         @default("GRAM")
+  wastagePercent  Decimal?        @default(0) @db.Decimal(10, 2)
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
   inventory_items inventory_items @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
@@ -749,7 +755,13 @@ model inventory_movements {
   orderItemId     String?
   type            String
   quantity        Decimal         @db.Decimal(10, 2)
+  unit            String?
+  beforeQuantity  Decimal?        @db.Decimal(10, 2)
+  afterQuantity   Decimal?        @db.Decimal(10, 2)
+  referenceType   String?
+  referenceId     String?
   reason          String?
+  createdBy       String?
   createdAt       DateTime        @default(now())
   inventory_items inventory_items @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
   tenant          Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
