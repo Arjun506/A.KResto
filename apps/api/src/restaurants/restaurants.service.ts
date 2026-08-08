@@ -126,10 +126,18 @@ export class RestaurantsService {
     await this.prisma.tenant.update({
       where: { id },
       data: {
-        name: input.name,
-        location: input.location,
-        slug,
-        isActive: input.isActive,
+        ...(input.name && { name: input.name }),
+        ...(input.location !== undefined && { location: input.location }),
+        ...(slug && { slug }),
+        ...(input.isActive !== undefined && { isActive: input.isActive }),
+        ...(input.email !== undefined && { email: input.email }),
+        ...(input.phone !== undefined && { phone: input.phone }),
+        ...(input.address !== undefined && { address: input.address }),
+        ...(input.timezone !== undefined && { timezone: input.timezone }),
+        ...(input.currency !== undefined && { currency: input.currency }),
+        ...(input.logo !== undefined && { logo: input.logo }),
+        ...(input.settings !== undefined && { settings: input.settings }),
+        ...(input.branding !== undefined && { branding: input.branding }),
       },
     });
 
