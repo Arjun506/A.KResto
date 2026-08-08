@@ -76,6 +76,20 @@ export class ModuleStateService {
     });
   }
 
+  async updateModule(input: {
+    tenantId: string;
+    moduleId: string;
+    version?: string;
+    config?: unknown;
+  }) {
+    return this.installOrUpdateModule({
+      tenantId: input.tenantId,
+      moduleId: input.moduleId,
+      version: input.version || '1.0.0',
+      config: input.config,
+    });
+  }
+
   async installOrUpdateModule({
     tenantId,
     moduleId,

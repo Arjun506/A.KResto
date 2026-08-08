@@ -1,6 +1,5 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-
-import { ModuleRegistry } from './registry/module-registry';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { ModuleRegistry, SUPPORTED_INDUSTRIES, ModuleDefinition } from './registry/module-registry';
 import { DependencyResolver } from './resolver/dependency-resolver';
 import { ModuleStateService } from './state/module-state.service';
 import { ModulePermissionService } from './permissions/module-permission.service';
@@ -26,18 +25,10 @@ type SetEnabledInput = {
   enabled: boolean;
 };
 
-type SidebarInput = {
-  tenantId: string;
-  role: string;
-};
-
-type WidgetsInput = {
-  tenantId: string;
-  role: string;
-};
-
 @Injectable()
 export class ModulePlatformService {
+  private readonly logger = new Logger(ModulePlatformService.name);
+
   constructor(
     private readonly registry: ModuleRegistry,
     private readonly dependencyResolver: DependencyResolver,
@@ -50,6 +41,30 @@ export class ModulePlatformService {
     return this.registry.listAll();
   }
 
+  async getIndustries() {
+    return SUPPORTED_INDUSTRIES;
+  }
+
+  async getRecommendations(industryId: string) {
+    const ind = SUPPORTED_INDUSTRIES.find((i) => i.industryId === industryId.toUpperCase());
+    if (!ind) {
+      throw new BadRequestException(`Unsupported industry type: ${industryId}`);
+    }
+
+    const recommendedModuleDefs = ind.recommendedModules.map((mId) => {
+      try {
+        return this.registry.getModule(mId);
+      } catch {
+        return null;
+      }
+    }).filter(Boolean);
+
+    return {
+      industry: ind,
+      recommendedModules: recommendedModuleDefs,
+    };
+  }
+
   async listInstalledModules({ tenantId }: { tenantId: string }) {
     return this.state.listInstalledModules(tenantId);
   }
@@ -57,8 +72,8 @@ export class ModulePlatformService {
   async installModule(input: InstallModuleInput) {
     const moduleDef = this.registry.getModule(input.moduleId);
 
-    // Subscription & industry gating
-    await this.assertCanEnableModule(input.tenantId, moduleDef);
+    // Dependency check for required modules
+    await this.validateModuleDependencies(input.tenantId, moduleDef);
 
     const plan = this.dependencyResolver.resolveInstallPlan({
       registry: this.registry,
@@ -67,7 +82,6 @@ export class ModulePlatformService {
       targetVersion: input.version,
     });
 
-    // Deterministic order: install dependencies first
     for (const m of plan.installOrder) {
       await this.state.installModule({
         tenantId: input.tenantId,
@@ -77,14 +91,12 @@ export class ModulePlatformService {
       });
     }
 
-    // Enable target by default
     await this.state.setModuleEnabled({
       tenantId: input.tenantId,
       moduleId: input.moduleId,
       enabled: true,
     });
 
-    // Update permission requirements for UI actions
     await this.permission.syncModulePermissionsForTenant(
       input.tenantId,
       plan.installOrder,
@@ -93,156 +105,150 @@ export class ModulePlatformService {
     return { ok: true, installPlan: plan };
   }
 
-  async uninstallModule({
-    tenantId,
-    moduleId,
-  }: {
-    tenantId: string;
-    moduleId: string;
-  }) {
-    const moduleDef = this.registry.getModule(moduleId);
-    this.assertCanUninstall(moduleDef);
-
-    // Disable first (preserve data), then mark uninstall
-    await this.state.setModuleEnabled({ tenantId, moduleId, enabled: false });
-    await this.state.uninstallModule({ tenantId, moduleId });
-
-    return { ok: true };
-  }
-
-  async setModuleEnabled({ tenantId, moduleId, enabled }: SetEnabledInput) {
-    const moduleDef = this.registry.getModule(moduleId);
-    if (enabled) await this.assertCanEnableModule(tenantId, moduleDef);
-
-    await this.state.setModuleEnabled({ tenantId, moduleId, enabled });
-    if (enabled) {
-      await this.permission.syncModulePermissionsForTenant(tenantId, [
-        { moduleId, version: moduleDef.version },
-      ]);
+  async setModuleEnabled(input: SetEnabledInput) {
+    if (input.enabled) {
+      const moduleDef = this.registry.getModule(input.moduleId);
+      await this.validateModuleDependencies(input.tenantId, moduleDef);
     }
 
-    return { ok: true, enabled };
+    return this.state.setModuleEnabled(input);
   }
 
-  async updateModule({
-    tenantId,
-    moduleId,
-    version,
-    config,
-  }: UpdateModuleInput) {
-    const moduleDef = this.registry.getModule(moduleId);
-
-    const nextVersion = version ?? moduleDef.version;
-    await this.state.installOrUpdateModule({
-      tenantId,
-      moduleId,
-      version: nextVersion,
-      config,
-    });
-
-    // keep enabled state as-is; permissions may need refresh
-    if (await this.state.isModuleEnabled(tenantId, moduleId)) {
-      await this.permission.syncModulePermissionsForTenant(tenantId, [
-        { moduleId, version: nextVersion },
-      ]);
-    }
-
-    return { ok: true, version: nextVersion };
+  async uninstallModule({ tenantId, moduleId }: { tenantId: string; moduleId: string }) {
+    return this.state.uninstallModule({ tenantId, moduleId });
   }
 
-  async getSidebarItems({ tenantId, role }: SidebarInput) {
+  async updateModule(input: UpdateModuleInput) {
+    return this.state.updateModule(input);
+  }
+
+  async getSidebarItems({ tenantId, role }: { tenantId: string; role: string }) {
     const installed = await this.state.listInstalledModules(tenantId);
+    const activeModuleIds = new Set(installed.filter((m) => m.isEnabled).map((m) => m.moduleId));
 
-    const items = [] as any[];
-    for (const mod of installed) {
-      if (!mod.isEnabled) continue;
-      const def = this.registry.getModule(mod.moduleId);
+    const all = this.registry.listAll();
+    const items: any[] = [];
 
-      const permitted = def.sidebarItems.filter((si) => {
-        if (!si.requiredPermission) return true;
-        return this.permission.can(role, si.requiredPermission);
-      });
-
-      items.push(...permitted);
-    }
-
-    return {
-      groups: this.groupByCategory(items),
-    };
-  }
-
-  async getWidgetsForDashboard({ tenantId, role }: WidgetsInput) {
-    const installed = await this.state.listInstalledModules(tenantId);
-
-    const widgets = [] as any[];
-    for (const mod of installed) {
-      if (!mod.isEnabled) continue;
-      const def = this.registry.getModule(mod.moduleId);
-
-      const exposed = def.widgets
-        .filter(
-          (w) =>
-            !w.requiredPermission ||
-            this.permission.can(role, w.requiredPermission),
-        )
-        .filter((w) =>
-          this.permission.featureFlagEnabled(tenantId, w.featureFlagKey),
-        );
-
-      widgets.push(...exposed);
-    }
-
-    return { widgets };
-  }
-
-  private async assertCanEnableModule(tenantId: string, moduleDef: any) {
-    const activeSub = await this.prisma.subscriptions.findFirst({
-      where: { tenantId: tenantId, status: 'ACTIVE' },
-    });
-    const currentTier = activeSub?.planName ?? 'TRIAL';
-
-    const tierWeights: Record<string, number> = {
-      TRIAL: 0,
-      STARTER: 1,
-      PROFESSIONAL: 2,
-      ENTERPRISE: 3,
-    };
-
-    const currentWeight = tierWeights[currentTier] ?? 0;
-
-    const requirements = moduleDef.subscriptionRequirements ?? [];
-    for (const req of requirements) {
-      if (req.required) {
-        const requiredWeight = tierWeights[req.planTier] ?? 0;
-        if (currentWeight < requiredWeight) {
-          throw new BadRequestException(
-            `Module '${moduleDef.moduleName}' requires a minimum subscription plan tier of ${req.planTier}. Your current plan is ${currentTier}. Please upgrade your subscription.`,
-          );
-        }
+    for (const mod of all) {
+      if (activeModuleIds.has(mod.moduleId)) {
+        items.push(...mod.sidebarItems);
       }
     }
+
+    return items;
   }
 
-  private assertCanUninstall(moduleDef: any) {
-    const criticalModules = ['pos-terminal', 'kitchen', 'pos', 'reservations'];
-    if (criticalModules.includes(moduleDef.moduleId)) {
-      throw new BadRequestException(
-        `Module '${moduleDef.moduleName}' is a core system component and cannot be uninstalled.`,
-      );
+  async getWidgetsForDashboard({ tenantId, role }: { tenantId: string; role: string }) {
+    const installed = await this.state.listInstalledModules(tenantId);
+    const activeModuleIds = new Set(installed.filter((m) => m.isEnabled).map((m) => m.moduleId));
+
+    const all = this.registry.listAll();
+    const widgets: any[] = [];
+
+    for (const mod of all) {
+      if (activeModuleIds.has(mod.moduleId)) {
+        widgets.push(...mod.widgets);
+      }
     }
+
+    return widgets;
   }
 
-  private groupByCategory(items: any[]) {
-    const by = new Map<string, any[]>();
-    for (const it of items) {
-      const k = it.category ?? 'General';
-      if (!by.has(k)) by.set(k, []);
-      by.get(k)!.push(it);
+  /**
+   * Feature Flag Engine
+   */
+  async getTenantFeatures(tenantId: string) {
+    const features = await this.prisma.tenant_features.findMany({
+      where: { tenantId },
+    });
+
+    // Default universal feature flags
+    const defaults: Record<string, boolean> = {
+      AI_BUDDY: true,
+      CUSTOMER_APP: true,
+      ONLINE_ORDERING: true,
+      DELIVERY: true,
+      LOYALTY: true,
+      WALLET: false,
+      PICKUP: true,
+      QR_ORDERING: true,
+      ADVANCED_ANALYTICS: true,
+    };
+
+    for (const f of features) {
+      defaults[f.featureKey] = f.isEnabled;
     }
 
-    return Array.from(by.entries()).map(([category, groupItems]) => ({
-      label: category,
-      items: groupItems,
-    }));
+    return defaults;
+  }
+
+  async updateTenantFeature(tenantId: string, featureKey: string, isEnabled: boolean, config?: any) {
+    return this.prisma.tenant_features.upsert({
+      where: {
+        tenantId_featureKey: { tenantId, featureKey },
+      },
+      create: {
+        tenantId,
+        featureKey,
+        isEnabled,
+        config: config || undefined,
+      },
+      update: {
+        isEnabled,
+        ...(config && { config }),
+      },
+    });
+  }
+
+  /**
+   * Universal Discovery APIs for Future AI Buddy & Customer App
+   */
+  async discoverBranchCapabilities(tenantId: string, branchId?: string) {
+    const where: any = { tenantId, status: 'ACTIVE' };
+    if (branchId) where.id = branchId;
+
+    const branches = await this.prisma.branch.findMany({
+      where,
+      select: {
+        id: true,
+        name: true,
+        code: true,
+        address: true,
+        industryType: true,
+        latitude: true,
+        longitude: true,
+        status: true,
+      },
+    });
+
+    const activeModules = await this.state.listInstalledModules(tenantId);
+    const enabledModuleIds = activeModules.filter((m) => m.isEnabled).map((m) => m.moduleId);
+
+    return {
+      branches,
+      activeModules: enabledModuleIds,
+      discoveryContracts: {
+        orderingAvailable: enabledModuleIds.includes('pos-terminal'),
+        deliveryAvailable: enabledModuleIds.includes('delivery-dispatch'),
+        bookingAvailable: enabledModuleIds.includes('salon-booking') || enabledModuleIds.includes('hotel-pms'),
+        loyaltyActive: enabledModuleIds.includes('crm-loyalty'),
+      },
+    };
+  }
+
+  private async validateModuleDependencies(tenantId: string, moduleDef: ModuleDefinition) {
+    if (!moduleDef.dependencies || moduleDef.dependencies.length === 0) return;
+
+    const installed = await this.state.listInstalledModules(tenantId);
+    const activeModuleIds = new Set(installed.filter((m) => m.isEnabled).map((m) => m.moduleId));
+
+    for (const dep of moduleDef.dependencies) {
+      if (!activeModuleIds.has(dep.moduleId)) {
+        const depDef = this.registry.getModule(dep.moduleId);
+        throw new BadRequestException(
+          `Module '${moduleDef.moduleName}' requires missing dependency '${depDef.moduleName}' (${dep.moduleId}). Please activate '${depDef.moduleName}' first.`,
+        );
+      }
+    }
   }
 }
