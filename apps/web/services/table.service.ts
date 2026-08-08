@@ -35,6 +35,10 @@ export const updateTable = async (id: string, data: { name?: string; capacity?: 
   return unwrap<Table>(api.patch(`/restaurants/tables/${id}`, data));
 };
 
+export const regenerateTableQr = async (id: string): Promise<Table> => {
+  return unwrap<Table>(api.post(`/restaurants/tables/${id}/regenerate-qr`));
+};
+
 export const deleteTable = async (id: string): Promise<{ id: string }> => {
   return unwrap<{ id: string }>(api.delete(`/restaurants/tables/${id}`));
 };

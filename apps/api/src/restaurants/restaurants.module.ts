@@ -6,7 +6,7 @@ import { RestaurantsService } from './restaurants.service';
 import { TablesController } from './tables.controller';
 
 @Module({
-  controllers: [RestaurantsController, TablesController],
+  controllers: [TablesController, RestaurantsController],
   providers: [RestaurantsService],
   exports: [RestaurantsService],
 })

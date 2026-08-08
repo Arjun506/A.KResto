@@ -139,6 +139,29 @@ export class TablesController {
     return apiSuccess(table, 'Table updated');
   }
 
+  @Post(':id/regenerate-qr')
+  @Roles('RESTAURANT_OWNER', 'OWNER', 'MANAGER', 'SUPER_ADMIN')
+  async regenerateQr(
+    @Req() req: AuthenticatedRequest,
+    @Param('id') id: string,
+  ) {
+    const tenantId = req.user?.tenantId;
+    if (!tenantId) throw new BadRequestException('Missing tenantId');
+
+    const table = await this.prisma.tables.findFirst({
+      where: { id, tenantId },
+    });
+    if (!table) throw new BadRequestException('Table not found');
+
+    const newQrCode = `qr-${tenantId}-${table.code}-${Date.now().toString().slice(-6)}`;
+    const updated = await this.prisma.tables.update({
+      where: { id },
+      data: { qrCode: newQrCode },
+    });
+
+    return apiSuccess(updated, 'QR Code regenerated');
+  }
+
   @Delete(':id')
   @Roles('RESTAURANT_OWNER', 'OWNER', 'MANAGER', 'SUPER_ADMIN')
   async deleteTable(@Req() req: AuthenticatedRequest, @Param('id') id: string) {

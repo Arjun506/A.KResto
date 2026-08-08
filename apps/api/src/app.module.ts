@@ -43,6 +43,7 @@ import { CacheConfigModule } from './cache/cache.module';
 import { RestaurantsModule } from './restaurants/restaurants.module';
 import { MenuModule } from './menu/menu.module';
 import { BusinessModule } from './business/business.module';
+import { ReservationsModule } from './reservations/reservations.module';
 
 import { PrismaModule } from './prisma/prisma.module';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
@@ -97,6 +98,7 @@ import { CorrelationIdMiddleware } from './common/middleware/correlation-id.midd
     RestaurantsModule,
     MenuModule,
     BusinessModule,
+    ReservationsModule,
   ],
   controllers: [AppController],
   providers: [

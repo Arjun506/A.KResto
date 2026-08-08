@@ -48,6 +48,9 @@ export class RestaurantsController {
     @Req() req: AuthenticatedRequest,
     @Param('id') id: string,
   ) {
+    if (id === 'tables') {
+      return apiSuccess([]);
+    }
     const data = await this.restaurantsService.getRestaurant(req.user, id);
     return apiSuccess(data);
   }
