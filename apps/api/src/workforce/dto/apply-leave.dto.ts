@@ -6,9 +6,13 @@ import {
 } from 'class-validator';
 
 export class ApplyLeaveDto {
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  type!: string;
+  leaveType?: string;
+
+  @IsOptional()
+  @IsString()
+  type?: string;
 
   @IsDateString()
   @IsNotEmpty()

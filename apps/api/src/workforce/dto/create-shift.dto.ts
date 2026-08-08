@@ -5,13 +5,17 @@ export class CreateShiftDto {
   @IsNotEmpty()
   employeeId!: string;
 
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  dayOfWeek!: string;
+  branchId?: string;
 
+  @IsOptional()
+  @IsNumber()
+  dayOfWeek?: number;
+
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  shiftType!: string;
+  shiftType?: string;
 
   @IsString()
   @IsNotEmpty()
@@ -20,6 +24,10 @@ export class CreateShiftDto {
   @IsString()
   @IsNotEmpty()
   endTime!: string;
+
+  @IsOptional()
+  @IsString()
+  notes?: string;
 
   @IsOptional()
   @IsNumber()

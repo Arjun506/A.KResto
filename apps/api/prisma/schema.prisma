@@ -530,6 +530,7 @@ model branch {
   menu_configs        menu_item_branch_configs[]
   transfers_outgoing  inventory_transfers[]       @relation("SourceBranch")
   transfers_incoming  inventory_transfers[]       @relation("DestinationBranch")
+  employee_assignments employee_branch_assignments[]
 
   @@unique([tenantId, code])
   @@map("branches")
@@ -1036,39 +1037,44 @@ model notification_history {
 }
 
 model employees {
-  id           String                @id @default(cuid())
-  userId       String?               @unique
-  tenantId     String
-  branchId     String?
-  employeeId   String
-  name         String
-  email        String?
-  phone        String?
-  photoUrl     String?
-  department   String
-  designation  String
-  managerId    String?
-  role         String                @default("STAFF")
-  status       String                @default("ACTIVE")
-  salary       Decimal?              @db.Decimal(10, 2)
-  encryptedSalary String?
-  hireDate     DateTime              @default(now())
-  createdAt    DateTime              @default(now())
-  updatedAt    DateTime              @updatedAt
-  attendance   employee_attendance[]
-  documents    employee_documents[]
-  leaves       employee_leaves[]
-  shifts       employee_shifts[]
-  branch       branch?               @relation(fields: [branchId], references: [id])
-  manager      employees?            @relation("ManagerSubordinates", fields: [managerId], references: [id])
-  subordinates employees[]           @relation("ManagerSubordinates")
-  tenant       Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  user         users?                @relation(fields: [userId], references: [id])
-  restShifts   rest_shifts[]
-  housekeepingTasks hotel_housekeeping_tasks[]
-  hcAppointments hc_appointments[]
+  id                         String                         @id @default(cuid())
+  userId                     String?                        @unique
+  tenantId                   String
+  branchId                   String?
+  employeeId                 String
+  name                       String
+  email                      String?
+  phone                      String?
+  photoUrl                   String?
+  department                 String
+  designation                String
+  managerId                  String?
+  role                       String                         @default("STAFF")
+  status                     String                         @default("ACTIVE")
+  salary                     Decimal?                       @db.Decimal(10, 2)
+  encryptedSalary            String?
+  emergencyContact           String?
+  notes                      String?
+  skills                     String[]                       @default([])
+  preferredHours             Json?
+  hireDate                   DateTime                       @default(now())
+  createdAt                  DateTime                       @default(now())
+  updatedAt                  DateTime                       @updatedAt
+  attendance                 employee_attendance[]
+  documents                  employee_documents[]
+  leaves                     employee_leaves[]
+  shifts                     employee_shifts[]
+  branchAssignments          employee_branch_assignments[]
+  branch                     branch?                        @relation(fields: [branchId], references: [id])
+  manager                    employees?                     @relation("ManagerSubordinates", fields: [managerId], references: [id])
+  subordinates               employees[]                    @relation("ManagerSubordinates")
+  tenant                     Tenant                         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user                       users?                         @relation(fields: [userId], references: [id])
+  restShifts                 rest_shifts[]
+  housekeepingTasks          hotel_housekeeping_tasks[]
+  hcAppointments             hc_appointments[]
   logisticsDriverAssignments logistics_driver_assignments[]
-  logisticsRoutes logistics_routes[]
+  logisticsRoutes            logistics_routes[]
 
   @@unique([tenantId, employeeId])
   @@index([tenantId])
@@ -1076,55 +1082,91 @@ model employees {
   @@index([managerId])
 }
 
-model employee_attendance {
+model employee_branch_assignments {
   id         String    @id @default(cuid())
+  tenantId   String
   employeeId String
-  date       DateTime
-  clockIn    DateTime
-  clockOut   DateTime?
-  status     String    @default("ON_TIME")
-  latitude   Float?
-  longitude  Float?
-  qrToken    String?
-  breaks     Json?
+  branchId   String
+  role       String?
+  isPrimary  Boolean   @default(false)
   createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
   employee   employees @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  branch     branch    @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, branchId])
+  @@index([tenantId])
+  @@index([employeeId])
+  @@index([branchId])
+  @@map("employee_branch_assignments")
+}
+
+model employee_attendance {
+  id              String    @id @default(cuid())
+  tenantId        String    @default("rest-1")
+  branchId        String?
+  employeeId      String
+  date            DateTime
+  clockIn         DateTime
+  clockOut        DateTime?
+  durationMinutes Int?
+  status          String    @default("PRESENT")
+  latitude        Float?
+  longitude       Float?
+  qrToken         String?
+  source          String?   @default("WEB_PORTAL")
+  notes           String?
+  breaks          Json?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  employee        employees @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   @@unique([employeeId, date])
+  @@index([tenantId])
   @@index([employeeId])
+  @@index([branchId])
   @@index([date])
 }
 
 model employee_shifts {
   id         String    @id @default(cuid())
+  tenantId   String    @default("rest-1")
+  branchId   String?
   employeeId String
   startTime  String
   endTime    String
+  shiftDate  DateTime?
+  dayOfWeek  Int?
+  role       String?
+  status     String    @default("SCHEDULED")
+  notes      String?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
-  notes      String?
-  dayOfWeek  Int
   employee   employees @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
-  @@unique([employeeId, dayOfWeek])
+  @@index([tenantId])
   @@index([employeeId])
+  @@index([branchId])
+  @@index([shiftDate])
 }
 
 model employee_leaves {
-  id           String    @id @default(cuid())
-  employeeId   String
-  startDate    DateTime
-  endDate      DateTime
-  reason       String?
-  status       String    @default("PENDING")
-  approvedById String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  leaveType    String
-  approvedBy   users?    @relation(fields: [approvedById], references: [id])
-  employee     employees @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  id              String    @id @default(cuid())
+  tenantId        String    @default("rest-1")
+  employeeId      String
+  startDate       DateTime
+  endDate         DateTime
+  reason          String?
+  leaveType       String    @default("CASUAL")
+  status          String    @default("PENDING")
+  approvedById    String?
+  rejectionReason String?
+  approvedAt      DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  approvedBy      users?    @relation(fields: [approvedById], references: [id])
+  employee        employees @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
+  @@index([tenantId])
   @@index([employeeId])
   @@index([approvedById])
 }

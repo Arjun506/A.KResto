@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
@@ -11,33 +12,66 @@ import { CreateShiftDto } from './dto/create-shift.dto';
 import { ApplyLeaveDto } from './dto/apply-leave.dto';
 import * as bcrypt from 'bcrypt';
 import { UserRole } from '@prisma/client';
+import { EventBusService } from '../event-bus/event-bus.service';
 
 @Injectable()
 export class WorkforceService {
   private readonly logger = new Logger(WorkforceService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventBus: EventBusService,
+  ) {}
 
   /**
-   * Employees CRUD
+   * Employee 360 CRUD
    */
-  async getEmployees(tenantId: string) {
+  async getEmployees(tenantId: string, branchId?: string, status?: string) {
+    const where: any = { tenantId };
+    if (status) where.status = status;
+    if (branchId) {
+      where.OR = [
+        { branchId },
+        { branchAssignments: { some: { branchId } } },
+      ];
+    }
+
     return this.prisma.employees.findMany({
-      where: { tenantId },
+      where,
       include: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-            role: true,
-          },
+        branch: { select: { id: true, name: true, code: true } },
+        branchAssignments: {
+          include: { branch: { select: { id: true, name: true, code: true } } },
         },
+        user: { select: { id: true, email: true, role: true } },
+        manager: { select: { id: true, name: true } },
       },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
+  async getEmployee(tenantId: string, id: string) {
+    const employee = await this.prisma.employees.findFirst({
+      where: { id, tenantId },
+      include: {
+        branch: true,
+        branchAssignments: { include: { branch: true } },
+        user: { select: { id: true, email: true, role: true } },
+        manager: { select: { id: true, name: true } },
+        shifts: true,
+        attendance: { take: 30, orderBy: { date: 'desc' } },
+        leaves: { take: 10, orderBy: { createdAt: 'desc' } },
+      },
+    });
+
+    if (!employee) {
+      throw new NotFoundException(`Employee profile ${id} not found`);
+    }
+
+    return employee;
+  }
+
   async createEmployee(tenantId: string, dto: CreateEmployeeDto) {
-    // Check if employeeId is unique for this tenant
     const existingId = await this.prisma.employees.findFirst({
       where: { tenantId, employeeId: dto.employeeId },
     });
@@ -61,9 +95,7 @@ export class WorkforceService {
         );
       }
     } else {
-      // Auto-provision a user account if email or phone is provided
-      const email =
-        dto.email || `emp_${dto.employeeId.toLowerCase()}@akresto.com`;
+      const email = dto.email || `emp_${dto.employeeId.toLowerCase()}_${Date.now().toString(36)}@akresto.com`;
       const existingUser = await this.prisma.users.findUnique({
         where: { email },
       });
@@ -71,17 +103,13 @@ export class WorkforceService {
       if (existingUser) {
         userId = existingUser.id;
       } else {
-        // Generate random initial password
         const plainPassword = Math.random().toString(36).slice(-8);
         const hashedPassword = await bcrypt.hash(plainPassword, 10);
 
-        // Map designation to UserRole enum
         let mappedRole: UserRole = UserRole.OPERATOR;
         const des = dto.designation.toUpperCase();
         if (des.includes('MANAGER')) mappedRole = UserRole.MANAGER;
-        else if (des.includes('CHEF')) mappedRole = UserRole.OPERATOR;
         else if (des.includes('CASHIER')) mappedRole = UserRole.CASHIER;
-        else if (des.includes('WAITER')) mappedRole = UserRole.OPERATOR;
         else if (des.includes('OWNER')) mappedRole = UserRole.OWNER;
 
         const user = await this.prisma.users.create({
@@ -90,15 +118,12 @@ export class WorkforceService {
             passwordHash: hashedPassword,
             name: dto.name,
             role: mappedRole,
-            tenantId: tenantId,
+            tenantId,
           },
         });
 
         userId = user.id;
-        generatedCredentials = {
-          username: email,
-          password: plainPassword,
-        };
+        generatedCredentials = { username: email, password: plainPassword };
       }
     }
 
@@ -106,521 +131,471 @@ export class WorkforceService {
       data: {
         tenantId,
         userId,
+        branchId: dto.branchId || null,
         employeeId: dto.employeeId,
         name: dto.name,
         email: dto.email || null,
         phone: dto.phone || null,
         photoUrl: dto.photoUrl || null,
-        department: dto.department,
-        designation: dto.designation,
-        managerId: dto.managerId || null,
-        role: dto.role || 'STAFF',
-        salary: dto.salary || null,
-      },
-    });
-
-    return {
-      ...employee,
-      generatedCredentials,
-    };
-  }
-
-  async getEmployee(tenantId: string, id: string) {
-    const employee = await this.prisma.employees.findFirst({
-      where: { id, tenantId },
-      include: {
-        attendance: {
-          orderBy: { date: 'desc' },
-          take: 30,
-        },
-        shifts: true,
-        leaves: {
-          orderBy: { startDate: 'desc' },
-        },
-        documents: true,
-      },
-    });
-
-    if (!employee) {
-      throw new NotFoundException('Employee profile not found');
-    }
-
-    return employee;
-  }
-
-  async updateEmployee(tenantId: string, id: string, dto: any) {
-    const employee = await this.prisma.employees.findFirst({
-      where: { id, tenantId },
-    });
-
-    if (!employee) {
-      throw new NotFoundException('Employee profile not found');
-    }
-
-    return this.prisma.employees.update({
-      where: { id },
-      data: {
-        name: dto.name,
-        email: dto.email || null,
-        phone: dto.phone || null,
-        photoUrl: dto.photoUrl || null,
-        department: dto.department,
-        designation: dto.designation,
+        department: dto.department || 'GENERAL',
+        designation: dto.designation || 'STAFF',
         managerId: dto.managerId || null,
         role: dto.role || 'STAFF',
         status: dto.status || 'ACTIVE',
-        salary: dto.salary || null,
+        salary: dto.salary ? Number(dto.salary) : null,
+      },
+      include: {
+        branch: true,
+        user: { select: { id: true, email: true, role: true } },
       },
     });
+
+    // Auto-create primary branch assignment if branchId provided
+    if (dto.branchId) {
+      await this.prisma.employee_branch_assignments.create({
+        data: {
+          tenantId,
+          employeeId: employee.id,
+          branchId: dto.branchId,
+          isPrimary: true,
+          role: dto.role || 'STAFF',
+        },
+      });
+    }
+
+    await this.eventBus.publish({
+      eventName: 'employeeCreated',
+      aggregateId: employee.id,
+      tenantId,
+      occurredOn: new Date(),
+      payload: { tenantId, employeeId: employee.id, name: employee.name },
+    });
+
+    return { ...employee, credentials: generatedCredentials };
+  }
+
+  async updateEmployee(tenantId: string, id: string, dto: any) {
+    const existing = await this.getEmployee(tenantId, id);
+
+    await this.prisma.employees.update({
+      where: { id },
+      data: {
+        ...(dto.name && { name: dto.name }),
+        ...(dto.email !== undefined && { email: dto.email }),
+        ...(dto.phone !== undefined && { phone: dto.phone }),
+        ...(dto.department && { department: dto.department }),
+        ...(dto.designation && { designation: dto.designation }),
+        ...(dto.managerId !== undefined && { managerId: dto.managerId }),
+        ...(dto.branchId !== undefined && { branchId: dto.branchId }),
+        ...(dto.role && { role: dto.role }),
+        ...(dto.status && { status: dto.status }),
+        ...(dto.emergencyContact !== undefined && { emergencyContact: dto.emergencyContact }),
+        ...(dto.notes !== undefined && { notes: dto.notes }),
+        ...(dto.skills && { skills: dto.skills }),
+      },
+    });
+
+    await this.eventBus.publish({
+      eventName: 'employeeUpdated',
+      aggregateId: id,
+      tenantId,
+      occurredOn: new Date(),
+      payload: { tenantId, employeeId: id, changes: dto },
+    });
+
+    return this.getEmployee(tenantId, id);
   }
 
   async deleteEmployee(tenantId: string, id: string) {
-    const employee = await this.prisma.employees.findFirst({
-      where: { id, tenantId },
+    await this.getEmployee(tenantId, id);
+    return this.prisma.employees.delete({ where: { id } });
+  }
+
+  /**
+   * Multi-Branch Staff Assignment
+   */
+  async assignBranch(tenantId: string, employeeId: string, branchId: string, isPrimary = false) {
+    const employee = await this.getEmployee(tenantId, employeeId);
+    const branch = await this.prisma.branch.findFirst({
+      where: { id: branchId, tenantId },
     });
 
-    if (!employee) {
-      throw new NotFoundException('Employee profile not found');
+    if (!branch) {
+      throw new NotFoundException(`Branch ${branchId} does not belong to tenant ${tenantId}`);
     }
 
-    return this.prisma.employees.delete({
-      where: { id },
+    return this.prisma.employee_branch_assignments.upsert({
+      where: {
+        employeeId_branchId: { employeeId, branchId },
+      },
+      create: {
+        tenantId,
+        employeeId,
+        branchId,
+        isPrimary,
+        role: employee.role,
+      },
+      update: {
+        isPrimary,
+      },
+    });
+  }
+
+  async removeBranchAssignment(tenantId: string, employeeId: string, branchId: string) {
+    await this.getEmployee(tenantId, employeeId);
+    return this.prisma.employee_branch_assignments.deleteMany({
+      where: { tenantId, employeeId, branchId },
     });
   }
 
   /**
-   * Attendance Tracking
+   * Shift Management & Conflict Detection
    */
-  async getEmployeeByUserId(tenantId: string, userId: string) {
-    const employee = await this.prisma.employees.findUnique({
-      where: { userId },
-    });
+  async getShifts(tenantId: string, branchId?: string, shiftDate?: string) {
+    const where: any = { tenantId };
+    if (branchId) where.branchId = branchId;
+    if (shiftDate) where.shiftDate = new Date(shiftDate);
 
-    if (!employee || employee.tenantId !== tenantId) {
-      throw new NotFoundException(
-        'Employee profile not found for this user account.',
-      );
-    }
-
-    return employee;
-  }
-
-  async clockIn(tenantId: string, userId: string, dto: ClockInDto) {
-    const employee = await this.getEmployeeByUserId(tenantId, userId);
-    const now = new Date();
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    // Check if already clocked in today
-    const existing = await this.prisma.employee_attendance.findUnique({
-      where: {
-        employeeId_date: {
-          employeeId: employee.id,
-          date: today,
-        },
-      },
-    });
-
-    if (existing) {
-      throw new BadRequestException('You have already clocked in for today.');
-    }
-
-    // Determine status (ON_TIME vs LATE) based on shift schedules
-    let status = 'ON_TIME';
-    const dayOfWeek = now.getDay();
-
-    const shift = await this.prisma.employee_shifts.findFirst({
-      where: {
-        employeeId: employee.id,
-        dayOfWeek,
-      },
-    });
-
-    if (shift && shift.startTime) {
-      const [startHour, startMin] = shift.startTime.split(':').map(Number);
-      const shiftStart = new Date();
-      shiftStart.setHours(startHour, startMin, 0, 0);
-
-      // Give a 15 minute grace window
-      if (now.getTime() > shiftStart.getTime() + 15 * 60 * 1000) {
-        status = 'LATE';
-      }
-    }
-
-    return this.prisma.employee_attendance.create({
-      data: {
-        employeeId: employee.id,
-        date: today,
-        clockIn: now,
-        status,
-        latitude: dto.latitude || null,
-        longitude: dto.longitude || null,
-        qrToken: dto.qrToken || null,
-        breaks: [],
-      },
-    });
-  }
-
-  async clockInEmployee(
-    tenantId: string,
-    employeeId: string,
-    latitude?: number,
-    longitude?: number,
-  ) {
-    const employee = await this.prisma.employees.findFirst({
-      where: { id: employeeId, tenantId },
-    });
-
-    if (!employee) {
-      throw new NotFoundException('Employee not found');
-    }
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const existing = await this.prisma.employee_attendance.findUnique({
-      where: {
-        employeeId_date: {
-          employeeId: employee.id,
-          date: today,
-        },
-      },
-    });
-
-    if (existing) {
-      throw new BadRequestException(
-        'Employee has already clocked in for today.',
-      );
-    }
-
-    return this.prisma.employee_attendance.create({
-      data: {
-        employeeId: employee.id,
-        date: today,
-        clockIn: new Date(),
-        status: 'ON_TIME',
-        latitude: latitude || null,
-        longitude: longitude || null,
-        breaks: [],
-      },
-    });
-  }
-
-  async clockOut(tenantId: string, userId: string) {
-    const employee = await this.getEmployeeByUserId(tenantId, userId);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const attendance = await this.prisma.employee_attendance.findUnique({
-      where: {
-        employeeId_date: {
-          employeeId: employee.id,
-          date: today,
-        },
-      },
-    });
-
-    if (!attendance) {
-      throw new BadRequestException('You have not clocked in today.');
-    }
-
-    if (attendance.clockOut) {
-      throw new BadRequestException('You have already clocked out today.');
-    }
-
-    return this.prisma.employee_attendance.update({
-      where: { id: attendance.id },
-      data: {
-        clockOut: new Date(),
-      },
-    });
-  }
-
-  async clockOutEmployee(tenantId: string, employeeId: string) {
-    const employee = await this.prisma.employees.findFirst({
-      where: { id: employeeId, tenantId },
-    });
-
-    if (!employee) {
-      throw new NotFoundException('Employee not found');
-    }
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const attendance = await this.prisma.employee_attendance.findUnique({
-      where: {
-        employeeId_date: {
-          employeeId: employee.id,
-          date: today,
-        },
-      },
-    });
-
-    if (!attendance) {
-      throw new BadRequestException('Employee is not clocked in today.');
-    }
-
-    if (attendance.clockOut) {
-      throw new BadRequestException('Employee has already clocked out today.');
-    }
-
-    return this.prisma.employee_attendance.update({
-      where: { id: attendance.id },
-      data: {
-        clockOut: new Date(),
-      },
-    });
-  }
-
-  async toggleBreak(tenantId: string, userId: string) {
-    const employee = await this.getEmployeeByUserId(tenantId, userId);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const attendance = await this.prisma.employee_attendance.findUnique({
-      where: {
-        employeeId_date: {
-          employeeId: employee.id,
-          date: today,
-        },
-      },
-    });
-
-    if (!attendance) {
-      throw new BadRequestException('You have not clocked in today.');
-    }
-
-    const breaksList = Array.isArray(attendance.breaks)
-      ? [...(attendance.breaks as any[])]
-      : [];
-    const lastBreak = breaksList[breaksList.length - 1];
-    const now = new Date();
-
-    if (lastBreak && !lastBreak.end) {
-      // End break
-      lastBreak.end = now;
-    } else {
-      // Start break
-      breaksList.push({ start: now, end: null });
-    }
-
-    return this.prisma.employee_attendance.update({
-      where: { id: attendance.id },
-      data: {
-        breaks: breaksList,
-      },
-    });
-  }
-
-  async getTodayAttendance(tenantId: string, userId: string) {
-    try {
-      const employee = await this.getEmployeeByUserId(tenantId, userId);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      return await this.prisma.employee_attendance.findUnique({
-        where: {
-          employeeId_date: {
-            employeeId: employee.id,
-            date: today,
-          },
-        },
-      });
-    } catch {
-      return null;
-    }
-  }
-
-  async getAttendanceHistory(tenantId: string, employeeId: string) {
-    const employee = await this.prisma.employees.findFirst({
-      where: { id: employeeId, tenantId },
-    });
-
-    if (!employee) {
-      throw new NotFoundException('Employee not found');
-    }
-
-    return this.prisma.employee_attendance.findMany({
-      where: { employeeId },
-      orderBy: { date: 'desc' },
-    });
-  }
-
-  /**
-   * Shift Scheduling
-   */
-  async getShifts(tenantId: string) {
     return this.prisma.employee_shifts.findMany({
-      where: {
-        employee: { tenantId },
-      },
+      where,
       include: {
-        employee: {
-          select: {
-            id: true,
-            name: true,
-            designation: true,
-          },
-        },
-      },
-    });
-  }
-
-  async upsertShift(tenantId: string, dto: CreateShiftDto) {
-    const employee = await this.prisma.employees.findFirst({
-      where: { id: dto.employeeId, tenantId },
-    });
-
-    if (!employee) {
-      throw new NotFoundException('Employee not found');
-    }
-
-    // Check if shift already exists for this day and employee
-    const existing = await this.prisma.employee_shifts.findFirst({
-      where: {
-        employeeId: dto.employeeId,
-        dayOfWeek: this.normalizeDayOfWeek(dto.dayOfWeek),
-      },
-    });
-
-    if (existing) {
-      return this.prisma.employee_shifts.update({
-        where: { id: existing.id },
-        data: {
-          startTime: dto.startTime,
-          endTime: dto.endTime,
-          notes: this.buildShiftNotes(dto.shiftType, dto.rotationWeek),
-        },
-      });
-    }
-
-    return this.prisma.employee_shifts.create({
-      data: {
-        employeeId: dto.employeeId,
-        dayOfWeek: this.normalizeDayOfWeek(dto.dayOfWeek),
-        startTime: dto.startTime,
-        endTime: dto.endTime,
-        notes: this.buildShiftNotes(dto.shiftType, dto.rotationWeek),
-      },
-    });
-  }
-
-  async deleteShift(tenantId: string, id: string) {
-    const shift = await this.prisma.employee_shifts.findFirst({
-      where: {
-        id,
-        employee: { tenantId },
-      },
-    });
-
-    if (!shift) {
-      throw new NotFoundException('Shift assignment not found');
-    }
-
-    return this.prisma.employee_shifts.delete({
-      where: { id },
-    });
-  }
-
-  /**
-   * Leaves management
-   */
-  async applyLeave(tenantId: string, userId: string, dto: ApplyLeaveDto) {
-    const employee = await this.getEmployeeByUserId(tenantId, userId);
-
-    return this.prisma.employee_leaves.create({
-      data: {
-        employeeId: employee.id,
-        leaveType: dto.type,
-        startDate: new Date(dto.startDate),
-        endDate: new Date(dto.endDate),
-        reason: dto.reason || null,
-        status: 'PENDING',
-      },
-    });
-  }
-
-  async getLeaves(tenantId: string) {
-    return this.prisma.employee_leaves.findMany({
-      where: {
-        employee: { tenantId },
-      },
-      include: {
-        employee: {
-          select: {
-            id: true,
-            name: true,
-            designation: true,
-            department: true,
-          },
-        },
+        employee: { select: { id: true, name: true, employeeId: true, department: true } },
       },
       orderBy: { createdAt: 'desc' },
     });
   }
 
-  async updateLeaveStatus(
-    tenantId: string,
-    id: string,
-    status: string,
-    approvedByUserId: string,
-  ) {
-    const leave = await this.prisma.employee_leaves.findFirst({
+  async upsertShift(tenantId: string, dto: CreateShiftDto) {
+    const employee = await this.getEmployee(tenantId, dto.employeeId);
+
+    // Overlap conflict check for the same employee
+    const existingShifts = await this.prisma.employee_shifts.findMany({
       where: {
-        id,
-        employee: { tenantId },
+        tenantId,
+        employeeId: dto.employeeId,
+        ...(dto.dayOfWeek !== undefined && { dayOfWeek: Number(dto.dayOfWeek) }),
       },
+    });
+
+    for (const s of existingShifts) {
+      if (s.startTime === dto.startTime && s.endTime === dto.endTime) {
+        throw new BadRequestException(
+          `Employee ${employee.name} is already assigned to an overlapping shift (${s.startTime} - ${s.endTime}).`,
+        );
+      }
+    }
+
+    const shift = await this.prisma.employee_shifts.create({
+      data: {
+        tenantId,
+        employeeId: dto.employeeId,
+        branchId: dto.branchId || employee.branchId || null,
+        startTime: dto.startTime,
+        endTime: dto.endTime,
+        dayOfWeek: dto.dayOfWeek !== undefined ? Number(dto.dayOfWeek) : 1,
+        notes: dto.notes,
+        status: 'SCHEDULED',
+      },
+      include: { employee: true },
+    });
+
+    await this.eventBus.publish({
+      eventName: 'shiftCreated',
+      aggregateId: shift.id,
+      tenantId,
+      occurredOn: new Date(),
+      payload: { tenantId, shiftId: shift.id, employeeId: shift.employeeId },
+    });
+
+    return shift;
+  }
+
+  async deleteShift(tenantId: string, id: string) {
+    const shift = await this.prisma.employee_shifts.findFirst({
+      where: { id, tenantId },
+    });
+    if (!shift) {
+      throw new NotFoundException(`Shift ${id} not found`);
+    }
+
+    await this.prisma.employee_shifts.delete({ where: { id } });
+
+    await this.eventBus.publish({
+      eventName: 'shiftCancelled',
+      aggregateId: id,
+      tenantId,
+      occurredOn: new Date(),
+      payload: { tenantId, shiftId: id },
+    });
+  }
+
+  /**
+   * Attendance Engine & Server-Side Duration Calculation
+   */
+  async clockIn(tenantId: string, userId: string, dto: ClockInDto) {
+    const employee = await this.prisma.employees.findUnique({
+      where: { userId },
+    });
+
+    if (!employee) {
+      throw new NotFoundException('No employee profile linked to this user account');
+    }
+
+    return this.clockInEmployee(tenantId, employee.id, dto.latitude, dto.longitude);
+  }
+
+  async clockInEmployee(tenantId: string, employeeId: string, latitude?: number, longitude?: number) {
+    const employee = await this.getEmployee(tenantId, employeeId);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const existing = await this.prisma.employee_attendance.findFirst({
+      where: { employeeId, date: today },
+    });
+
+    if (existing && !existing.clockOut) {
+      throw new BadRequestException(`Employee ${employee.name} is already clocked in.`);
+    }
+
+    // Optional Geo-fencing Check against branch coordinates
+    if (latitude && longitude && employee.branch?.latitude && employee.branch?.longitude) {
+      const bLat = employee.branch.latitude;
+      const bLng = employee.branch.longitude;
+      const distMeters = this.calculateDistanceMeters(latitude, longitude, bLat, bLng);
+      this.logger.log(`Geo-fence check for ${employee.name}: ${distMeters} meters from branch.`);
+    }
+
+    const attendance = await this.prisma.employee_attendance.create({
+      data: {
+        tenantId,
+        employeeId,
+        branchId: employee.branchId || null,
+        date: today,
+        clockIn: new Date(),
+        status: 'PRESENT',
+        latitude,
+        longitude,
+        source: 'WEB_PORTAL',
+      },
+    });
+
+    await this.eventBus.publish({
+      eventName: 'attendanceClockedIn',
+      aggregateId: attendance.id,
+      tenantId,
+      occurredOn: new Date(),
+      payload: { tenantId, employeeId, clockIn: attendance.clockIn },
+    });
+
+    return attendance;
+  }
+
+  async clockOut(tenantId: string, userId: string) {
+    const employee = await this.prisma.employees.findUnique({
+      where: { userId },
+    });
+
+    if (!employee) {
+      throw new NotFoundException('No employee profile linked to this user account');
+    }
+
+    return this.clockOutEmployee(tenantId, employee.id);
+  }
+
+  async clockOutEmployee(tenantId: string, employeeId: string) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const attendance = await this.prisma.employee_attendance.findFirst({
+      where: { employeeId, date: today, clockOut: null },
+    });
+
+    if (!attendance) {
+      throw new BadRequestException('No active clock-in record found for today');
+    }
+
+    const clockOutTime = new Date();
+    const durationMs = clockOutTime.getTime() - new Date(attendance.clockIn).getTime();
+    const durationMinutes = Math.max(1, Math.round(durationMs / (1000 * 60)));
+
+    const updated = await this.prisma.employee_attendance.update({
+      where: { id: attendance.id },
+      data: {
+        clockOut: clockOutTime,
+        durationMinutes,
+      },
+    });
+
+    await this.eventBus.publish({
+      eventName: 'attendanceClockedOut',
+      aggregateId: attendance.id,
+      tenantId,
+      occurredOn: new Date(),
+      payload: { tenantId, employeeId, clockOut: clockOutTime, durationMinutes },
+    });
+
+    return updated;
+  }
+
+  async getTodayAttendance(tenantId: string, userId: string) {
+    const employee = await this.prisma.employees.findUnique({ where: { userId } });
+    if (!employee) return null;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return this.prisma.employee_attendance.findFirst({
+      where: { employeeId: employee.id, date: today },
+    });
+  }
+
+  async getAttendanceHistory(tenantId: string, employeeId?: string) {
+    const where: any = { tenantId };
+    if (employeeId) where.employeeId = employeeId;
+
+    return this.prisma.employee_attendance.findMany({
+      where,
+      include: {
+        employee: { select: { id: true, name: true, employeeId: true } },
+      },
+      orderBy: { date: 'desc' },
+      take: 100,
+    });
+  }
+
+  /**
+   * Leave Management & Approval Engine
+   */
+  async applyLeave(tenantId: string, userId: string, dto: ApplyLeaveDto) {
+    const employee = await this.prisma.employees.findUnique({ where: { userId } });
+    if (!employee) {
+      throw new NotFoundException('No employee profile linked to user account');
+    }
+
+    const leave = await this.prisma.employee_leaves.create({
+      data: {
+        tenantId,
+        employeeId: employee.id,
+        startDate: new Date(dto.startDate),
+        endDate: new Date(dto.endDate),
+        reason: dto.reason,
+        leaveType: dto.leaveType || dto.type || 'CASUAL',
+        status: 'PENDING',
+      },
+      include: { employee: true },
+    });
+
+    await this.eventBus.publish({
+      eventName: 'leaveSubmitted',
+      aggregateId: leave.id,
+      tenantId,
+      occurredOn: new Date(),
+      payload: { tenantId, leaveId: leave.id, employeeId: employee.id },
+    });
+
+    return leave;
+  }
+
+  async getLeaves(tenantId: string, status?: string) {
+    const where: any = { tenantId };
+    if (status) where.status = status;
+
+    return this.prisma.employee_leaves.findMany({
+      where,
+      include: {
+        employee: { select: { id: true, name: true, employeeId: true, department: true } },
+        approvedBy: { select: { id: true, name: true, email: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async updateLeaveStatus(tenantId: string, leaveId: string, status: string, approverUserId: string) {
+    const leave = await this.prisma.employee_leaves.findFirst({
+      where: { id: leaveId, tenantId },
+      include: { employee: true },
     });
 
     if (!leave) {
-      throw new NotFoundException('Leave application not found');
+      throw new NotFoundException(`Leave request ${leaveId} not found`);
     }
 
-    return this.prisma.employee_leaves.update({
-      where: { id },
+    // Safety rule: Staff cannot approve their own leave unless MANAGER/OWNER
+    if (leave.employee.userId === approverUserId) {
+      throw new ForbiddenException('Employees cannot approve their own leave applications.');
+    }
+
+    const updated = await this.prisma.employee_leaves.update({
+      where: { id: leaveId },
       data: {
         status,
-        approvedById: approvedByUserId,
+        approvedById: approverUserId,
+        approvedAt: new Date(),
       },
     });
+
+    await this.eventBus.publish({
+      eventName: status === 'APPROVED' ? 'leaveApproved' : 'leaveRejected',
+      aggregateId: leaveId,
+      tenantId,
+      occurredOn: new Date(),
+      payload: { tenantId, leaveId, status, approverUserId },
+    });
+
+    return updated;
   }
 
-  private normalizeDayOfWeek(value: string | number): number {
-    if (typeof value === 'number') {
-      if (value >= 0 && value <= 6) return value;
-      throw new BadRequestException('dayOfWeek must be between 0 and 6');
-    }
+  /**
+   * Workforce Summary KPI Aggregator
+   */
+  async getWorkforceSummary(tenantId: string, branchId?: string) {
+    const whereEmp: any = { tenantId };
+    if (branchId) whereEmp.branchId = branchId;
 
-    const parsed = Number(value);
-    if (Number.isInteger(parsed) && parsed >= 0 && parsed <= 6) {
-      return parsed;
-    }
+    const totalEmployees = await this.prisma.employees.count({ where: whereEmp });
+    const activeStaff = await this.prisma.employees.count({ where: { ...whereEmp, status: 'ACTIVE' } });
 
-    const dayMap: Record<string, number> = {
-      sunday: 0,
-      monday: 1,
-      tuesday: 2,
-      wednesday: 3,
-      thursday: 4,
-      friday: 5,
-      saturday: 6,
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const workingToday = await this.prisma.employee_attendance.count({
+      where: { tenantId, date: today, clockOut: null },
+    });
+
+    const onLeave = await this.prisma.employee_leaves.count({
+      where: {
+        tenantId,
+        status: 'APPROVED',
+        startDate: { lte: today },
+        endDate: { gte: today },
+      },
+    });
+
+    const openShifts = await this.prisma.employee_shifts.count({
+      where: { tenantId, status: 'SCHEDULED' },
+    });
+
+    return {
+      totalEmployees,
+      activeStaff,
+      workingToday,
+      absentToday: Math.max(0, activeStaff - workingToday - onLeave),
+      onLeave,
+      openShifts,
     };
-
-    const day = dayMap[value.trim().toLowerCase()];
-    if (day === undefined) {
-      throw new BadRequestException('Invalid dayOfWeek value');
-    }
-
-    return day;
   }
 
-  private buildShiftNotes(shiftType: string, rotationWeek?: number): string {
-    const parts = [`Shift type: ${shiftType}`];
-    if (rotationWeek !== undefined) {
-      parts.push(`Rotation week: ${rotationWeek}`);
-    }
-    return parts.join('; ');
+  private calculateDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const R = 6371e3; // Earth radius in meters
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return Math.round(R * c);
   }
 }

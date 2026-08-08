@@ -11,6 +11,10 @@ export class CreateEmployeeDto {
   @IsString()
   userId?: string;
 
+  @IsOptional()
+  @IsString()
+  branchId?: string;
+
   @IsString()
   @IsNotEmpty()
   employeeId!: string;
@@ -46,6 +50,10 @@ export class CreateEmployeeDto {
   @IsOptional()
   @IsString()
   role?: string;
+
+  @IsOptional()
+  @IsString()
+  status?: string;
 
   @IsOptional()
   @IsNumber()

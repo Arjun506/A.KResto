@@ -1,543 +1,350 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
-  UserCheck,
+  Users,
   Plus,
-  Key,
   Copy,
   Check,
   Calendar,
   Clock,
   Briefcase,
-  Search,
   X,
-  UserX,
-  Mail,
   Phone,
   Sparkles,
   Award,
-  Users
+  UserCheck,
+  Building2,
+  CheckCircle,
+  AlertCircle,
+  Loader2
 } from 'lucide-react';
-
-interface StaffMember {
-  id: string;
-  name: string;
-  role: 'Chef' | 'Waiter' | 'Cashier' | 'Manager';
-  phone: string;
-  username: string;
-  password: string;
-  email?: string;
-  rating?: number;
-}
-
-interface ShiftAssignment {
-  day: string; // 'Monday', 'Tuesday', etc.
-  shift: 'Morning (6am - 2pm)' | 'Evening (2pm - 10pm)' | 'Night (10pm - 6am)';
-  staffId: string;
-}
-
-interface AttendanceLog {
-  id: string;
-  staffName: string;
-  role: string;
-  date: string;
-  clockIn: string;
-  clockOut?: string;
-  status: 'ON_TIME' | 'LATE' | 'ABSENT';
-}
+import { WorkforceService, Employee, WorkforceSummary } from '../../../services/workforce.service';
+import { BranchService, Branch } from '../../../services/branch.service';
 
 export default function StaffPage() {
-  const [activeTab, setActiveTab] = useState<'directory' | 'schedule' | 'attendance'>('directory');
+  const [activeTab, setActiveTab] = useState<'directory' | 'schedule' | 'attendance' | 'leaves'>('directory');
   
-  // Staff Directory State
-  const [staff, setStaff] = useState<StaffMember[]>([
-    {
-      id: 's1',
-      name: 'Rahul Sen',
-      role: 'Manager',
-      phone: '9876543210',
-      username: 'manager_rahul_82',
-      password: 'wp9x' + Math.floor(1000 + Math.random() * 9000),
-      email: 'rahul.sen@a3resto.com',
-      rating: 4.8,
-    },
-    {
-      id: 's2',
-      name: 'Aman Deep',
-      role: 'Waiter',
-      phone: '9876501234',
-      username: 'waiter_aman_45',
-      password: 'wt3y' + Math.floor(1000 + Math.random() * 9000),
-      email: 'aman.d@a3resto.com',
-      rating: 4.6,
-    },
-    {
-      id: 's3',
-      name: 'Pooja Sharma',
-      role: 'Cashier',
-      phone: '9988776655',
-      username: 'cashier_pooja_91',
-      password: 'cs7z' + Math.floor(1000 + Math.random() * 9000),
-      email: 'pooja.s@a3resto.com',
-      rating: 4.9,
-    },
-  ]);
+  // Data States
+  const [summary, setSummary] = useState<WorkforceSummary | null>(null);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [attendanceLogs, setAttendanceLogs] = useState<any[]>([]);
+  const [shifts, setShifts] = useState<any[]>([]);
+  const [leaves, setLeaves] = useState<any[]>([]);
 
-  const [name, setName] = useState('');
-  const [role, setRole] = useState<'Chef' | 'Waiter' | 'Cashier' | 'Manager'>('Waiter');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-  
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Shift Schedule State
-  const [shifts, setShifts] = useState<ShiftAssignment[]>([
-    { day: 'Monday', shift: 'Morning (6am - 2pm)', staffId: 's1' },
-    { day: 'Monday', shift: 'Evening (2pm - 10pm)', staffId: 's2' },
-    { day: 'Tuesday', shift: 'Morning (6am - 2pm)', staffId: 's3' },
-    { day: 'Wednesday', shift: 'Evening (2pm - 10pm)', staffId: 's1' },
-    { day: 'Thursday', shift: 'Night (10pm - 6am)', staffId: 's2' },
-    { day: 'Friday', shift: 'Morning (6am - 2pm)', staffId: 's3' },
-  ]);
+  // Form States
+  const [empCode, setEmpCode] = useState('');
+  const [empName, setEmpName] = useState('');
+  const [empEmail, setEmpEmail] = useState('');
+  const [empPhone, setEmpPhone] = useState('');
+  const [empDept, setEmpDept] = useState('OPERATIONS');
+  const [empDesig, setEmpDesig] = useState('Staff Associate');
+  const [empRole, setEmpRole] = useState('STAFF');
+  const [selectedBranchId, setSelectedBranchId] = useState('');
 
-  // Attendance Logs State
-  const [attendance, setAttendance] = useState<AttendanceLog[]>([
-    { id: 'att1', staffName: 'Rahul Sen', role: 'Manager', date: '2026-06-14', clockIn: '05:55 AM', clockOut: '02:05 PM', status: 'ON_TIME' },
-    { id: 'att2', staffName: 'Pooja Sharma', role: 'Cashier', date: '2026-06-14', clockIn: '06:12 AM', status: 'LATE' },
-    { id: 'att3', staffName: 'Aman Deep', role: 'Waiter', date: '2026-06-13', clockIn: '01:58 PM', clockOut: '10:02 PM', status: 'ON_TIME' },
-  ]);
-
-  const [clockStaffId, setClockStaffId] = useState('');
+  // Clock state
+  const [selectedEmpClock, setSelectedEmpClock] = useState('');
 
   const triggerToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const addStaff = () => {
-    if (!name || !role || !phone) {
-      triggerToast('Please fill out Name, Role, and Phone fields.');
-      return;
+  const loadAllData = async () => {
+    setLoading(true);
+    try {
+      const [sum, empList, bList, attList, shiftList, leaveList] = await Promise.all([
+        WorkforceService.getSummary().catch(() => null),
+        WorkforceService.listEmployees().catch(() => []),
+        BranchService.listBranches().catch(() => []),
+        WorkforceService.listAttendance().catch(() => []),
+        WorkforceService.listShifts().catch(() => []),
+        WorkforceService.listLeaves().catch(() => []),
+      ]);
+
+      setSummary(sum);
+      setEmployees(empList);
+      setBranches(bList);
+      setAttendanceLogs(attList);
+      setShifts(shiftList);
+      setLeaves(leaveList);
+    } catch (err) {
+      console.error('Failed to load workforce data:', err);
+    } finally {
+      setLoading(false);
     }
-
-    const cleanName = name.toLowerCase().replace(/[^a-z0-9]/g, '');
-    const cleanRole = role.toLowerCase();
-    const randNum = Math.floor(10 + Math.random() * 90);
-    const generatedUsername = `${cleanRole}_${cleanName}_${randNum}`;
-    const generatedPassword = Math.random().toString(36).slice(-8);
-
-    const newStaff: StaffMember = {
-      id: 's_' + Math.random().toString(36).substr(2, 9),
-      name,
-      role,
-      phone,
-      username: generatedUsername,
-      password: generatedPassword,
-      email: email || undefined,
-      rating: 5.0,
-    };
-
-    setStaff([...staff, newStaff]);
-    setName('');
-    setPhone('');
-    setEmail('');
-    triggerToast(`Staff account for ${name} registered!`);
   };
 
-  const deleteStaff = (id: string) => {
-    setStaff(staff.filter((s) => s.id !== id));
-    triggerToast('Staff account deactivated.');
-  };
+  useEffect(() => {
+    loadAllData();
+  }, []);
 
-  const handleCopy = (text: string, id: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedId(id);
-    triggerToast('Credentials copied to clipboard!');
-    setTimeout(() => setCopiedId(null), 2000);
-  };
+  const handleRegisterEmployee = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!empName || !empDept) return;
 
-  // Shift assignment modifier
-  const assignShift = (day: string, shiftName: any, staffId: string) => {
-    if (!staffId) return;
-    
-    // Remove if already exists for this day/shift
-    const filtered = shifts.filter(s => !(s.day === day && s.shift === shiftName));
-    
-    setShifts([...filtered, { day, shift: shiftName, staffId }]);
-    triggerToast(`Assigned shift on ${day}`);
-  };
+    try {
+      const payload = {
+        employeeId: empCode || `EMP-${Date.now().toString(36).toUpperCase()}`,
+        name: empName,
+        email: empEmail || undefined,
+        phone: empPhone || undefined,
+        department: empDept,
+        designation: empDesig,
+        role: empRole,
+        branchId: selectedBranchId || undefined,
+      };
 
-  // Clock In / Out simulation
-  const handleClockIn = () => {
-    if (!clockStaffId) {
-      triggerToast('Select employee to clock in.');
-      return;
+      const newEmp = await WorkforceService.createEmployee(payload);
+      triggerToast(`Employee ${newEmp.name} registered successfully!`);
+      setEmpCode('');
+      setEmpName('');
+      setEmpEmail('');
+      setEmpPhone('');
+      loadAllData();
+    } catch (err: any) {
+      triggerToast(`Registration failed: ${err.message}`);
     }
-    const emp = staff.find(s => s.id === clockStaffId);
-    if (!emp) return;
+  };
 
-    // Check if already clocked in today
-    const exists = attendance.find(a => a.staffName === emp.name && a.date === new Date().toISOString().slice(0, 10) && !a.clockOut);
-    if (exists) {
-      triggerToast(`${emp.name} is already clocked in.`);
-      return;
+  const handleClockIn = async () => {
+    if (!selectedEmpClock) return;
+    try {
+      await WorkforceService.clockInEmployee(selectedEmpClock);
+      triggerToast('Employee clocked in successfully!');
+      setSelectedEmpClock('');
+      loadAllData();
+    } catch (err: any) {
+      triggerToast(`Clock-in failed: ${err.message}`);
     }
-
-    const checkTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-    const isLate = new Date().getHours() > 8; // Late after 8 AM
-
-    const newLog: AttendanceLog = {
-      id: 'att_' + Math.random().toString(36).substr(2, 9),
-      staffName: emp.name,
-      role: emp.role,
-      date: new Date().toISOString().slice(0, 10),
-      clockIn: checkTime,
-      status: isLate ? 'LATE' : 'ON_TIME',
-    };
-
-    setAttendance([newLog, ...attendance]);
-    triggerToast(`${emp.name} clocked in successfully at ${checkTime}!`);
-    setClockStaffId('');
   };
 
-  const handleClockOut = (id: string, name: string) => {
-    const checkTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-    setAttendance(prev =>
-      prev.map(a => (a.id === id ? { ...a, clockOut: checkTime } : a))
-    );
-    triggerToast(`${name} clocked out successfully at ${checkTime}!`);
+  const handleClockOut = async (empId: string) => {
+    try {
+      await WorkforceService.clockOutEmployee(empId);
+      triggerToast('Employee clocked out successfully!');
+      loadAllData();
+    } catch (err: any) {
+      triggerToast(`Clock-out failed: ${err.message}`);
+    }
   };
 
-  const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-  const shiftTypes = [
-    'Morning (6am - 2pm)' as const,
-    'Evening (2pm - 10pm)' as const,
-    'Night (10pm - 6am)' as const
-  ];
+  const handleApproveLeave = async (leaveId: string) => {
+    try {
+      await WorkforceService.updateLeaveStatus(leaveId, 'APPROVED');
+      triggerToast('Leave approved!');
+      loadAllData();
+    } catch (err: any) {
+      triggerToast(`Approval failed: ${err.message}`);
+    }
+  };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto px-4 sm:px-6">
-      
+    <div className="space-y-6 max-w-7xl mx-auto px-4 sm:px-6 bg-[#F8F9FF] min-h-screen py-4">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-white shadow-2xl animate-in fade-in slide-in-from-bottom-5">
+        <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-white shadow-2xl animate-in fade-in">
           <Sparkles className="h-5 w-5 text-indigo-400" />
           <span className="text-sm font-medium">{toastMessage}</span>
         </div>
       )}
 
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Staff Accounts & Scheduling</h1>
-          <p className="text-sm text-slate-500">
-            Provision waiter, chef, and cashier credentials, coordinate shift calendars, and record punch logs.
-          </p>
+      {/* Header & KPI Summary Cards */}
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-black text-slate-900">Workforce & Staff Operations</h1>
+            <p className="text-sm text-slate-500 font-bold mt-0.5">
+              Multi-branch staff assignments, real-time clock-in punch logs, shift scheduling, and leave approvals.
+            </p>
+          </div>
+
+          <div className="flex bg-slate-200/60 p-1 rounded-2xl border border-slate-200">
+            <button
+              onClick={() => setActiveTab('directory')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
+                activeTab === 'directory' ? 'bg-[#4F46E5] text-white shadow-sm' : 'text-slate-600'
+              }`}
+            >
+              Employee Directory
+            </button>
+            <button
+              onClick={() => setActiveTab('schedule')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
+                activeTab === 'schedule' ? 'bg-[#4F46E5] text-white shadow-sm' : 'text-slate-600'
+              }`}
+            >
+              Shifts Roster
+            </button>
+            <button
+              onClick={() => setActiveTab('attendance')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
+                activeTab === 'attendance' ? 'bg-[#4F46E5] text-white shadow-sm' : 'text-slate-600'
+              }`}
+            >
+              Attendance Logs
+            </button>
+            <button
+              onClick={() => setActiveTab('leaves')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
+                activeTab === 'leaves' ? 'bg-[#4F46E5] text-white shadow-sm' : 'text-slate-600'
+              }`}
+            >
+              Leave Requests
+            </button>
+          </div>
         </div>
 
-        {/* Tab view controllers */}
-        <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl w-fit self-start">
-          <button
-            onClick={() => setActiveTab('directory')}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-              activeTab === 'directory'
-                ? 'bg-white text-slate-900 shadow-sm'
-                : 'text-slate-500 hover:text-slate-900'
-            }`}
-          >
-            <Users className="h-3.5 w-3.5" />
-            Accounts Directory
-          </button>
-          <button
-            onClick={() => setActiveTab('schedule')}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-              activeTab === 'schedule'
-                ? 'bg-white text-slate-900 shadow-sm'
-                : 'text-slate-500 hover:text-slate-900'
-            }`}
-          >
-            <Calendar className="h-3.5 w-3.5" />
-            Weekly Shift Planner
-          </button>
-          <button
-            onClick={() => setActiveTab('attendance')}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-              activeTab === 'attendance'
-                ? 'bg-white text-slate-900 shadow-sm'
-                : 'text-slate-500 hover:text-slate-900'
-            }`}
-          >
-            <Clock className="h-3.5 w-3.5" />
-            Attendance Punch Logs
-          </button>
+        {/* Real-time Workforce KPI Summary */}
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+            <span className="text-[10px] font-bold text-slate-400 uppercase">Total Employees</span>
+            <p className="text-xl font-black text-slate-900 mt-1">{summary?.totalEmployees || 0}</p>
+          </div>
+          <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+            <span className="text-[10px] font-bold text-emerald-500 uppercase">Active Staff</span>
+            <p className="text-xl font-black text-emerald-600 mt-1">{summary?.activeStaff || 0}</p>
+          </div>
+          <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+            <span className="text-[10px] font-bold text-indigo-500 uppercase">Working Today</span>
+            <p className="text-xl font-black text-indigo-600 mt-1">{summary?.workingToday || 0}</p>
+          </div>
+          <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+            <span className="text-[10px] font-bold text-rose-400 uppercase">Absent Today</span>
+            <p className="text-xl font-black text-rose-600 mt-1">{summary?.absentToday || 0}</p>
+          </div>
+          <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+            <span className="text-[10px] font-bold text-amber-500 uppercase">On Leave</span>
+            <p className="text-xl font-black text-amber-600 mt-1">{summary?.onLeave || 0}</p>
+          </div>
+          <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+            <span className="text-[10px] font-bold text-blue-500 uppercase">Open Shifts</span>
+            <p className="text-xl font-black text-blue-600 mt-1">{summary?.openShifts || 0}</p>
+          </div>
         </div>
       </div>
 
-      {/* 1. DIRECTORY VIEW */}
+      {/* Tab Views */}
       {activeTab === 'directory' && (
-        <div className="grid gap-6 lg:grid-cols-[380px_1fr]">
-          
-          {/* Add Staff form */}
-          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm h-fit">
-            <h2 className="text-base font-bold text-slate-900 mb-4 border-b border-slate-100 pb-2 flex items-center gap-2">
-              <Plus className="h-4.5 w-4.5 text-indigo-600" />
-              Register New Employee
-            </h2>
+        <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
+          {/* Register Form */}
+          <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm h-fit space-y-3">
+            <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-1.5">
+              <Plus size={16} className="text-indigo-600" /> Add Employee 360 Profile
+            </h3>
+            <form onSubmit={handleRegisterEmployee} className="space-y-2.5 text-xs font-bold">
+              <input type="text" placeholder="Employee Code (e.g. EMP-101)" value={empCode} onChange={(e) => setEmpCode(e.target.value)} className="w-full p-2 border rounded-xl" />
+              <input type="text" placeholder="Full Name *" value={empName} onChange={(e) => setEmpName(e.target.value)} className="w-full p-2 border rounded-xl" required />
+              <input type="email" placeholder="Email Address" value={empEmail} onChange={(e) => setEmpEmail(e.target.value)} className="w-full p-2 border rounded-xl" />
+              <input type="text" placeholder="Phone Number" value={empPhone} onChange={(e) => setEmpPhone(e.target.value)} className="w-full p-2 border rounded-xl" />
+              <select value={empDept} onChange={(e) => setEmpDept(e.target.value)} className="w-full p-2 border rounded-xl">
+                <option value="OPERATIONS">Operations</option>
+                <option value="KITCHEN">Kitchen / Culinary</option>
+                <option value="SERVICE">Service & Hospitality</option>
+                <option value="FINANCE">Finance & Cashier</option>
+                <option value="MANAGEMENT">Management</option>
+              </select>
+              <input type="text" placeholder="Designation (e.g. Senior Supervisor)" value={empDesig} onChange={(e) => setEmpDesig(e.target.value)} className="w-full p-2 border rounded-xl" />
+              
+              <select value={selectedBranchId} onChange={(e) => setSelectedBranchId(e.target.value)} className="w-full p-2 border rounded-xl">
+                <option value="">-- Select Primary Branch --</option>
+                {branches.map((b) => <option key={b.id} value={b.id}>{b.name} ({b.code})</option>)}
+              </select>
 
-            <div className="space-y-3">
-              <div>
-                <label className="text-xs font-bold text-slate-600 block mb-1">Full Name *</label>
-                <input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Aman Deep"
-                  className="w-full rounded-lg border border-slate-200 px-3.5 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-slate-600 block mb-1">Select Role *</label>
-                <select
-                  value={role}
-                  onChange={(e) => setRole(e.target.value as any)}
-                  className="w-full rounded-lg border border-slate-200 px-3.5 py-2 text-sm focus:border-indigo-500 focus:outline-none bg-white text-slate-700 font-semibold"
-                >
-                  <option value="Chef">Chef (Kitchen orders)</option>
-                  <option value="Waiter">Waiter (Tablet orders)</option>
-                  <option value="Cashier">Cashier (Checkout billing)</option>
-                  <option value="Manager">Manager (Reports / Admin)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-slate-600 block mb-1">Phone *</label>
-                <input
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="e.g. 9876501234"
-                  className="w-full rounded-lg border border-slate-200 px-3.5 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-slate-600 block mb-1">Email</label>
-                <input
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="aman@restaurant.com"
-                  className="w-full rounded-lg border border-slate-200 px-3.5 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-                />
-              </div>
-
-              <button
-                onClick={addStaff}
-                className="mt-2 w-full rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white py-2 text-sm font-semibold transition-colors shadow-sm"
-              >
-                Create Account & Key ID
+              <button type="submit" className="w-full bg-[#4F46E5] text-white py-2.5 rounded-xl font-bold transition active:scale-95 shadow-sm mt-1">
+                Save & Provision Employee
               </button>
-            </div>
+            </form>
           </div>
 
-          {/* Accounts Grid */}
-          <div className="grid gap-4 sm:grid-cols-2">
-            {staff.map((member) => (
-              <div key={member.id} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
-                <div>
-                  <div className="flex justify-between items-start mb-2">
+          {/* Directory Grid */}
+          <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+            {employees.length > 0 ? (
+              employees.map((emp) => (
+                <div key={emp.id} className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-2.5">
+                  <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="font-extrabold text-base text-slate-900">{member.name}</h3>
-                      <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">{member.role} Account</span>
+                      <h4 className="font-extrabold text-slate-900 text-sm">{emp.name}</h4>
+                      <p className="text-[10px] text-slate-400 font-bold">{emp.designation} · {emp.department}</p>
                     </div>
-                    
-                    <span className="bg-indigo-50 text-indigo-700 text-xs font-bold px-2.5 py-1 rounded-lg">
-                      Rating {member.rating || 5.0}★
+                    <span className="bg-indigo-50 text-indigo-700 text-[10px] font-extrabold px-2 py-0.5 rounded uppercase">
+                      {emp.status}
                     </span>
                   </div>
 
-                  {/* Credentials block */}
-                  <div className="bg-slate-50 border border-slate-100 rounded-xl p-3.5 space-y-2 mt-4 relative">
-                    <button
-                      onClick={() => handleCopy(`Username: ${member.username}\nPassword: ${member.password}`, member.id)}
-                      className="absolute top-3 right-3 p-1.5 hover:bg-white border border-transparent hover:border-slate-200 rounded-lg text-slate-400 hover:text-indigo-600 transition"
-                      title="Copy login credentials"
-                    >
-                      {copiedId === member.id ? (
-                        <Check className="h-4 w-4 text-emerald-600" />
-                      ) : (
-                        <Copy className="h-4 w-4" />
-                      )}
-                    </button>
-                    <div>
-                      <span className="text-[9px] text-slate-400 font-bold block uppercase">System Username</span>
-                      <span className="text-xs font-mono font-bold text-slate-800 block select-all">{member.username}</span>
-                    </div>
-                    <div>
-                      <span className="text-[9px] text-slate-400 font-bold block uppercase">Initial Password</span>
-                      <span className="text-xs font-mono font-bold text-slate-800 block select-all">{member.password}</span>
-                    </div>
-                  </div>
+                  <p className="text-xs text-slate-600 font-medium flex items-center gap-1.5">
+                    <Building2 size={12} className="text-slate-400" /> Primary Branch: <span className="font-bold">{emp.branch?.name || 'Global'}</span>
+                  </p>
+                  <p className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
+                    <Phone size={12} className="text-slate-400" /> {emp.phone || 'No phone'}
+                  </p>
                 </div>
-
-                <div className="flex items-center justify-between gap-3 mt-4 pt-3 border-t border-slate-100">
-                  <div className="flex gap-2 text-xs text-slate-500">
-                    <span className="flex items-center gap-1"><Phone className="h-3.5 w-3.5" /> {member.phone}</span>
-                  </div>
-                  <button
-                    onClick={() => deleteStaff(member.id)}
-                    className="text-xs font-bold text-rose-600 hover:text-rose-800"
-                  >
-                    Deactivate
-                  </button>
-                </div>
+              ))
+            ) : (
+              <div className="col-span-full py-12 text-center text-slate-400 font-bold text-xs">
+                No employee profiles registered yet.
               </div>
-            ))}
-          </div>
-
-        </div>
-      )}
-
-      {/* 2. WEEKLY SHIFT PLANNER TAB */}
-      {activeTab === 'schedule' && (
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm overflow-hidden">
-          <h2 className="text-base font-bold text-slate-900 mb-4 border-b border-slate-100 pb-2">Operational Shift Scheduler</h2>
-          
-          <div className="overflow-x-auto">
-            <div className="min-w-[800px] grid grid-cols-8 gap-4 border-b border-slate-100 pb-3 mb-4">
-              <div className="font-bold text-xs text-slate-400 uppercase">Day</div>
-              {shiftTypes.map((shiftName) => (
-                <div key={shiftName} className="col-span-2 font-bold text-xs text-slate-500 uppercase tracking-wider">{shiftName}</div>
-              ))}
-            </div>
-
-            <div className="space-y-4">
-              {daysOfWeek.map((day) => (
-                <div key={day} className="min-w-[800px] grid grid-cols-8 gap-4 items-center border-b border-slate-50 pb-3">
-                  <div className="font-extrabold text-sm text-slate-800">{day}</div>
-                  
-                  {shiftTypes.map((shiftName) => {
-                    const assigned = shifts.find((s) => s.day === day && s.shift === shiftName);
-                    const staffName = staff.find((st) => st.id === assigned?.staffId)?.name;
-
-                    return (
-                      <div key={shiftName} className="col-span-2 flex items-center gap-2">
-                        {assigned ? (
-                          <div className="rounded-lg bg-indigo-50 border border-indigo-100 px-3 py-1.5 text-xs font-bold text-indigo-950 flex items-center justify-between w-full">
-                            <span>{staffName}</span>
-                            <button
-                              onClick={() => setShifts(prev => prev.filter(s => !(s.day === day && s.shift === shiftName)))}
-                              className="text-indigo-400 hover:text-rose-600"
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
-                          </div>
-                        ) : (
-                          <select
-                            onChange={(e) => assignShift(day, shiftName, e.target.value)}
-                            className="rounded-lg border border-slate-200 px-2 py-1 text-xs focus:outline-none focus:border-indigo-500 bg-white text-slate-400 w-full"
-                            value=""
-                          >
-                            <option value="">+ Assign Shift</option>
-                            {staff.map((st) => (
-                              <option key={st.id} value={st.id}>{st.name} ({st.role})</option>
-                            ))}
-                          </select>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              ))}
-            </div>
+            )}
           </div>
         </div>
       )}
 
-      {/* 3. ATTENDANCE PUNCH LOGS */}
       {activeTab === 'attendance' && (
-        <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
-          
-          {/* Attendance logs list */}
-          <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-slate-100 text-[11px] font-semibold text-slate-500 uppercase bg-slate-50/30">
-                  <th className="px-6 py-3">Employee</th>
-                  <th className="px-6 py-3">Role</th>
-                  <th className="px-6 py-3">Date</th>
-                  <th className="px-6 py-3">Clock In</th>
-                  <th className="px-6 py-3">Clock Out</th>
-                  <th className="px-6 py-3">Status</th>
-                  <th className="px-6 py-3 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-sm">
-                {attendance.map((log) => (
-                  <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-6 py-4 font-bold text-slate-900">{log.staffName}</td>
-                    <td className="px-6 py-4 text-slate-600">{log.role}</td>
-                    <td className="px-6 py-4 text-slate-500">{log.date}</td>
-                    <td className="px-6 py-4 font-mono font-semibold text-indigo-600">{log.clockIn}</td>
-                    <td className="px-6 py-4 font-mono font-semibold text-slate-600">
-                      {log.clockOut || <span className="text-emerald-600 font-bold tracking-wider animate-pulse">Active Shift</span>}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-bold ${
-                        log.status === 'ON_TIME'
-                          ? 'bg-emerald-50 text-emerald-700'
-                          : 'bg-amber-50 text-amber-700'
-                      }`}>
-                        {log.status.replace('_', ' ')}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      {!log.clockOut && (
-                        <button
-                          onClick={() => handleClockOut(log.id, log.staffName)}
-                          className="rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-2.5 py-1"
-                        >
-                          Clock Out
-                        </button>
-                      )}
-                    </td>
+        <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+          {/* Logs */}
+          <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm space-y-3">
+            <h3 className="font-black text-slate-900 text-sm">Attendance Punch Ledger</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="bg-slate-50 border-b text-slate-400 font-bold text-left">
+                    <th className="p-3">Employee</th>
+                    <th className="p-3">Date</th>
+                    <th className="p-3">Clock In</th>
+                    <th className="p-3">Clock Out</th>
+                    <th className="p-3">Duration</th>
+                    <th className="p-3 text-right">Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {attendanceLogs.map((log) => (
+                    <tr key={log.id}>
+                      <td className="p-3 font-bold text-slate-900">{log.employee?.name || log.employeeId}</td>
+                      <td className="p-3 font-medium text-slate-500">{new Date(log.date).toLocaleDateString()}</td>
+                      <td className="p-3 font-mono font-bold text-indigo-600">{new Date(log.clockIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                      <td className="p-3 font-mono font-bold text-slate-700">{log.clockOut ? new Date(log.clockOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Active'}</td>
+                      <td className="p-3 font-bold text-emerald-600">{log.durationMinutes ? `${log.durationMinutes} mins` : '-'}</td>
+                      <td className="p-3 text-right">
+                        {!log.clockOut && (
+                          <button onClick={() => handleClockOut(log.employeeId)} className="bg-slate-900 text-white px-2.5 py-1 rounded-lg font-bold text-[10px]">
+                            Clock Out
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
-          {/* Clock In Panel */}
-          <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm self-start">
-            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide mb-3">Live Clock Punch</h3>
-            
-            <div className="space-y-3">
-              <div>
-                <label className="text-xs font-bold text-slate-600 block mb-1">Pick Employee</label>
-                <select
-                  value={clockStaffId}
-                  onChange={(e) => setClockStaffId(e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 px-3.5 py-2 text-sm focus:border-indigo-500 focus:outline-none bg-white text-slate-700"
-                >
-                  <option value="">Select staff</option>
-                  {staff.map((st) => (
-                    <option key={st.id} value={st.id}>{st.name} ({st.role})</option>
-                  ))}
-                </select>
-              </div>
-
-              <button
-                onClick={handleClockIn}
-                className="w-full rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white py-2 text-sm font-semibold transition-colors shadow-sm"
-              >
-                Clock In Employee
-              </button>
-            </div>
+          {/* Quick Punch Panel */}
+          <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm h-fit space-y-3">
+            <h3 className="font-black text-slate-900 text-sm">Live Punch Action</h3>
+            <select value={selectedEmpClock} onChange={(e) => setSelectedEmpClock(e.target.value)} className="w-full p-2 text-xs border rounded-xl font-bold">
+              <option value="">-- Select Employee --</option>
+              {employees.map((e) => <option key={e.id} value={e.id}>{e.name} ({e.employeeId})</option>)}
+            </select>
+            <button onClick={handleClockIn} className="w-full bg-[#4F46E5] text-white py-2 rounded-xl text-xs font-bold">
+              Clock In Employee
+            </button>
           </div>
         </div>
       )}
-
     </div>
   );
 }
-

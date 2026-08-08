@@ -54,9 +54,11 @@ import { CorrelationIdMiddleware } from './common/middleware/correlation-id.midd
 import { BranchModule } from './branch/branch.module';
 import { BranchMenuModule } from './branch-menu/branch-menu.module';
 import { BranchInventoryModule } from './branch-inventory/branch-inventory.module';
+import { WorkforceModule } from './workforce/workforce.module';
 
 @Module({
   imports: [
+    WorkforceModule,
     EnvConfigModule,
     PrismaModule,
     ThrottlerModule.forRootAsync({
