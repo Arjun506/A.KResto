@@ -50,6 +50,10 @@ export class CreateInventoryItemDto {
   supplierId?: string;
 
   @IsOptional()
+  @IsString()
+  branchId?: string;
+
+  @IsOptional()
   @IsBoolean()
   isActive?: boolean;
 }

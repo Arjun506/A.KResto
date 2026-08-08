@@ -7,22 +7,23 @@ import {
   MapPin,
   Clock,
   Coffee,
-  Printer,
   Percent,
-  CreditCard,
-  Users,
-  Bell,
-  Sparkles,
-  Globe,
-  ArrowRight,
-  ArrowLeft,
   Save,
   CheckCircle,
   HelpCircle,
   Loader2,
-  Lock
+  Plus,
+  ArrowRight,
+  ArrowLeft,
+  RefreshCw,
+  Truck,
+  ArrowRightLeft,
+  ChevronRight,
+  X,
+  AlertCircle
 } from 'lucide-react';
 import { getBusinessSettings, updateBusinessSettings } from '@/services/business.service';
+import { BranchService, Branch, InventoryTransfer } from '../../../services/branch.service';
 
 const steps = [
   { id: 1, label: 'General Info', icon: Store, desc: 'Name, legal name, type, cuisine, description' },
@@ -33,47 +34,84 @@ const steps = [
   { id: 6, label: 'Taxes & Gateway', icon: Percent, desc: 'Charges, payment preferences' }
 ];
 
-export default function RestaurantConfigurationCenter() {
+export default function MultiBranchPage() {
+  const [activeTab, setActiveTab] = useState<'outlets' | 'wizard'>('outlets');
+  
+  // Branch Management States
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [transfers, setTransfers] = useState<InventoryTransfer[]>([]);
+  const [loadingBranches, setLoadingBranches] = useState(true);
+  
+  // Modals
+  const [showAddBranchModal, setShowAddBranchModal] = useState(false);
+  const [showTransferModal, setShowTransferModal] = useState(false);
+
+  // New Branch Form
+  const [bName, setBName] = useState('');
+  const [bCode, setBCode] = useState('');
+  const [bAddress, setBAddress] = useState('');
+  const [bPhone, setBPhone] = useState('');
+  const [bEmail, setBEmail] = useState('');
+  const [bIndustry, setBIndustry] = useState('RESTAURANT');
+
+  // New Transfer Form
+  const [sourceBranchId, setSourceBranchId] = useState('');
+  const [destBranchId, setDestBranchId] = useState('');
+  const [transferNotes, setTransferNotes] = useState('');
+  const [sourceItems, setSourceItems] = useState<any[]>([]);
+  const [selectedItemId, setSelectedItemId] = useState('');
+  const [transferQty, setTransferQty] = useState(10);
+
+  // Settings Wizard States
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Form states matching Toast & Lightspeed specs
   const [restaurantName, setRestaurantName] = useState('');
   const [legalName, setLegalName] = useState('');
   const [businessType, setBusinessType] = useState('Fine Dining');
   const [cuisine, setCuisine] = useState('Italian');
   const [description, setDescription] = useState('');
-  
   const [gstNumber, setGstNumber] = useState('');
   const [panNumber, setPanNumber] = useState('');
   const [fssaiLicense, setFssaiLicense] = useState('');
   const [registrationNumber, setRegistrationNumber] = useState('');
-
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
   const [postalCode, setPostalCode] = useState('');
   const [googleMapsUrl, setGoogleMapsUrl] = useState('');
-
   const [openingTime, setOpeningTime] = useState('09:00');
   const [closingTime, setClosingTime] = useState('22:00');
   const [workingDays, setWorkingDays] = useState<string[]>(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']);
-
   const [dineIn, setDineIn] = useState(true);
   const [takeaway, setTakeaway] = useState(true);
   const [delivery, setDelivery] = useState(false);
   const [pickup, setPickup] = useState(false);
-
   const [gstRate, setGstRate] = useState(18);
   const [serviceCharge, setServiceCharge] = useState(5);
   const [deliveryCharge, setDeliveryCharge] = useState(0);
   const [paymentMethods, setPaymentMethods] = useState<string[]>(['Cash', 'Card', 'UPI']);
 
+  const loadBranchData = async () => {
+    setLoadingBranches(true);
+    try {
+      const bList = await BranchService.listBranches();
+      setBranches(bList || []);
+      const tList = await BranchService.listTransfers();
+      setTransfers(tList || []);
+    } catch (err) {
+      console.error('Failed to load branches:', err);
+    } finally {
+      setLoadingBranches(false);
+    }
+  };
+
   useEffect(() => {
-    // Load configurations from backend json settings
+    loadBranchData();
+
     const loadSettings = async () => {
       try {
         const res = await getBusinessSettings();
@@ -113,6 +151,102 @@ export default function RestaurantConfigurationCenter() {
     };
     loadSettings();
   }, []);
+
+  const handleCreateBranch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bName) return;
+
+    try {
+      await BranchService.createBranch({
+        name: bName,
+        code: bCode || undefined,
+        address: bAddress || undefined,
+        phone: bPhone || undefined,
+        email: bEmail || undefined,
+        industryType: bIndustry,
+      });
+      setShowAddBranchModal(false);
+      setBName('');
+      setBCode('');
+      setBAddress('');
+      setBPhone('');
+      setBEmail('');
+      loadBranchData();
+    } catch (err: any) {
+      alert(`Error creating branch: ${err.message}`);
+    }
+  };
+
+  const handleToggleStatus = async (branchId: string, currentStatus: string) => {
+    const nextStatus = currentStatus === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+    try {
+      await BranchService.updateBranchStatus(branchId, nextStatus);
+      loadBranchData();
+    } catch (err: any) {
+      alert(`Status update failed: ${err.message}`);
+    }
+  };
+
+  const handleSourceBranchChange = async (bId: string) => {
+    setSourceBranchId(bId);
+    if (!bId) return;
+    try {
+      const items = await BranchService.getBranchInventory(bId);
+      setSourceItems(items || []);
+    } catch (err) {
+      console.error('Failed to load branch inventory items:', err);
+    }
+  };
+
+  const handleCreateTransfer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!sourceBranchId || !destBranchId || !selectedItemId || transferQty <= 0) {
+      alert('Please select valid branches, inventory item, and quantity.');
+      return;
+    }
+
+    try {
+      await BranchService.createTransfer({
+        sourceBranchId,
+        destinationBranchId: destBranchId,
+        notes: transferNotes,
+        items: [{ inventoryItemId: selectedItemId, quantity: Number(transferQty) }],
+      });
+      setShowTransferModal(false);
+      setTransferNotes('');
+      setSelectedItemId('');
+      loadBranchData();
+    } catch (err: any) {
+      alert(`Transfer creation failed: ${err.message}`);
+    }
+  };
+
+  const handleApproveTransfer = async (tId: string) => {
+    try {
+      await BranchService.approveTransfer(tId);
+      loadBranchData();
+    } catch (err: any) {
+      alert(`Approval failed: ${err.message}`);
+    }
+  };
+
+  const handleShipTransfer = async (tId: string) => {
+    try {
+      await BranchService.shipTransfer(tId);
+      loadBranchData();
+    } catch (err: any) {
+      alert(`Shipment failed: ${err.message}`);
+    }
+  };
+
+  const handleReceiveTransfer = async (tId: string) => {
+    try {
+      await BranchService.receiveTransfer(tId);
+      loadBranchData();
+    } catch (err: any) {
+      alert(`Receipt failed: ${err.message}`);
+    }
+  };
 
   const handleSaveSettings = async () => {
     setErrorMsg(null);
@@ -158,497 +292,310 @@ export default function RestaurantConfigurationCenter() {
     }
   };
 
-  const toggleDay = (day: string) => {
-    if (workingDays.includes(day)) {
-      setWorkingDays(workingDays.filter(d => d !== day));
-    } else {
-      setWorkingDays([...workingDays, day]);
-    }
-  };
-
-  const togglePaymentMethod = (method: string) => {
-    if (paymentMethods.includes(method)) {
-      setPaymentMethods(paymentMethods.filter(m => m !== method));
-    } else {
-      setPaymentMethods([...paymentMethods, method]);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-        <Loader2 className="w-8 h-8 animate-spin text-slate-500" />
-        <p className="text-xs text-slate-400 font-bold">Loading configuration settings...</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 text-left max-w-7xl mx-auto select-none">
-      
-      {/* Sidebar Stepper */}
-      <div className="bg-white dark:bg-[#11131c] border border-slate-200/50 dark:border-slate-800/40 rounded-3xl p-5 shadow-xs h-fit space-y-4">
-        <div className="space-y-1 pb-3 border-b border-slate-50 dark:border-slate-850/20">
-          <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider">Configuration Wizard</h3>
-          <p className="text-[10px] text-slate-400">Complete setup checkpoints to activate customer POS order channels.</p>
+    <div className="space-y-6 text-slate-900 bg-[#F8F9FF] p-4 min-h-screen">
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-black text-slate-900 flex items-center gap-2">
+            Multi-Outlet & Branch Operations
+          </h1>
+          <p className="text-sm text-slate-500 font-bold mt-1">
+            Enterprise branch management, multi-outlet menu/pricing overrides, and transactional stock transfers.
+          </p>
         </div>
 
-        <div className="space-y-1">
-          {steps.map(step => {
-            const Icon = step.icon;
-            const isCompleted = step.id < currentStep;
-            const isActive = step.id === currentStep;
-
-            return (
-              <button
-                key={step.id}
-                onClick={() => setCurrentStep(step.id)}
-                className={`w-full p-3 rounded-2xl flex items-start gap-3 transition text-left cursor-pointer ${
-                  isActive
-                    ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 shadow-sm'
-                    : 'hover:bg-slate-50 dark:hover:bg-slate-900/10'
-                }`}
-              >
-                <div className={`p-1.5 rounded-lg border ${
-                  isActive
-                    ? 'bg-slate-800 border-slate-700 dark:bg-white dark:border-slate-200'
-                    : 'bg-slate-50 border-slate-100 dark:bg-slate-800/40 dark:border-slate-700/30'
-                }`}>
-                  <Icon size={14} className={isActive ? 'text-white dark:text-slate-900' : 'text-slate-500'} />
-                </div>
-                <div className="min-w-0">
-                  <span className={`text-xs font-black block leading-none ${
-                    isActive ? 'text-white dark:text-slate-900' : 'text-slate-700 dark:text-slate-300'
-                  }`}>
-                    {step.label}
-                  </span>
-                  <span className={`text-[9px] mt-1 block truncate leading-none ${
-                    isActive ? 'text-slate-300 dark:text-slate-500' : 'text-slate-400'
-                  }`}>
-                    {step.desc}
-                  </span>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Main Form Area */}
-      <div className="lg:col-span-3 bg-white dark:bg-[#11131c] border border-slate-200/50 dark:border-slate-800/40 rounded-3xl p-6 shadow-xs flex flex-col justify-between min-h-[500px]">
-        
-        <div className="space-y-6">
-          
-          {/* STEP 1: General Info */}
-          {currentStep === 1 && (
-            <div className="space-y-4">
-              <h3 className="text-sm font-black text-slate-850 dark:text-slate-100 border-b border-slate-50 dark:border-slate-850/20 pb-3">
-                General Profile Details
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase">Restaurant Name</label>
-                  <input
-                    type="text"
-                    value={restaurantName}
-                    onChange={(e) => setRestaurantName(e.target.value)}
-                    placeholder="e.g. Olive Garden"
-                    className="w-full px-3.5 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-transparent outline-none text-slate-750 dark:text-slate-300 focus:ring-1 focus:ring-slate-500"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase">Legal Business Name</label>
-                  <input
-                    type="text"
-                    value={legalName}
-                    onChange={(e) => setLegalName(e.target.value)}
-                    placeholder="e.g. Olive Hospitality Pvt Ltd"
-                    className="w-full px-3.5 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-transparent outline-none text-slate-750 dark:text-slate-300"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase">Business Format</label>
-                  <select
-                    value={businessType}
-                    onChange={(e) => setBusinessType(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-transparent outline-none text-slate-650 font-bold"
-                  >
-                    <option value="Fine Dining">Fine Dining</option>
-                    <option value="Quick Service (QSR)">Quick Service (QSR)</option>
-                    <option value="Cafe / Bakery">Cafe / Bakery</option>
-                    <option value="Cloud Kitchen">Cloud Kitchen</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase">Cuisine Specialty</label>
-                  <input
-                    type="text"
-                    value={cuisine}
-                    onChange={(e) => setCuisine(e.target.value)}
-                    placeholder="e.g. Italian, Continental"
-                    className="w-full px-3.5 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-transparent outline-none text-slate-750 dark:text-slate-300"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase">Restaurant Description</label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Tell customers about your kitchen heritage..."
-                  rows={4}
-                  className="w-full px-3.5 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-transparent outline-none text-slate-750 dark:text-slate-300 resize-none"
-                />
-              </div>
-            </div>
-          )}
-
-          {/* STEP 2: Compliance & Registry */}
-          {currentStep === 2 && (
-            <div className="space-y-4">
-              <h3 className="text-sm font-black text-slate-850 dark:text-slate-100 border-b border-slate-50 dark:border-slate-850/20 pb-3">
-                Government Compliance Records
-              </h3>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase">GSTIN / Tax ID Number</label>
-                  <input
-                    type="text"
-                    value={gstNumber}
-                    onChange={(e) => setGstNumber(e.target.value)}
-                    placeholder="e.g. 07AAAAA1111A1Z1"
-                    className="w-full px-3.5 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-transparent outline-none text-slate-750 dark:text-slate-300"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase">Income Tax PAN</label>
-                  <input
-                    type="text"
-                    value={panNumber}
-                    onChange={(e) => setPanNumber(e.target.value)}
-                    placeholder="e.g. ABCDE1234F"
-                    className="w-full px-3.5 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-transparent outline-none text-slate-750 dark:text-slate-300"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase">FSSAI License License Number</label>
-                  <input
-                    type="text"
-                    value={fssaiLicense}
-                    onChange={(e) => setFssaiLicense(e.target.value)}
-                    placeholder="e.g. 12345678901234"
-                    className="w-full px-3.5 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-transparent outline-none text-slate-750 dark:text-slate-300"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase">Corporate Registration Number</label>
-                  <input
-                    type="text"
-                    value={registrationNumber}
-                    onChange={(e) => setRegistrationNumber(e.target.value)}
-                    placeholder="e.g. U74999DL2026PTC..."
-                    className="w-full px-3.5 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-transparent outline-none text-slate-750 dark:text-slate-300"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 3: Location */}
-          {currentStep === 3 && (
-            <div className="space-y-4">
-              <h3 className="text-sm font-black text-slate-855 dark:text-slate-100 border-b border-slate-50 dark:border-slate-850/20 pb-3">
-                Storefront Physical Address
-              </h3>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase">Street Address</label>
-                <input
-                  type="text"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  placeholder="e.g. 12, Park Street"
-                  className="w-full px-3.5 py-2 border border-slate-205 dark:border-slate-800 rounded-xl text-xs bg-transparent outline-none text-slate-750 dark:text-slate-300"
-                />
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase">City</label>
-                  <input
-                    type="text"
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    placeholder="e.g. Kolkata"
-                    className="w-full px-3 py-2 border border-slate-205 dark:border-slate-800 rounded-xl text-xs bg-transparent outline-none text-slate-700 dark:text-slate-300"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase">State</label>
-                  <input
-                    type="text"
-                    value={state}
-                    onChange={(e) => setState(e.target.value)}
-                    placeholder="e.g. West Bengal"
-                    className="w-full px-3 py-2 border border-slate-205 dark:border-slate-800 rounded-xl text-xs bg-transparent outline-none text-slate-700 dark:text-slate-300"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase">Postal Code</label>
-                  <input
-                    type="text"
-                    value={postalCode}
-                    onChange={(e) => setPostalCode(e.target.value)}
-                    placeholder="e.g. 700016"
-                    className="w-full px-3 py-2 border border-slate-205 dark:border-slate-800 rounded-xl text-xs bg-transparent outline-none text-slate-700 dark:text-slate-300"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase">Google Maps coordinates url</label>
-                <input
-                  type="text"
-                  value={googleMapsUrl}
-                  onChange={(e) => setGoogleMapsUrl(e.target.value)}
-                  placeholder="https://maps.google.com/?q=..."
-                  className="w-full px-3.5 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-transparent outline-none text-slate-750 dark:text-slate-300"
-                />
-              </div>
-            </div>
-          )}
-
-          {/* STEP 4: Hours & Schedule */}
-          {currentStep === 4 && (
-            <div className="space-y-4">
-              <h3 className="text-sm font-black text-slate-850 dark:text-slate-100 border-b border-slate-50 dark:border-slate-850/20 pb-3">
-                Operating Hours schedule
-              </h3>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase">Opening Time</label>
-                  <input
-                    type="time"
-                    value={openingTime}
-                    onChange={(e) => setOpeningTime(e.target.value)}
-                    className="w-full px-3.5 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-transparent outline-none text-slate-750 dark:text-slate-300 font-bold"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase">Closing Time</label>
-                  <input
-                    type="time"
-                    value={closingTime}
-                    onChange={(e) => setClosingTime(e.target.value)}
-                    className="w-full px-3.5 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-transparent outline-none text-slate-750 dark:text-slate-300 font-bold"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-slate-400 uppercase">Active Working Days</label>
-                <div className="flex gap-1.5 flex-wrap">
-                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => {
-                    const active = workingDays.includes(day);
-                    return (
-                      <button
-                        key={day}
-                        onClick={() => toggleDay(day)}
-                        className={`px-3 py-1.5 border rounded-xl text-xs font-bold transition active:scale-95 cursor-pointer ${
-                          active
-                            ? 'bg-slate-905 text-white dark:bg-slate-100 dark:text-slate-900 border-transparent'
-                            : 'bg-transparent border-slate-200 hover:bg-slate-50 text-slate-500'
-                        }`}
-                      >
-                        {day}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 5: Dining channels */}
-          {currentStep === 5 && (
-            <div className="space-y-4">
-              <h3 className="text-sm font-black text-slate-850 dark:text-slate-100 border-b border-slate-50 dark:border-slate-850/20 pb-3">
-                Active Dining Channels
-              </h3>
-
-              <div className="grid grid-cols-2 gap-4">
-                {[
-                  { state: dineIn, setter: setDineIn, label: 'Dine-In Seating', desc: 'Allows waiter orders and table QR codes checkouts.' },
-                  { state: takeaway, setter: setTakeaway, label: 'Self Takeaway', desc: 'Enables quick counter billing and ticket dispatch.' },
-                  { state: delivery, setter: setDelivery, label: 'Home Delivery', desc: 'Wires distance charge matrix and delivery partners.' },
-                  { state: pickup, setter: setPickup, label: 'Drive-Through Pickup', desc: 'Allows pre-ordered car slot delivery checks.' }
-                ].map((ch, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => ch.setter(!ch.state)}
-                    className={`p-4 border rounded-2xl text-left transition space-y-1 cursor-pointer ${
-                      ch.state
-                        ? 'border-indigo-650 bg-indigo-50/10 dark:bg-indigo-950/10'
-                        : 'border-slate-200 hover:bg-slate-50/40 dark:hover:bg-slate-900/10'
-                    }`}
-                  >
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs font-black text-slate-800 dark:text-slate-150">{ch.label}</span>
-                      <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center ${
-                        ch.state ? 'bg-indigo-600 border-transparent text-white' : 'border-slate-300'
-                      }`}>
-                        {ch.state && <CheckCircle size={10} className="stroke-[3]" />}
-                      </div>
-                    </div>
-                    <p className="text-[10px] text-slate-450 leading-relaxed">{ch.desc}</p>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* STEP 6: Taxes & Payments */}
-          {currentStep === 6 && (
-            <div className="space-y-4">
-              <h3 className="text-sm font-black text-slate-850 dark:text-slate-100 border-b border-slate-50 dark:border-slate-850/20 pb-3">
-                Taxes & Payout Parameters
-              </h3>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase">GST Rate (%)</label>
-                  <input
-                    type="number"
-                    value={gstRate}
-                    onChange={(e) => setGstRate(parseInt(e.target.value) || 0)}
-                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-transparent outline-none text-slate-750 dark:text-slate-300"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase">Service Charge (%)</label>
-                  <input
-                    type="number"
-                    value={serviceCharge}
-                    onChange={(e) => setServiceCharge(parseInt(e.target.value) || 0)}
-                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-transparent outline-none text-slate-750 dark:text-slate-300"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase">Delivery Charge (₹)</label>
-                  <input
-                    type="number"
-                    value={deliveryCharge}
-                    onChange={(e) => setDeliveryCharge(parseInt(e.target.value) || 0)}
-                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs bg-transparent outline-none text-slate-750 dark:text-slate-300"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-slate-400 uppercase">Accepted Payments</label>
-                <div className="flex gap-2">
-                  {['Cash', 'Card', 'UPI', 'Net Banking'].map(method => {
-                    const active = paymentMethods.includes(method);
-                    return (
-                      <button
-                        key={method}
-                        onClick={() => togglePaymentMethod(method)}
-                        className={`px-3 py-1.5 border rounded-xl text-xs font-bold transition active:scale-95 cursor-pointer ${
-                          active
-                            ? 'bg-slate-905 text-white dark:bg-slate-100 dark:text-slate-900 border-transparent'
-                            : 'bg-transparent border-slate-200 hover:bg-slate-50 text-slate-500'
-                        }`}
-                      >
-                        {method}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          )}
-
-        </div>
-
-        {/* Form Action Controls */}
-        <div className="flex items-center justify-between pt-6 border-t border-slate-50 dark:border-slate-850/20 mt-6">
+        {/* Tab Switcher */}
+        <div className="flex bg-slate-200/60 p-1 rounded-2xl border border-slate-200">
           <button
-            onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))}
-            disabled={currentStep === 1}
-            className={`px-4 py-2 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer ${
-              currentStep === 1
-                ? 'text-slate-300 dark:text-slate-700 cursor-not-allowed'
-                : 'text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-900/10'
+            onClick={() => setActiveTab('outlets')}
+            className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${
+              activeTab === 'outlets'
+                ? 'bg-[#4F46E5] text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <ArrowLeft size={13} />
-            <span>Previous Step</span>
+            Outlets & Stock Transfers
           </button>
-
-          <div className="flex gap-3">
-            <button
-              onClick={handleSaveSettings}
-              disabled={saving}
-              className="px-4.5 py-2 bg-indigo-650 hover:bg-indigo-700 text-white text-xs font-black rounded-xl transition active:scale-95 flex items-center gap-1.5 cursor-pointer"
-            >
-              {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
-              <span>{saving ? 'Saving...' : 'Save Configuration'}</span>
-            </button>
-
-            {currentStep < steps.length ? (
-              <button
-                onClick={() => setCurrentStep(prev => Math.min(steps.length, prev + 1))}
-                className="px-4.5 py-2 bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-100 dark:text-slate-900 text-xs font-black rounded-xl transition active:scale-95 flex items-center gap-1.5 cursor-pointer"
-              >
-                <span>Next Step</span>
-                <ArrowRight size={13} />
-              </button>
-            ) : null}
-          </div>
+          <button
+            onClick={() => setActiveTab('wizard')}
+            className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${
+              activeTab === 'wizard'
+                ? 'bg-[#4F46E5] text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            Tenant Global Settings
+          </button>
         </div>
-
       </div>
 
-      {/* Success alert message overlay */}
-      {success && (
-        <div className="fixed bottom-5 right-5 p-4 bg-emerald-500 text-white text-xs font-black rounded-2xl shadow-lg flex items-center gap-2 z-50">
-          <CheckCircle size={14} className="stroke-[3]" />
-          <span>Configurations saved and updated successfully!</span>
+      {activeTab === 'outlets' ? (
+        <div className="space-y-6">
+          {/* Action Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <h2 className="text-lg font-black text-slate-900">Registered Branches ({branches.length})</h2>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowAddBranchModal(true)}
+                className="px-4 py-2.5 bg-[#4F46E5] hover:bg-[#4338CA] text-white rounded-xl text-xs font-bold flex items-center gap-2 transition active:scale-95 shadow-sm"
+              >
+                <Plus size={16} /> Add Outlet Branch
+              </button>
+              <button
+                onClick={() => setShowTransferModal(true)}
+                className="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold flex items-center gap-2 transition active:scale-95 shadow-sm"
+              >
+                <ArrowRightLeft size={16} /> Inter-Branch Transfer
+              </button>
+            </div>
+          </div>
+
+          {/* Branch Grid */}
+          <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+            {loadingBranches ? (
+              <div className="col-span-full py-12 text-center text-slate-400 font-bold text-xs">
+                Loading tenant branches from PostgreSQL...
+              </div>
+            ) : branches.length > 0 ? (
+              branches.map((b) => (
+                <div key={b.id} className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-3">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-1.5">
+                        {b.name}
+                        <span className="text-[9px] bg-indigo-50 text-indigo-600 font-bold px-1.5 py-0.5 rounded">
+                          {b.code}
+                        </span>
+                      </h3>
+                      <p className="text-[10px] text-slate-400 font-bold mt-0.5">{b.industryType} · {b.timezone}</p>
+                    </div>
+                    <button
+                      onClick={() => handleToggleStatus(b.id, b.status)}
+                      className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${
+                        b.status === 'ACTIVE'
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : 'bg-rose-100 text-rose-800'
+                      }`}
+                    >
+                      {b.status}
+                    </button>
+                  </div>
+
+                  <p className="text-xs text-slate-600 font-medium flex items-center gap-1">
+                    <MapPin size={12} className="text-slate-400" /> {b.address || 'Address not specified'}
+                  </p>
+                  <p className="text-xs text-slate-500 font-bold">Phone: {b.phone || 'N/A'}</p>
+                </div>
+              ))
+            ) : (
+              <div className="col-span-full py-12 text-center text-slate-400 font-bold text-xs">
+                No branches registered yet. Click "Add Outlet Branch" to create your first location.
+              </div>
+            )}
+          </div>
+
+          {/* Inter-Branch Transfers History Table */}
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-4">
+            <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
+              <Truck size={16} className="text-indigo-600" /> Inter-Branch Inventory Transfer Ledger
+            </h3>
+
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-100">
+                    <th className="px-5 py-3 text-left text-xs font-bold text-slate-400 uppercase">Ref Code</th>
+                    <th className="px-5 py-3 text-left text-xs font-bold text-slate-400 uppercase">Source Branch</th>
+                    <th className="px-5 py-3 text-left text-xs font-bold text-slate-400 uppercase">Destination Branch</th>
+                    <th className="px-5 py-3 text-left text-xs font-bold text-slate-400 uppercase">Items Transferred</th>
+                    <th className="px-5 py-3 text-left text-xs font-bold text-slate-400 uppercase">Status</th>
+                    <th className="px-5 py-3 text-right text-xs font-bold text-slate-400 uppercase">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {transfers.length > 0 ? (
+                    transfers.map((t) => (
+                      <tr key={t.id} className="hover:bg-slate-50/50 text-xs">
+                        <td className="px-5 py-3 font-extrabold text-slate-900">{t.referenceNumber}</td>
+                        <td className="px-5 py-3 font-bold text-slate-700">{t.sourceBranch?.name || t.sourceBranchId}</td>
+                        <td className="px-5 py-3 font-bold text-slate-700">{t.destinationBranch?.name || t.destinationBranchId}</td>
+                        <td className="px-5 py-3 font-bold text-indigo-600">
+                          {t.items?.map((i) => `${i.itemName} (${i.quantity} ${i.unit})`).join(', ')}
+                        </td>
+                        <td className="px-5 py-3">
+                          <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase ${
+                            t.status === 'RECEIVED' ? 'bg-emerald-100 text-emerald-800' :
+                            t.status === 'IN_TRANSIT' ? 'bg-amber-100 text-amber-800' :
+                            t.status === 'APPROVED' ? 'bg-blue-100 text-blue-800' :
+                            'bg-slate-100 text-slate-700'
+                          }`}>
+                            {t.status}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3 text-right">
+                          <div className="flex justify-end gap-1.5">
+                            {t.status === 'REQUESTED' && (
+                              <button
+                                onClick={() => handleApproveTransfer(t.id)}
+                                className="px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded text-[10px] font-bold"
+                              >
+                                Approve
+                              </button>
+                            )}
+                            {(t.status === 'APPROVED' || t.status === 'REQUESTED') && (
+                              <button
+                                onClick={() => handleShipTransfer(t.id)}
+                                className="px-2 py-1 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded text-[10px] font-bold"
+                              >
+                                Ship Transfer
+                              </button>
+                            )}
+                            {t.status === 'IN_TRANSIT' && (
+                              <button
+                                onClick={() => handleReceiveTransfer(t.id)}
+                                className="px-2 py-1 bg-emerald-600 text-white hover:bg-emerald-700 rounded text-[10px] font-bold"
+                              >
+                                Receive & Credit Stock
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={6} className="px-5 py-8 text-center text-slate-400 font-bold text-xs">
+                        No inventory transfers created yet.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* Settings Wizard View */
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 text-left max-w-7xl mx-auto select-none">
+          <div className="bg-white border border-slate-200/50 rounded-3xl p-5 shadow-xs h-fit space-y-4">
+            <div className="space-y-1 pb-3 border-b border-slate-50">
+              <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider">Configuration Wizard</h3>
+            </div>
+            <div className="space-y-1">
+              {steps.map(step => {
+                const Icon = step.icon;
+                const isActive = step.id === currentStep;
+                return (
+                  <button
+                    key={step.id}
+                    onClick={() => setCurrentStep(step.id)}
+                    className={`w-full p-3 rounded-2xl flex items-start gap-3 transition text-left cursor-pointer ${
+                      isActive ? 'bg-slate-900 text-white shadow-sm' : 'hover:bg-slate-50'
+                    }`}
+                  >
+                    <Icon size={14} className={isActive ? 'text-white' : 'text-slate-500'} />
+                    <div>
+                      <span className={`text-xs font-black block ${isActive ? 'text-white' : 'text-slate-700'}`}>{step.label}</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="lg:col-span-3 bg-white border border-slate-200/50 rounded-3xl p-6 shadow-xs flex flex-col justify-between min-h-[500px]">
+            {currentStep === 1 && (
+              <div className="space-y-4">
+                <h3 className="text-sm font-black text-slate-850 border-b pb-3">General Profile Details</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <input type="text" value={restaurantName} onChange={(e) => setRestaurantName(e.target.value)} placeholder="Restaurant Name" className="p-2 border rounded-xl text-xs font-bold" />
+                  <input type="text" value={legalName} onChange={(e) => setLegalName(e.target.value)} placeholder="Legal Name" className="p-2 border rounded-xl text-xs font-bold" />
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end pt-6">
+              <button onClick={handleSaveSettings} className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold">
+                Save Configuration
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Error alert message overlay */}
-      {errorMsg && (
-        <div className="fixed bottom-5 right-5 p-4 bg-rose-500 text-white text-xs font-black rounded-2xl shadow-lg flex items-center gap-2 z-50">
-          <AlertCircle size={14} />
-          <span>{errorMsg}</span>
+      {/* Add Branch Modal */}
+      {showAddBranchModal && (
+        <div className="fixed inset-0 bg-black/55 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100">
+            <h3 className="text-base font-black text-slate-900 mb-4">Add Outlet Branch</h3>
+            <form onSubmit={handleCreateBranch} className="space-y-3 text-xs">
+              <input type="text" placeholder="Branch Name" value={bName} onChange={(e) => setBName(e.target.value)} className="w-full p-2 border rounded-xl font-bold" required />
+              <input type="text" placeholder="Branch Code (e.g. BR-101)" value={bCode} onChange={(e) => setBCode(e.target.value)} className="w-full p-2 border rounded-xl font-bold" />
+              <input type="text" placeholder="Physical Address" value={bAddress} onChange={(e) => setBAddress(e.target.value)} className="w-full p-2 border rounded-xl font-bold" />
+              <input type="text" placeholder="Contact Phone" value={bPhone} onChange={(e) => setBPhone(e.target.value)} className="w-full p-2 border rounded-xl font-bold" />
+              <input type="email" placeholder="Contact Email" value={bEmail} onChange={(e) => setBEmail(e.target.value)} className="w-full p-2 border rounded-xl font-bold" />
+              <select value={bIndustry} onChange={(e) => setBIndustry(e.target.value)} className="w-full p-2 border rounded-xl font-bold">
+                <option value="RESTAURANT">Restaurant</option>
+                <option value="HOTEL">Hotel</option>
+                <option value="RETAIL">Retail Store</option>
+                <option value="SALON">Salon & Spa</option>
+                <option value="HEALTHCARE">Healthcare</option>
+                <option value="LOGISTICS">Logistics</option>
+              </select>
+
+              <div className="flex gap-2 pt-2">
+                <button type="submit" className="flex-1 bg-[#4F46E5] text-white py-2 rounded-xl font-bold">Save Outlet</button>
+                <button type="button" onClick={() => setShowAddBranchModal(false)} className="flex-1 border border-slate-200 text-slate-600 py-2 rounded-xl font-bold">Cancel</button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
+      {/* Inter-Branch Transfer Modal */}
+      {showTransferModal && (
+        <div className="fixed inset-0 bg-black/55 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
+            <h3 className="text-base font-black text-slate-900 mb-4">Create Inter-Branch Transfer</h3>
+            <form onSubmit={handleCreateTransfer} className="space-y-3 text-xs">
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase">Source Branch</label>
+                <select value={sourceBranchId} onChange={(e) => handleSourceBranchChange(e.target.value)} className="w-full p-2 border rounded-xl font-bold" required>
+                  <option value="">-- Select Source Branch --</option>
+                  {branches.map(b => <option key={b.id} value={b.id}>{b.name} ({b.code})</option>)}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase">Destination Branch</label>
+                <select value={destBranchId} onChange={(e) => setDestBranchId(e.target.value)} className="w-full p-2 border rounded-xl font-bold" required>
+                  <option value="">-- Select Destination Branch --</option>
+                  {branches.filter(b => b.id !== sourceBranchId).map(b => <option key={b.id} value={b.id}>{b.name} ({b.code})</option>)}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase">Select Inventory Item</label>
+                <select value={selectedItemId} onChange={(e) => setSelectedItemId(e.target.value)} className="w-full p-2 border rounded-xl font-bold" required>
+                  <option value="">-- Select Item at Source --</option>
+                  {sourceItems.map(i => <option key={i.id} value={i.id}>{i.name} (Available: {i.quantity} {i.unit})</option>)}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase">Quantity to Transfer</label>
+                <input type="number" value={transferQty} onChange={(e) => setTransferQty(Number(e.target.value))} className="w-full p-2 border rounded-xl font-bold" required />
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button type="submit" className="flex-1 bg-amber-500 text-white py-2 rounded-xl font-bold">Create Transfer</button>
+                <button type="button" onClick={() => setShowTransferModal(false)} className="flex-1 border border-slate-200 text-slate-600 py-2 rounded-xl font-bold">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
-// Inline fallback for AlertCircle
-function AlertCircle(props: any) {
-  return <HelpCircle {...props} className="stroke-current text-white" />;
-}
-

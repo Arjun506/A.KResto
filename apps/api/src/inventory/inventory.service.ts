@@ -65,6 +65,7 @@ export class InventoryService {
           reorderLevel: dto.reorderLevel ?? dto.lowStockLevel ?? 0,
           costPerUnit: dto.costPerUnit ?? 0,
           supplierId: dto.supplierId,
+          branchId: dto.branchId || null,
           isActive: dto.isActive ?? true,
         },
       });

@@ -51,6 +51,10 @@ import { KitchenModule } from './kitchen/kitchen.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
 
+import { BranchModule } from './branch/branch.module';
+import { BranchMenuModule } from './branch-menu/branch-menu.module';
+import { BranchInventoryModule } from './branch-inventory/branch-inventory.module';
+
 @Module({
   imports: [
     EnvConfigModule,
@@ -105,6 +109,9 @@ import { CorrelationIdMiddleware } from './common/middleware/correlation-id.midd
     OrdersModule,
     PosRegisterModule,
     KitchenModule,
+    BranchModule,
+    BranchMenuModule,
+    BranchInventoryModule,
   ],
   controllers: [AppController],
   providers: [

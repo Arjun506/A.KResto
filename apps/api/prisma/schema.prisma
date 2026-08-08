@@ -505,19 +505,31 @@ model tenant_features {
 }
 
 model branch {
-  id        String      @id @default(cuid())
-  tenantId  String
-  name      String
-  location  String?
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  code      String?
-  address   String?
-  phone     String?
-  email     String?
-  isActive  Boolean     @default(true)
-  tenant    Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  employees employees[]
+  id                  String                      @id @default(cuid())
+  tenantId            String
+  name                String
+  location            String?
+  code                String?
+  address             String?
+  phone               String?
+  email               String?
+  latitude            Float?
+  longitude           Float?
+  operatingHours      Json?
+  timezone            String                      @default("UTC")
+  currency            String                      @default("INR")
+  status              String                      @default("ACTIVE")
+  managerId           String?
+  industryType        String                      @default("RESTAURANT")
+  isActive            Boolean                     @default(true)
+  createdAt           DateTime                    @default(now())
+  updatedAt           DateTime                    @updatedAt
+  tenant              Tenant                      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  employees           employees[]
+  inventory_items     inventory_items[]
+  menu_configs        menu_item_branch_configs[]
+  transfers_outgoing  inventory_transfers[]       @relation("SourceBranch")
+  transfers_incoming  inventory_transfers[]       @relation("DestinationBranch")
 
   @@unique([tenantId, code])
   @@map("branches")
@@ -705,6 +717,7 @@ model tables {
 model inventory_items {
   id                    String                  @id @default(cuid())
   tenantId              String
+  branchId              String?
   name                  String
   sku                   String?
   category              String?
@@ -718,13 +731,74 @@ model inventory_items {
   createdAt             DateTime                @default(now())
   updatedAt             DateTime                @updatedAt
   tenant                Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch                branch?                 @relation(fields: [branchId], references: [id], onDelete: Cascade)
   suppliers             suppliers?              @relation(fields: [supplierId], references: [id])
   inventory_movements   inventory_movements[]
   menu_item_ingredients menu_item_ingredients[]
 
-  @@unique([tenantId, name])
+  @@unique([tenantId, branchId, name])
   @@index([tenantId])
+  @@index([branchId])
   @@index([supplierId])
+}
+
+model menu_item_branch_configs {
+  id            String   @id @default(cuid())
+  tenantId      String
+  branchId      String
+  menuItemId    String
+  isAvailable   Boolean  @default(true)
+  priceOverride Decimal? @db.Decimal(10, 2)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  branch        branch   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@unique([branchId, menuItemId])
+  @@index([tenantId])
+  @@index([branchId])
+  @@map("menu_item_branch_configs")
+}
+
+model inventory_transfers {
+  id                  String                     @id @default(cuid())
+  tenantId            String
+  referenceNumber     String                     @unique
+  sourceBranchId      String
+  destinationBranchId String
+  status              String                     @default("DRAFT")
+  notes               String?
+  requestedById       String?
+  approvedById        String?
+  shippedById         String?
+  receivedById        String?
+  requestedAt         DateTime?
+  approvedAt          DateTime?
+  shippedAt           DateTime?
+  receivedAt          DateTime?
+  createdAt           DateTime                   @default(now())
+  updatedAt           DateTime                   @updatedAt
+  sourceBranch        branch                     @relation("SourceBranch", fields: [sourceBranchId], references: [id], onDelete: Cascade)
+  destinationBranch   branch                     @relation("DestinationBranch", fields: [destinationBranchId], references: [id], onDelete: Cascade)
+  items               inventory_transfer_items[]
+
+  @@index([tenantId])
+  @@index([sourceBranchId])
+  @@index([destinationBranchId])
+  @@map("inventory_transfers")
+}
+
+model inventory_transfer_items {
+  id              String              @id @default(cuid())
+  transferId      String
+  inventoryItemId String
+  itemName        String
+  quantity        Decimal             @db.Decimal(10, 2)
+  unit            String
+  createdAt       DateTime            @default(now())
+  transfer        inventory_transfers @relation(fields: [transferId], references: [id], onDelete: Cascade)
+
+  @@index([transferId])
+  @@map("inventory_transfer_items")
 }
 
 model menu_item_ingredients {
