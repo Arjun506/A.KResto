@@ -17,7 +17,7 @@ import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 @ApiTags('Order Foundation — Registry')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@Controller('orders')
+@Controller('order-foundation/orders')
 export class OrderRegistryController {
   constructor(private readonly service: OrderRegistryService) {}
 

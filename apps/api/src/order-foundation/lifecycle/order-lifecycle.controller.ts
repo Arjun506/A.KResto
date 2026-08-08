@@ -7,7 +7,7 @@ import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 @ApiTags('Order Foundation — Lifecycle')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@Controller('orders/:id/status')
+@Controller('order-foundation/orders/:id/status')
 export class OrderLifecycleController {
   constructor(private readonly service: OrderLifecycleService) {}
 

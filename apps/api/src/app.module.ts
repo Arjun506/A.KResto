@@ -44,6 +44,8 @@ import { RestaurantsModule } from './restaurants/restaurants.module';
 import { MenuModule } from './menu/menu.module';
 import { BusinessModule } from './business/business.module';
 import { ReservationsModule } from './reservations/reservations.module';
+import { OrdersModule } from './orders/orders.module';
+import { PosRegisterModule } from './pos-register/pos-register.module';
 
 import { PrismaModule } from './prisma/prisma.module';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
@@ -99,6 +101,8 @@ import { CorrelationIdMiddleware } from './common/middleware/correlation-id.midd
     MenuModule,
     BusinessModule,
     ReservationsModule,
+    OrdersModule,
+    PosRegisterModule,
   ],
   controllers: [AppController],
   providers: [

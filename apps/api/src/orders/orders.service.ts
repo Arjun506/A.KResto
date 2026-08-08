@@ -328,25 +328,34 @@ export class OrdersService {
         },
       );
 
-      const invoice = await tx.invoices.upsert({
+      const existingInvoice = await tx.invoices.findFirst({
         where: { orderId: order.id },
-        create: {
-          orderId: order.id,
-          invoiceNumber: this.generateInvoiceNumber(order.orderNumber),
-          subtotal,
-          tax,
-          serviceCharge,
-          discount,
-          grandTotal,
-        },
-        update: {
-          subtotal,
-          tax,
-          serviceCharge,
-          discount,
-          grandTotal,
-        },
       });
+
+      const invoice = existingInvoice
+        ? await tx.invoices.update({
+            where: { id: existingInvoice.id },
+            data: {
+              subtotal,
+              tax,
+              serviceCharge,
+              discount,
+              grandTotal,
+              updatedAt: new Date(),
+            },
+          })
+        : await tx.invoices.create({
+            data: {
+              id: randomUUID(),
+              orderId: order.id,
+              invoiceNumber: this.generateInvoiceNumber(order.orderNumber),
+              subtotal,
+              tax,
+              serviceCharge,
+              discount,
+              grandTotal,
+            },
+          });
 
       const payment = await tx.order_payments.create({
         data: {

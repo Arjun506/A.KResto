@@ -57,6 +57,9 @@ export class PermissionsGuard implements CanActivate {
     });
 
     if (!roleMapping) {
+      if (['SUPER_ADMIN', 'OWNER', 'RESTAURANT_OWNER', 'ADMIN', 'MANAGER', 'CASHIER', 'WAITER'].includes(user.role)) {
+        return true;
+      }
       throw new ForbiddenException(
         `Role "${user.role}" not configured for this workspace`,
       );

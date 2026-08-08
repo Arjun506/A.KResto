@@ -164,6 +164,8 @@ const menuOptions = [
   { id: 'm8', name: 'Filter Coffee', price: 40 },
 ];
 
+import { getOrders as fetchRealOrders, createOrder as createRealOrder, updateOrderStatus as updateRealOrderStatus } from '@/services/order.service';
+
 export default function OrdersPage() {
   const router = useRouter();
   const { user, isLoading } = useAuth();
@@ -191,6 +193,38 @@ export default function OrdersPage() {
   // Edit Form State
   const [editingOrder, setEditingOrder] = useState<OrderDetail | null>(null);
   const [editStatus, setEditStatus] = useState<'pending' | 'confirmed' | 'preparing' | 'ready' | 'served' | 'paid'>('pending');
+
+  const loadBackendOrders = async () => {
+    try {
+      const apiOrders = await fetchRealOrders();
+      if (apiOrders && apiOrders.length > 0) {
+        const mapped: OrderDetail[] = apiOrders.map(o => ({
+          id: o.id,
+          orderType: 'new',
+          orderNumber: o.orderNumber,
+          tableNumber: o.tableId ? `Table ${o.tableId.slice(-3)}` : undefined,
+          customerName: o.customerName || 'Walk-in Guest',
+          customerPhone: o.customerPhone || 'N/A',
+          items: o.items.map(i => ({
+            id: i.id,
+            name: i.name || i.menuItemId,
+            quantity: i.quantity,
+            price: Number(i.price)
+          })),
+          status: (o.status.toLowerCase() as any) || 'pending',
+          totalAmount: Number(o.totalAmount),
+          createdAt: new Date(o.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        }));
+        setOrders(mapped);
+      }
+    } catch (err) {
+      console.warn('Backend orders load fallback:', err);
+    }
+  };
+
+  useEffect(() => {
+    void loadBackendOrders();
+  }, []);
 
   // Role-based access control
   useEffect(() => {
