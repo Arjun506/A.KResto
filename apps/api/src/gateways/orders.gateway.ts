@@ -187,7 +187,7 @@ export class OrdersGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  private emitToTenant<TPayload>(
+  public emitToTenant<TPayload>(
     tenantId: string,
     event: string,
     payload: TPayload,

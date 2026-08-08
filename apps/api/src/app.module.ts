@@ -46,6 +46,7 @@ import { BusinessModule } from './business/business.module';
 import { ReservationsModule } from './reservations/reservations.module';
 import { OrdersModule } from './orders/orders.module';
 import { PosRegisterModule } from './pos-register/pos-register.module';
+import { KitchenModule } from './kitchen/kitchen.module';
 
 import { PrismaModule } from './prisma/prisma.module';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
@@ -103,6 +104,7 @@ import { CorrelationIdMiddleware } from './common/middleware/correlation-id.midd
     ReservationsModule,
     OrdersModule,
     PosRegisterModule,
+    KitchenModule,
   ],
   controllers: [AppController],
   providers: [

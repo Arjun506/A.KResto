@@ -219,7 +219,49 @@ async function main() {
   }
 
   // ─────────────────────────────────────────────
-  // 7. Seed audit log (workspace bootstrap record)
+  // 7. Default Tables & Menu Items
+  // ─────────────────────────────────────────────
+  await prisma.tables.upsert({
+    where: { id: 'table-1' },
+    update: { isActive: true },
+    create: {
+      id: 'table-1',
+      tenantId: 'rest-1',
+      name: 'Table 1 (Main Hall)',
+      code: 'T1',
+      capacity: 4,
+      isActive: true,
+    },
+  });
+
+  const defaultMenuItems = [
+    { id: 'item-pizza-1', name: 'Margherita Pizza 12"', price: new Prisma.Decimal(299), stationCode: 'PIZZA', isAvailable: true },
+    { id: 'item-grill-1', name: 'Butter Chicken Masala', price: new Prisma.Decimal(349), stationCode: 'GRILL', isAvailable: true },
+    { id: 'item-beverage-1', name: 'Mango Mojito', price: new Prisma.Decimal(149), stationCode: 'BEVERAGE', isAvailable: true },
+  ];
+
+  for (const item of defaultMenuItems) {
+    await prisma.menu_items.upsert({
+      where: { id: item.id },
+      update: {
+        name: item.name,
+        price: item.price,
+        stationCode: item.stationCode,
+        isAvailable: item.isAvailable,
+      },
+      create: {
+        id: item.id,
+        tenantId: 'rest-1',
+        name: item.name,
+        price: item.price,
+        stationCode: item.stationCode,
+        isAvailable: item.isAvailable,
+      },
+    });
+  }
+
+  // ─────────────────────────────────────────────
+  // 8. Seed audit log (workspace bootstrap record)
   // ─────────────────────────────────────────────
   const existingAuditLog = await prisma.audit_logs.findFirst({
     where: { tenantId: tenant.id, action: 'WORKSPACE_SEEDED' },

@@ -7,8 +7,10 @@ import { PrismaService } from '../prisma/prisma.service';
 import { OrdersController } from './orders.controller';
 import { OrdersService } from './orders.service';
 
+import { KitchenModule } from '../kitchen/kitchen.module';
+
 @Module({
-  imports: [AuthModule, InventoryModule],
+  imports: [AuthModule, InventoryModule, KitchenModule],
   controllers: [OrdersController],
   providers: [OrdersService, OrdersGateway],
   exports: [OrdersService, OrdersGateway],

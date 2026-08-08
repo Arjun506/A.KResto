@@ -60,6 +60,8 @@ model Tenant {
   restTables            rest_tables[]
   restReservations      rest_reservations[]
   restKitchenTickets    rest_kitchen_tickets[]
+  kitchenStations       kitchen_stations[]
+  kitchenTickets        kitchen_tickets[]
   restShifts            rest_shifts[]
   platformPackConfigs   platform_pack_configs[]
   platformPackInstallations platform_pack_installations[]
@@ -594,6 +596,7 @@ model menu_items {
   isAvailable           Boolean                 @default(true)
   createdAt             DateTime                @default(now())
   updatedAt             DateTime                @updatedAt
+  stationCode           String?                 @default("MAIN_KITCHEN")
   menu_item_addons      menu_item_addons[]
   menu_item_ingredients menu_item_ingredients[]
   menu_item_variants    menu_item_variants[]
@@ -603,6 +606,7 @@ model menu_items {
 
   @@index([categoryId])
   @@index([tenantId])
+  @@index([stationCode])
 }
 
 model menu_item_variants {
@@ -667,6 +671,7 @@ model orders {
   invoice       invoices?
   order_items   order_items[]
   payments      order_payments[]
+  kitchen_tickets kitchen_tickets[]
   tenant        Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   tables        tables           @relation(fields: [tableId], references: [id])
   retailReturns retail_returns[]
@@ -5122,6 +5127,65 @@ model security_mfa_challenges {
   @@index([userId])
   @@map("security_mfa_challenges")
 }
+
+model kitchen_stations {
+  id           String   @id @default(cuid())
+  tenantId     String
+  name         String
+  code         String
+  description  String?
+  isActive     Boolean  @default(true)
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+  @@map("kitchen_stations")
+}
+
+model kitchen_tickets {
+  id              String                 @id @default(cuid())
+  tenantId        String
+  orderId         String
+  stationCode     String                 @default("MAIN_KITCHEN")
+  status          String                 @default("PENDING")
+  priority        String                 @default("NORMAL")
+  notes           String?
+  prepStartedAt   DateTime?
+  prepCompletedAt DateTime?
+  servedAt        DateTime?
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  orders          orders                 @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  tenant          Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  ticket_items    kitchen_ticket_items[]
+
+  @@unique([orderId, stationCode])
+  @@index([tenantId])
+  @@index([orderId])
+  @@index([stationCode])
+  @@index([status])
+  @@map("kitchen_tickets")
+}
+
+model kitchen_ticket_items {
+  id          String          @id @default(cuid())
+  ticketId    String
+  orderItemId String
+  menuItemId  String
+  name        String
+  quantity    Int
+  notes       String?
+  createdAt   DateTime        @default(now())
+  ticket      kitchen_tickets @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@index([orderItemId])
+  @@map("kitchen_ticket_items")
+}
+
 
 
 

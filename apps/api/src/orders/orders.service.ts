@@ -21,6 +21,7 @@ import {
   OrderStatus,
 } from './order-status';
 import { OrdersGateway } from '../gateways/orders.gateway';
+import { KitchenService } from '../kitchen/kitchen.service';
 
 const ORDER_ITEMS_INCLUDE = {
   order_items: {
@@ -81,6 +82,7 @@ export class OrdersService {
     private readonly prisma: PrismaService,
     private readonly ordersGateway: OrdersGateway,
     private readonly inventoryService: InventoryService,
+    private readonly kitchenService: KitchenService,
   ) {}
 
   private isSuperAdmin(user: JwtUser | undefined): boolean {
@@ -203,6 +205,8 @@ export class OrdersService {
           totalAmount: this.roundMoney(total),
         },
       });
+
+      await this.kitchenService.createTicketsForOrder(tx, tenantId, order.id);
 
       return order;
     });

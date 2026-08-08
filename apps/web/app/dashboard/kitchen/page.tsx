@@ -369,38 +369,58 @@ export default function KitchenDashboard() {
   const [recipeInstructions, setRecipeInstructions] = useState('');
 
   // Status transitions
-  const handleStartPrep = (orderId: string, minutes: number = 15) => {
-    setOrders(current =>
-      current.map(o =>
-        o.id === orderId
-          ? { ...o, status: 'PREPARING', estimatedCompletionMinutes: minutes, chefAssigned: o.chefAssigned || 'Chef Ramesh' }
-          : o
-      )
-    );
+  const handleStartPrep = async (orderId: string, minutes: number = 15) => {
+    try {
+      await updateOrderStatus(orderId, 'PREPARING');
+      setOrders(current =>
+        current.map(o =>
+          o.id === orderId
+            ? { ...o, status: 'PREPARING', estimatedCompletionMinutes: minutes, chefAssigned: o.chefAssigned || 'Chef Ramesh' }
+            : o
+        )
+      );
+    } catch (e) {
+      console.error('Failed to start prep:', e);
+    }
   };
 
-  const handleMarkReady = (orderId: string) => {
-    setOrders(current =>
-      current.map(o =>
-        o.id === orderId ? { ...o, status: 'READY', qualityChecked: true, packed: true } : o
-      )
-    );
+  const handleMarkReady = async (orderId: string) => {
+    try {
+      await updateOrderStatus(orderId, 'READY');
+      setOrders(current =>
+        current.map(o =>
+          o.id === orderId ? { ...o, status: 'READY', qualityChecked: true, packed: true } : o
+        )
+      );
+    } catch (e) {
+      console.error('Failed to mark ready:', e);
+    }
   };
 
-  const handleCompleteOrder = (orderId: string) => {
-    setOrders(current =>
-      current.map(o =>
-        o.id === orderId ? { ...o, status: 'COMPLETED' } : o
-      )
-    );
+  const handleCompleteOrder = async (orderId: string) => {
+    try {
+      await updateOrderStatus(orderId, 'COMPLETED');
+      setOrders(current =>
+        current.map(o =>
+          o.id === orderId ? { ...o, status: 'COMPLETED' } : o
+        )
+      );
+    } catch (e) {
+      console.error('Failed to complete order:', e);
+    }
   };
 
-  const handleCancelOrder = (orderId: string, reason: string) => {
-    setOrders(current =>
-      current.map(o =>
-        o.id === orderId ? { ...o, status: 'CANCELLED', cancellationReason: reason } : o
-      )
-    );
+  const handleCancelOrder = async (orderId: string, reason: string) => {
+    try {
+      await updateOrderStatus(orderId, 'CANCELLED');
+      setOrders(current =>
+        current.map(o =>
+          o.id === orderId ? { ...o, status: 'CANCELLED', cancellationReason: reason } : o
+        )
+      );
+    } catch (e) {
+      console.error('Failed to cancel order:', e);
+    }
   };
 
   const handleAssignChef = (orderId: string, chefName: string) => {
