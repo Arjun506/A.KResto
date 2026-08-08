@@ -23,6 +23,15 @@ import { ConsentPrivacyController } from './consent-privacy/consent-privacy.cont
 import { LoyaltyService } from './loyalty/loyalty.service';
 import { LoyaltyController } from './loyalty/loyalty.controller';
 
+import { RewardsService } from './rewards/rewards.service';
+import { RewardsController } from './rewards/rewards.controller';
+
+import { OffersService } from './offers/offers.service';
+import { OffersController } from './offers/offers.controller';
+
+import { ReferralsService } from './referrals/referrals.service';
+import { ReferralsController } from './referrals/referrals.controller';
+
 import { SupportTicketsService } from './support-tickets/support-tickets.service';
 import { SupportTicketsController } from './support-tickets/support-tickets.controller';
 
@@ -47,6 +56,9 @@ import { CrmLookupController } from './lookups/crm-lookup.controller';
     Customer360Controller,
     ConsentPrivacyController,
     LoyaltyController,
+    RewardsController,
+    OffersController,
+    ReferralsController,
     SupportTicketsController,
     CampaignAutomationController,
     FeedbackSurveysController,
@@ -61,6 +73,9 @@ import { CrmLookupController } from './lookups/crm-lookup.controller';
     Customer360Service,
     ConsentPrivacyService,
     LoyaltyService,
+    RewardsService,
+    OffersService,
+    ReferralsService,
     SupportTicketsService,
     CampaignAutomationService,
     FeedbackSurveysService,
@@ -74,6 +89,9 @@ import { CrmLookupController } from './lookups/crm-lookup.controller';
     Customer360Service,
     ConsentPrivacyService,
     LoyaltyService,
+    RewardsService,
+    OffersService,
+    ReferralsService,
     SupportTicketsService,
     CampaignAutomationService,
     FeedbackSurveysService,

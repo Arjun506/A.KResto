@@ -538,15 +538,19 @@ export default function LoginPage() {
 
         /* ---------- right panel ---------- */
         .right {
-          display: flex; align-items: center; justify-content: center;
-          padding: 24px 32px; position: relative;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 56px 32px 70px;
+          position: relative;
         }
 
         /* Unique Animated Theme Toggle Button */
         .theme-toggle-animated {
           position: absolute;
-          top: 20px;
-          right: 32px;
+          top: 22px;
+          right: 36px;
           z-index: 10;
           display: flex;
           align-items: center;
@@ -615,7 +619,7 @@ export default function LoginPage() {
           -webkit-backdrop-filter: blur(22px) saturate(140%);
           box-shadow: var(--card-shadow);
           animation: cardIn .7s cubic-bezier(.2, .8, .2, 1) both;
-          margin-top: 14px;
+          margin: 0 auto;
         }
         @keyframes cardIn { from { opacity: 0; transform: translateY(18px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
@@ -754,10 +758,15 @@ export default function LoginPage() {
             gap: 8px !important;
           }
           .right {
-            padding: 12px 24px 58px !important;
+            padding: 44px 24px 58px !important;
+            justify-content: center !important;
+          }
+          .theme-toggle-animated {
+            top: 16px !important;
+            right: 28px !important;
           }
           .card {
-            margin-top: 0 !important;
+            margin: 0 auto !important;
             padding: 18px 22px 14px !important;
             max-width: 385px !important;
           }
@@ -1007,7 +1016,7 @@ export default function LoginPage() {
                 <Link href="/help">Need help?</Link>
               </div>
 
-              <button type="submit" className="btn-primary" disabled={loading || success}>
+              <button type="submit" className="btn-primary" style={{ marginBottom: '14px' }} disabled={loading || success}>
                 {success ? (
                   <>
                     <CheckCircle size={16} /> Loading Workspace...
@@ -1024,20 +1033,6 @@ export default function LoginPage() {
                 )}
               </button>
             </form>
-
-            <div className="divider"><span>OR CONTINUE WITH</span></div>
-
-            <div className="oauth">
-              <button type="button" onClick={() => setErrorMsg('Google SSO is ready for production domain.')}>
-                <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.5 12.2c0-.8-.07-1.5-.2-2.2H12v4.2h5.9c-.25 1.3-1 2.4-2.15 3.1v2.6h3.5c2-1.9 3.25-4.6 3.25-7.7z"/><path fill="#34A853" d="M12 23c2.9 0 5.35-.95 7.15-2.6l-3.5-2.6c-.97.65-2.2 1.05-3.65 1.05-2.8 0-5.2-1.9-6.05-4.4H2.35v2.7C4.15 20.6 7.8 23 12 23z"/><path fill="#FBBC05" d="M5.95 14.45A6.9 6.9 0 0 1 5.6 12c0-.85.15-1.7.35-2.45V6.85H2.35A11 11 0 0 0 1 12c0 1.8.4 3.5 1.35 5.15l3.6-2.7z"/><path fill="#EA4335" d="M12 5.4c1.6 0 3 .55 4.1 1.6l3.1-3.1C17.35 2.1 14.9 1 12 1 7.8 1 4.15 3.4 2.35 6.85l3.6 2.7C6.8 7.05 9.2 5.4 12 5.4z"/></svg> Google
-              </button>
-              <button type="button" onClick={() => setErrorMsg('Microsoft Entra ID is ready for enterprise SSO.')}>
-                <svg viewBox="0 0 24 24"><rect x="2" y="2" width="9" height="9" fill="#F35325"/><rect x="13" y="2" width="9" height="9" fill="#81BC06"/><rect x="2" y="13" width="9" height="9" fill="#05A6F0"/><rect x="13" y="13" width="9" height="9" fill="#FFBA08"/></svg> Microsoft
-              </button>
-              <button type="button" onClick={() => setErrorMsg('Apple ID authentication is ready for iOS/macOS.')}>
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.365 1.43c.09 1.02-.31 2.03-.94 2.76-.64.75-1.68 1.33-2.68 1.24-.11-1 .37-2.05 1-2.76.68-.78 1.83-1.34 2.62-1.24zM20.6 17.2c-.55 1.28-.82 1.85-1.53 2.98-1 1.6-2.4 3.6-4.14 3.62-1.55.02-1.95-1-4.04-1-2.1 0-2.55 1-4.05.98-1.75-.02-3.08-1.82-4.08-3.4C.6 16.9-.2 12.4 1.5 9.4c.9-1.6 2.5-2.6 4.2-2.62 1.55-.03 3 1.05 3.95 1.05.94 0 2.7-1.3 4.56-1.1.78.03 2.96.32 4.36 2.4-3.68 2.02-3.08 7.06 0 8.07z"/></svg> Apple
-              </button>
-            </div>
 
             <div className="signup-note">
               <svg viewBox="0 0 24 24" fill="none" stroke="#4f7bff" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg>

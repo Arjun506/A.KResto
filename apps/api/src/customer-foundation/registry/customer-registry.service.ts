@@ -27,16 +27,10 @@ export class CustomerRegistryService {
   ) {}
 
   async registerCustomer(dto: RegisterCustomerDto, actorId?: string) {
-    const duplicates = await this.repo.findDuplicates(
-      dto.email,
-      dto.phone,
-      dto.tenantId,
-    );
-    if (duplicates.length > 0) {
-      // Duplicates detected, proceed with registration while logging warning
-    }
-
     const customer = await this.repo.create(dto, actorId);
+    if (!customer) {
+      throw new NotFoundException('Failed to create customer record');
+    }
 
     await this.repo.recordTimeline(
       customer.id,
@@ -77,6 +71,34 @@ export class CustomerRegistryService {
     return customer;
   }
 
+  async updateCustomer(id: string, dto: any, actorId?: string) {
+    await this.getCustomerById(id);
+    const updated = await this.repo.updateCustomer(id, dto, actorId);
+
+    await this.repo.recordTimeline(
+      id,
+      'CUSTOMER_UPDATED',
+      `Customer profile updated`,
+      actorId,
+    );
+
+    return updated;
+  }
+
+  async addCustomerNote(id: string, content: string, actorId?: string) {
+    await this.getCustomerById(id);
+    const note = await this.repo.addNote(id, content, actorId || 'SYSTEM');
+
+    await this.repo.recordTimeline(
+      id,
+      'NOTE_ADDED',
+      `New note added to customer profile`,
+      actorId,
+    );
+
+    return note;
+  }
+
   async updateStatus(id: string, newStatus: CustomerStatus, actorId?: string) {
     const customer = await this.getCustomerById(id);
     const previousStatus = customer.status;
@@ -97,27 +119,6 @@ export class CustomerRegistryService {
         updated.tenantId || undefined,
       ),
     );
-
-    if (newStatus === CustomerStatus.ARCHIVED) {
-      await this.eventBus.publish(
-        new CustomerArchivedEvent(
-          id,
-          { customerId: id },
-          updated.tenantId || undefined,
-        ),
-      );
-    } else if (
-      previousStatus === CustomerStatus.SUSPENDED &&
-      newStatus === CustomerStatus.ACTIVE
-    ) {
-      await this.eventBus.publish(
-        new CustomerReactivatedEvent(
-          id,
-          { customerId: id },
-          updated.tenantId || undefined,
-        ),
-      );
-    }
 
     return updated;
   }
@@ -173,14 +174,6 @@ export class CustomerRegistryService {
       actorId,
     );
 
-    await this.eventBus.publish(
-      new CustomerMergedEvent(
-        sourceCustomerId,
-        { sourceCustomerId, targetCustomerId },
-        target.tenantId || undefined,
-      ),
-    );
-
     return merged;
   }
 
@@ -195,19 +188,18 @@ export class CustomerRegistryService {
       actorId,
     );
 
-    await this.eventBus.publish(
-      new CustomerDeletedEvent(
-        id,
-        { customerId: id },
-        customer.tenantId || undefined,
-      ),
-    );
-
     return { success: true, message: `Customer ${id} soft deleted` };
   }
 
-  async listCustomers(tenantId?: string, page: number = 1, limit: number = 20) {
-    const { items, total } = await this.repo.list(tenantId, page, limit);
+  async listCustomers(
+    tenantId?: string,
+    page: number = 1,
+    limit: number = 20,
+    search?: string,
+    status?: string,
+    segment?: string,
+  ) {
+    const { items, total } = await this.repo.list(tenantId, page, limit, search, status, segment);
     return {
       items,
       totalItems: total,
